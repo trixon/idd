@@ -10,4 +10,64 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-</project>
+    <description>Image Displayer Daemon</description>
+    <url>https://github.com/trixon/java-idd</url>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <id>trixon</id>
+            <name>Patrik Karlsson</name>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <email>patrik@trixon.se</email>
+            <url>http://trixon.se</url>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+    <scm>
+        <url>https://github.com/trixon/java-idd</url>
+        <connection>scm:git:git://github.com/trixon/java-idd.git</connection>
+        <developerConnection>scm:git:git@github.com:trixon/java-idd.git</developerConnection>
+      <tag>HEAD</tag>
+  </scm>    
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.4</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.5</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>se.trixon.idd</groupId>
+            <artifactId>idl</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                </configuration>
+            </plugin>        
+        </plugins>
+    </build>
+    <name>idd</name>
+</project></project>
