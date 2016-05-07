@@ -35,8 +35,8 @@
         <url>https://github.com/trixon/java-idd</url>
         <connection>scm:git:git://github.com/trixon/java-idd.git</connection>
         <developerConnection>scm:git:git@github.com:trixon/java-idd.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>    
+        <tag>HEAD</tag>
+    </scm>    
     <dependencies>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -61,6 +61,36 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>se.trixon.idd.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>true</minimizeJar>
+                            <filters>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.5.3</version>
                 <configuration>
@@ -70,4 +100,5 @@
         </plugins>
     </build>
     <name>idd</name>
-</project></project>
+</project>
+</project>
