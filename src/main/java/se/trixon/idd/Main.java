@@ -15,16 +15,110 @@
  */
 package se.trixon.idd;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.util.ResourceBundle;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.SystemUtils;
+import se.trixon.util.BundleHelper;
+import se.trixon.util.SystemHelper;
+
 /**
  *
  * @author Patrik Karlsson
  */
 public class Main {
 
+    public static final String HELP = "help";
+    public static final String VERBOSE = "verbose";
+    public static final String VERSION = "version";
+
+    private final ResourceBundle mBundle = BundleHelper.getBundle(Main.class, "Bundle");
+    private Options mOptions;
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        System.out.println("idd");
+        new Main(args);
     }
+
+    public Main(String[] args) {
+        initOptions();
+        if (args.length == 0) {
+            displayHelp();
+        } else {
+            try {
+                CommandLineParser commandLineParser = new DefaultParser();
+                CommandLine commandLine = commandLineParser.parse(mOptions, args);
+
+                if (commandLine.hasOption(HELP)) {
+                    displayHelp();
+                    System.exit(0);
+                } else if (commandLine.hasOption(VERSION)) {
+                    displayVersion();
+                    System.exit(0);
+                } else {
+                }
+            } catch (ParseException ex) {
+                System.out.println(ex.getMessage());
+                System.out.println(mBundle.getString("parse_help"));
+            }
+        }
+    }
+
+    private void displayHelp() {
+        PrintStream defaultStdOut = System.out;
+        StringBuilder sb = new StringBuilder()
+                .append(mBundle.getString("usage")).append("\n\n");
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
+        System.setOut(ps);
+
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.setWidth(79);
+        formatter.setOptionComparator(null);
+        formatter.printHelp("xxx", mOptions, false);
+        System.out.flush();
+        System.setOut(defaultStdOut);
+        sb.append(baos.toString().replace("usage: xxx" + SystemUtils.LINE_SEPARATOR, "")).append("\n")
+                .append(mBundle.getString("help_footer"));
+
+        System.out.println(sb.toString());
+    }
+
+    private void displayVersion() {
+        System.out.println(String.format(mBundle.getString("version_info"), SystemHelper.getJarVersion(this.getClass())));
+    }
+
+    private void initOptions() {
+        Option help = Option.builder("h")
+                .longOpt(HELP)
+                .desc(mBundle.getString("opt_help_desc"))
+                .build();
+
+        Option version = Option.builder("V")
+                .longOpt(VERSION)
+                .desc(mBundle.getString("opt_version_desc"))
+                .build();
+
+        Option verbose = Option.builder("v")
+                .longOpt(VERBOSE)
+                .desc(mBundle.getString("opt_verbose_desc"))
+                .build();
+
+        mOptions = new Options();
+
+        mOptions.addOption(verbose);
+        mOptions.addOption(help);
+        mOptions.addOption(version);
+    }
+
 }
