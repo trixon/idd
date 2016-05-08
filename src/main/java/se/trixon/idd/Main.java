@@ -16,6 +16,7 @@
 package se.trixon.idd;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ResourceBundle;
 import org.apache.commons.cli.CommandLine;
@@ -25,7 +26,10 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.lang3.SystemUtils;
+import se.trixon.idl.IddHelper;
 import se.trixon.util.BundleHelper;
 import se.trixon.util.SystemHelper;
 
@@ -41,42 +45,44 @@ public class Main {
 
     private final ResourceBundle mBundle = BundleHelper.getBundle(Main.class, "Bundle");
     private Options mOptions;
+    private final Config mConfig = Config.getInstance();
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         new Main(args);
     }
 
-    public Main(String[] args) {
+    public Main(String[] args) throws IOException {
         initOptions();
-        if (args.length == 0) {
-            displayHelp();
-        } else {
-            try {
-                CommandLineParser commandLineParser = new DefaultParser();
-                CommandLine commandLine = commandLineParser.parse(mOptions, args);
 
-                if (commandLine.hasOption(HELP)) {
-                    displayHelp();
-                    System.exit(0);
-                } else if (commandLine.hasOption(VERSION)) {
-                    displayVersion();
-                    System.exit(0);
-                } else {
+        try {
+            CommandLineParser commandLineParser = new DefaultParser();
+            CommandLine commandLine = commandLineParser.parse(mOptions, args);
+            mConfig.setVerbose(commandLine.hasOption(VERBOSE));
+
+            if (commandLine.hasOption(HELP)) {
+                displayHelp();
+                System.exit(0);
+            } else if (commandLine.hasOption(VERSION)) {
+                displayVersion();
+                System.exit(0);
+            } else {
+                String filename = commandLine.getArgs().length > 0 ? commandLine.getArgs()[0] : null;
+                if (mConfig.load(filename)) {
+                    ImageServer imageServer = new ImageServer();
                 }
-            } catch (ParseException ex) {
-                System.out.println(ex.getMessage());
-                System.out.println(mBundle.getString("parse_help"));
             }
+        } catch (ParseException ex) {
+            System.out.println(ex.getMessage());
+            System.out.println(mBundle.getString("parse_help"));
         }
     }
 
     private void displayHelp() {
         PrintStream defaultStdOut = System.out;
-        StringBuilder sb = new StringBuilder()
-                .append(mBundle.getString("usage")).append("\n\n");
+        StringBuilder sb = new StringBuilder().append(mBundle.getString("usage")).append("\n\n");
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(baos);
@@ -89,7 +95,7 @@ public class Main {
         System.out.flush();
         System.setOut(defaultStdOut);
         sb.append(baos.toString().replace("usage: xxx" + SystemUtils.LINE_SEPARATOR, "")).append("\n")
-                .append(mBundle.getString("help_footer"));
+                .append(IddHelper.getBundle().getString("help_footer"));
 
         System.out.println(sb.toString());
     }
@@ -104,7 +110,7 @@ public class Main {
                 .desc(mBundle.getString("opt_help_desc"))
                 .build();
 
-        Option version = Option.builder("V")
+        Option version = Option.builder("v")
                 .longOpt(VERSION)
                 .desc(mBundle.getString("opt_version_desc"))
                 .build();
@@ -116,9 +122,8 @@ public class Main {
 
         mOptions = new Options();
 
-        mOptions.addOption(verbose);
+//        mOptions.addOption(verbose);
         mOptions.addOption(help);
         mOptions.addOption(version);
     }
-
 }
