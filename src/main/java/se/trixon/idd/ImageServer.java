@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import se.trixon.idl.ClientCallbacks;
+import se.trixon.idl.IDServer;
 import se.trixon.idl.ImageServerCommander;
 import se.trixon.idl.IddHelper;
 import se.trixon.idl.ImageServerEvent;
@@ -108,8 +109,8 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
     }
 
     private void startServer() {
-        System.setProperty("java.rmi.server.hostname", SystemHelper.getHostname());
-        mRmiNameServer = IddHelper.getRmiName(SystemHelper.getHostname(), mConfig.getPort(), getClass());
+        SystemHelper.enableRmiServer();
+        mRmiNameServer = IddHelper.getRmiName(SystemHelper.getHostname(), mConfig.getPort(), IDServer.class);
 
         try {
             LocateRegistry.createRegistry(mConfig.getPort());
