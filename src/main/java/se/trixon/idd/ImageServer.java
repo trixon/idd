@@ -28,11 +28,11 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import se.trixon.idl.ClientCallbacks;
-import se.trixon.idl.IDServer;
-import se.trixon.idl.ImageServerCommander;
-import se.trixon.idl.IddHelper;
-import se.trixon.idl.ImageServerEvent;
+import se.trixon.idl.shared.ClientCallbacks;
+import se.trixon.idl.shared.IDServer;
+import se.trixon.idl.shared.ImageServerCommander;
+import se.trixon.idl.shared.IddHelper;
+import se.trixon.idl.shared.ImageServerEvent;
 import se.trixon.util.SystemHelper;
 import se.trixon.util.Xlog;
 

@@ -27,7 +27,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
-import se.trixon.idl.IddHelper;
+import se.trixon.idl.shared.IddHelper;
 import se.trixon.util.BundleHelper;
 import se.trixon.util.SystemHelper;
 
@@ -47,6 +47,7 @@ public class Main {
 
     /**
      * @param args the command line arguments
+     * @throws java.io.IOException
      */
     public static void main(String[] args) throws IOException {
         new Main(args);
