@@ -24,6 +24,7 @@ import java.rmi.dgc.VMID;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -52,6 +53,13 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
 
         intiListeners();
         startServer();
+    }
+
+    @Override
+    public String execute(String command, String... args) throws RemoteException {
+        Executor executor = new Executor(command, args);
+
+        return executor.execute();
     }
 
     @Override
