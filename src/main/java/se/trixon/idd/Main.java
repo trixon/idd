@@ -18,7 +18,10 @@ package se.trixon.idd;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.sql.SQLException;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -27,6 +30,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
+import se.trixon.idd.db.DbTest;
 import se.trixon.idl.shared.IddHelper;
 import se.trixon.util.BundleHelper;
 import se.trixon.util.SystemHelper;
@@ -70,7 +74,12 @@ public class Main {
             } else {
                 String filename = commandLine.getArgs().length > 0 ? commandLine.getArgs()[0] : null;
                 if (mConfig.load(filename)) {
-                    ImageServer imageServer = new ImageServer();
+                    try {
+                        //ImageServer imageServer = new ImageServer();
+                        DbTest.main(args);
+                    } catch (ClassNotFoundException | SQLException ex) {
+                        Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
         } catch (ParseException ex) {

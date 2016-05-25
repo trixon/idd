@@ -29,6 +29,7 @@ public class Config {
 
     private boolean mConfigLoaded;
     private Configuration mConfiguration;
+    private File mDbFile;
     private int mPort;
     private boolean mVerbose;
 
@@ -41,6 +42,10 @@ public class Config {
 
     public Configuration getConfiguration() {
         return mConfiguration;
+    }
+
+    public File getDbFile() {
+        return mDbFile;
     }
 
     public int getPort() {
@@ -83,6 +88,7 @@ public class Config {
                 Configurations configurations = new Configurations();
                 mConfiguration = configurations.properties(file);
                 mPort = mConfiguration.getInt("port", 1099);
+                mDbFile = new File(mConfiguration.getString("db_file", "idd.db"));
                 mConfigLoaded = true;
             } catch (ConfigurationException ex) {
                 System.err.println(ex.getMessage());
