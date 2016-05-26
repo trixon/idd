@@ -15,19 +15,41 @@
  */
 package se.trixon.idd.db;
 
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import se.trixon.idd.db.manager.BaseManager;
+import se.trixon.idd.db.manager.TestManager;
+
 /**
  *
  * @author Patrik Karlsson
  */
 public class DbCreator {
-    
-    private DbCreator() {
-    }
-    
+
+    private final Db mDb = Db.getInstance();
+
     public static DbCreator getInstance() {
         return Holder.INSTANCE;
     }
-    
+
+    private DbCreator() {
+    }
+
+    private void init(BaseManager manager) {
+        try {
+            mDb.drop(manager.getTable(), true);
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(DbCreator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        manager.create();
+    }
+
+    public void initDb() {
+        init(TestManager.getInstance());
+    }
+
     private static class Holder {
 
         private static final DbCreator INSTANCE = new DbCreator();

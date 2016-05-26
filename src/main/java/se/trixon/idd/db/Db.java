@@ -15,10 +15,17 @@
  */
 package se.trixon.idd.db;
 
+import com.healthmarketscience.sqlbuilder.CreateTableQuery;
+import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
+import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSpec;
+import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Properties;
+import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import se.trixon.idd.Config;
 
 /**
@@ -28,22 +35,61 @@ import se.trixon.idd.Config;
 public class Db {
 
     private Connection mAutoCommitConnection = null;
+    private final DbSpec mSpec;
 
     private Db() {
+        mSpec = new DbSpec();
+        init();
     }
 
     public static Db getInstance() {
         return Holder.INSTANCE;
     }
 
+    public DbSpec getSpec() {
+        return mSpec;
+    }
+
     public Connection getAutoCommitConnection() throws ClassNotFoundException, SQLException {
         if (mAutoCommitConnection == null) {
             Class.forName("org.h2.Driver");
-            System.out.println(Config.getInstance().getDbFile().getAbsolutePath());
             mAutoCommitConnection = DriverManager.getConnection(String.format("jdbc:h2:%s", Config.getInstance().getDbFile().getAbsolutePath()));
         }
 
         return mAutoCommitConnection;
+    }
+
+    public void drop(DbTable table, boolean cascade) throws ClassNotFoundException, SQLException {
+        try (Statement statement = getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            String sql = String.format("DROP TABLE IF EXISTS %s %s;", table.getName(), cascade ? "CASCADE" : "");
+            System.out.println(sql);
+            statement.execute(sql);
+        }
+    }
+
+    public boolean create(DbTable table, DbConstraint... constraints) {
+        boolean tableCreated;
+
+        try (Statement statement = getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            for (DbConstraint constraint : constraints) {
+                table.addConstraint(constraint);
+            }
+
+            String sql = new CreateTableQuery(table, true).validate().toString();
+            System.out.println("Db.create() " + sql);
+
+            tableCreated = statement.execute(sql);
+        } catch (ClassNotFoundException | SQLException ex) {
+            System.err.println("Table creation failed. " + table.getName());
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            tableCreated = false;
+        }
+
+        return tableCreated;
+    }
+
+    private void init() {
+        mSpec.addDefaultSchema();
     }
 
     private static class Holder {
