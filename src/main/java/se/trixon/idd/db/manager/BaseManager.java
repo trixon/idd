@@ -15,7 +15,9 @@
  */
 package se.trixon.idd.db.manager;
 
+import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
+import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSchema;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
 import se.trixon.idd.db.Db;
@@ -32,6 +34,11 @@ public abstract class BaseManager {
 
     public BaseManager() {
         mDb = Db.getInstance();
+    }
+
+    public void addNotNullConstraint(DbColumn column) {
+        DbConstraint statusNotNullConstraint = new DbConstraint(column, null, Constraint.Type.NOT_NULL);
+        column.addConstraint(statusNotNullConstraint);
     }
 
     public abstract void create();

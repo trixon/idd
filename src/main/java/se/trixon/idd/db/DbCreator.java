@@ -18,6 +18,7 @@ package se.trixon.idd.db;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import se.trixon.idd.db.manager.AlbumRootManager;
 import se.trixon.idd.db.manager.BaseManager;
 import se.trixon.idd.db.manager.TestManager;
 
@@ -48,6 +49,7 @@ public class DbCreator {
 
     public void initDb() {
         init(TestManager.getInstance());
+        init(AlbumRootManager.getInstance());
     }
 
     private static class Holder {
