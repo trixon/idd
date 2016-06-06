@@ -21,7 +21,8 @@ import java.util.logging.Logger;
 import se.trixon.idd.db.manager.AlbumManager;
 import se.trixon.idd.db.manager.AlbumRootManager;
 import se.trixon.idd.db.manager.BaseManager;
-import se.trixon.idd.db.manager.TestManager;
+import se.trixon.idd.db.manager.ImageManager;
+import se.trixon.idd.db.manager.TemplateManager;
 
 /**
  *
@@ -49,9 +50,9 @@ public class DbCreator {
     }
 
     public void initDb() {
-        init(TestManager.getInstance());
         init(AlbumRootManager.getInstance());
         init(AlbumManager.getInstance());
+        init(ImageManager.getInstance());
     }
 
     private static class Holder {

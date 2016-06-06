@@ -23,16 +23,16 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
  *
  * @author Patrik Karlsson
  */
-public class TestManager extends BaseManager {
+public class TemplateManager extends BaseManager {
 
     public static final String COL_ID = "test_id";
     public static final String TABLE_NAME = "test";
 
-    public static TestManager getInstance() {
+    public static TemplateManager getInstance() {
         return Holder.INSTANCE;
     }
 
-    private TestManager() {
+    private TemplateManager() {
         mTable = getSchema().addTable(TABLE_NAME);
 
         mId = mTable.addColumn(COL_ID, "IDENTITY", null);
@@ -48,6 +48,6 @@ public class TestManager extends BaseManager {
 
     private static class Holder {
 
-        private static final TestManager INSTANCE = new TestManager();
+        private static final TemplateManager INSTANCE = new TemplateManager();
     }
 }

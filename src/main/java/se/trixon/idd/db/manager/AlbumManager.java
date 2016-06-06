@@ -47,18 +47,18 @@ public class AlbumManager extends BaseManager {
         mTable = getSchema().addTable(TABLE_NAME);
 
         mId = mTable.addColumn(COL_ID, "IDENTITY", null);
-        mAlbumRootId = mTable.addColumn(AlbumRootManager.COL_ID, "INT", null);
+        mAlbumRootId = mTable.addColumn(AlbumRootManager.COL_ID, "BIGINT", null);
         mRelativePath = mTable.addColumn(COL_RELATIVE_PATH, "VARCHAR", Integer.MAX_VALUE);
         mDate = mTable.addColumn(COL_DATE, "DATE", null);
         mCaption = mTable.addColumn(COL_CAPTION, "VARCHAR", Integer.MAX_VALUE);
         mCollection = mTable.addColumn(COL_COLLECTION, "VARCHAR", Integer.MAX_VALUE);
         mIcon = mTable.addColumn(COL_ICON, "INT", null);
 
-        String indexName;
-        BaseManager manager;
-
         addNotNullConstraint(mAlbumRootId);
         addNotNullConstraint(mRelativePath);
+
+        String indexName;
+        BaseManager manager;
 
         manager = AlbumRootManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
