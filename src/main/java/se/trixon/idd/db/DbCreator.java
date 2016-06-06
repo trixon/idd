@@ -24,6 +24,7 @@ import se.trixon.idd.db.manager.BaseManager;
 import se.trixon.idd.db.manager.ImageInformationManager;
 import se.trixon.idd.db.manager.ImageManager;
 import se.trixon.idd.db.manager.ImageMetadataManager;
+import se.trixon.idd.db.manager.ImagePositionManager;
 
 /**
  *
@@ -56,6 +57,7 @@ public class DbCreator {
         init(ImageManager.getInstance());
         init(ImageInformationManager.getInstance());
         init(ImageMetadataManager.getInstance());
+        init(ImagePositionManager.getInstance());
     }
 
     private static class Holder {
