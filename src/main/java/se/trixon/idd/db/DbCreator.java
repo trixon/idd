@@ -23,6 +23,7 @@ import se.trixon.idd.db.manager.AlbumRootManager;
 import se.trixon.idd.db.manager.BaseManager;
 import se.trixon.idd.db.manager.ImageInformationManager;
 import se.trixon.idd.db.manager.ImageManager;
+import se.trixon.idd.db.manager.ImageMetadataManager;
 
 /**
  *
@@ -54,6 +55,7 @@ public class DbCreator {
         init(AlbumManager.getInstance());
         init(ImageManager.getInstance());
         init(ImageInformationManager.getInstance());
+        init(ImageMetadataManager.getInstance());
     }
 
     private static class Holder {
