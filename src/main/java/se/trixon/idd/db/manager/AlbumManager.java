@@ -15,9 +15,15 @@
  */
 package se.trixon.idd.db.manager;
 
+import com.healthmarketscience.sqlbuilder.InsertQuery;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import se.trixon.idl.shared.db.Album;
 
 /**
  *
@@ -73,6 +79,35 @@ public class AlbumManager extends BaseManager {
         indexName = getIndexName(new DbColumn[]{mAlbumRootId, mRelativePath}, "key");
         DbConstraint uniqueKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.UNIQUE, mAlbumRootId, mRelativePath);
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
+    }
+
+    public long insert(Album album) throws ClassNotFoundException, SQLException {
+        InsertQuery insertQuery = new InsertQuery(mTable)
+                .addColumn(mAlbumRootId, album.getAlbumRootId())
+                .addColumn(mCaption, album.getCaption())
+                .addColumn(mCollection, album.getCollection())
+                .addColumn(mDate, album.getDate())
+                .addColumn(mIcon, album.getIcon())
+                .addColumn(mRelativePath, album.getRelativePath())
+                .validate();
+
+        String sql = insertQuery.toString();
+
+        Connection connection = mDb.getAutoCommitConnection();
+        try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            int affectedRows = statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
+            if (affectedRows == 0) {
+                throw new SQLException("Creating album failed, no rows affected.");
+            }
+
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getLong(1);
+                } else {
+                    throw new SQLException("Creating album failed, no ID obtained.");
+                }
+            }
+        }
     }
 
     private static class Holder {

@@ -47,8 +47,8 @@ public class Main {
     public static final String VERSION = "version";
 
     private final ResourceBundle mBundle = BundleHelper.getBundle(Main.class, "Bundle");
-    private Options mOptions;
     private final Config mConfig = Config.getInstance();
+    private Options mOptions;
 
     /**
      * @param args the command line arguments
@@ -75,8 +75,10 @@ public class Main {
             } else {
                 String filename = commandLine.getArgs().length > 0 ? commandLine.getArgs()[0] : null;
                 if (mConfig.load(filename)) {
-                    DbCreator.getInstance().initDb();
-                        DbCreator.getInstance();
+                    //DbCreator.getInstance().initDb();
+//                    DbCreator.getInstance();
+                    Executor executor = new Executor("update", null);
+                    executor.execute();
 
 //                    try {
 ////                        ImageServer imageServer = new ImageServer();

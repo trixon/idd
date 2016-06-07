@@ -15,6 +15,16 @@
  */
 package se.trixon.idd;
 
+import java.io.IOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.sql.SQLException;
+import java.util.EnumSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import se.trixon.idd.db.Db;
+import se.trixon.idd.db.DbCreator;
+import se.trixon.idd.db.FileVisitor;
 import se.trixon.idl.shared.Commands;
 import se.trixon.util.SystemHelper;
 
@@ -26,10 +36,27 @@ public class Executor {
 
     private final String[] mArgs;
     private final String mCommand;
+    private final Config mConfig = Config.getInstance();
+    private final Db mDb = Db.getInstance();
 
     public Executor(String command, String... args) {
         mCommand = command;
         mArgs = args;
+    }
+
+    private void update() {
+        try {
+            mDb.dropAllObjects();
+            DbCreator.getInstance().initDb();
+            EnumSet<FileVisitOption> fileVisitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+            FileVisitor fileVisitor = new FileVisitor();
+            Files.walkFileTree(mConfig.getImageDirectory().toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
+
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(Executor.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Executor.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     String execute() {
@@ -41,6 +68,7 @@ public class Executor {
                 result = "stats";
                 break;
             case Commands.UPDATE:
+                update();
                 result = "update";
                 break;
             case Commands.VERSION:

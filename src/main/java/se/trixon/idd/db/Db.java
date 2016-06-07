@@ -37,34 +37,13 @@ public class Db {
     private Connection mAutoCommitConnection = null;
     private final DbSpec mSpec;
 
-    private Db() {
-        mSpec = new DbSpec();
-        init();
-    }
-
     public static Db getInstance() {
         return Holder.INSTANCE;
     }
 
-    public DbSpec getSpec() {
-        return mSpec;
-    }
-
-    public Connection getAutoCommitConnection() throws ClassNotFoundException, SQLException {
-        if (mAutoCommitConnection == null) {
-            Class.forName("org.h2.Driver");
-            mAutoCommitConnection = DriverManager.getConnection(String.format("jdbc:h2:%s", Config.getInstance().getDbFile().getAbsolutePath()));
-        }
-
-        return mAutoCommitConnection;
-    }
-
-    public void drop(DbTable table, boolean cascade) throws ClassNotFoundException, SQLException {
-        try (Statement statement = getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            String sql = String.format("DROP TABLE IF EXISTS %s %s;", table.getName(), cascade ? "CASCADE" : "");
-            System.out.println(sql);
-            statement.execute(sql);
-        }
+    private Db() {
+        mSpec = new DbSpec();
+        init();
     }
 
     public boolean create(DbTable table, DbConstraint... constraints) {
@@ -86,6 +65,35 @@ public class Db {
         }
 
         return tableCreated;
+    }
+
+    public void drop(DbTable table, boolean cascade) throws ClassNotFoundException, SQLException {
+        try (Statement statement = getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            String sql = String.format("DROP TABLE IF EXISTS %s %s;", table.getName(), cascade ? "CASCADE" : "");
+            System.out.println(sql);
+            statement.execute(sql);
+        }
+    }
+
+    public void dropAllObjects() throws ClassNotFoundException, SQLException {
+        try (Statement statement = getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            String sql = "DROP ALL OBJECTS";
+            System.out.println(sql);
+            statement.execute(sql);
+        }
+    }
+
+    public Connection getAutoCommitConnection() throws ClassNotFoundException, SQLException {
+        if (mAutoCommitConnection == null) {
+            Class.forName("org.h2.Driver");
+            mAutoCommitConnection = DriverManager.getConnection(String.format("jdbc:h2:%s", Config.getInstance().getDbFile().getAbsolutePath()));
+        }
+
+        return mAutoCommitConnection;
+    }
+
+    public DbSpec getSpec() {
+        return mSpec;
     }
 
     private void init() {

@@ -19,6 +19,7 @@ import java.io.File;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.lang3.SystemUtils;
 import se.trixon.util.dictionary.Dict;
 
 /**
@@ -30,11 +31,13 @@ public class Config {
     private boolean mConfigLoaded;
     private Configuration mConfiguration;
     private File mDbFile;
+    private File mImageDirectory;
+    private int mImageDirectoryLevel;
     private int mPort;
     private boolean mVerbose;
 
     public static Config getInstance() {
-        return ConfigHolder.INSTANCE;
+        return Holder.INSTANCE;
     }
 
     private Config() {
@@ -46,6 +49,14 @@ public class Config {
 
     public File getDbFile() {
         return mDbFile;
+    }
+
+    public File getImageDirectory() {
+        return mImageDirectory;
+    }
+
+    public int getImageDirectoryLevel() {
+        return mImageDirectoryLevel;
     }
 
     public int getPort() {
@@ -89,6 +100,8 @@ public class Config {
                 mConfiguration = configurations.properties(file);
                 mPort = mConfiguration.getInt("port", 1099);
                 mDbFile = new File(mConfiguration.getString("db_file", "idd.db"));
+                mImageDirectory = new File(mConfiguration.getString("image_directory", SystemUtils.USER_HOME));
+                mImageDirectoryLevel = mImageDirectory.toPath().getNameCount();
                 mConfigLoaded = true;
             } catch (ConfigurationException ex) {
                 System.err.println(ex.getMessage());
@@ -99,7 +112,7 @@ public class Config {
         }
     }
 
-    private static class ConfigHolder {
+    private static class Holder {
 
         private static final Config INSTANCE = new Config();
     }

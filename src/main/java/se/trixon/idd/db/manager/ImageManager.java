@@ -15,9 +15,15 @@
  */
 package se.trixon.idd.db.manager;
 
+import com.healthmarketscience.sqlbuilder.InsertQuery;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import se.trixon.idl.shared.db.Image;
 
 /**
  *
@@ -79,6 +85,36 @@ public class ImageManager extends BaseManager {
         DbConstraint uniqueKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.UNIQUE, mAlbumId, mName);
 
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
+    }
+
+    public long insert(Image image) throws ClassNotFoundException, SQLException {
+        InsertQuery insertQuery = new InsertQuery(mTable)
+                .addColumn(mAlbumId, image.getAlbumId())
+                .addColumn(mCategory, image.getCategory())
+                .addColumn(mFileSize, image.getFileSize())
+                .addColumn(mModificationDate, image.getModificationDate())
+                .addColumn(mName, image.getName())
+                .addColumn(mStatus, image.getStatus())
+                .addColumn(mUniqueHash, image.getUniqueHash())
+                .validate();
+
+        String sql = insertQuery.toString();
+
+        Connection connection = mDb.getAutoCommitConnection();
+        try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            int affectedRows = statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
+            if (affectedRows == 0) {
+                throw new SQLException("Creating image failed, no rows affected.");
+            }
+
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getLong(1);
+                } else {
+                    throw new SQLException("Creating image failed, no ID obtained.");
+                }
+            }
+        }
     }
 
     private static class Holder {

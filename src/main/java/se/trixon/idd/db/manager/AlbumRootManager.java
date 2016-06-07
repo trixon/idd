@@ -15,9 +15,15 @@
  */
 package se.trixon.idd.db.manager;
 
+import com.healthmarketscience.sqlbuilder.InsertQuery;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import se.trixon.idl.shared.db.AlbumRoot;
 
 /**
  *
@@ -62,6 +68,34 @@ public class AlbumRootManager extends BaseManager {
         DbConstraint primaryKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.PRIMARY_KEY, mId);
         DbConstraint uniqueKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.UNIQUE, mIdentifier, mSpecificPath);
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
+    }
+
+    public long insert(AlbumRoot albumRoot) throws SQLException, ClassNotFoundException {
+        InsertQuery insertQuery = new InsertQuery(mTable)
+                .addColumn(mSpecificPath, albumRoot.getSpecificPath())
+                .addColumn(mStatus, albumRoot.getStatus())
+                .addColumn(mType, albumRoot.getType())
+                .addColumn(mLabel, albumRoot.getLabel())
+                .validate();
+
+        String sql = insertQuery.toString();
+
+        Connection connection = mDb.getAutoCommitConnection();
+        try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            int affectedRows = statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
+//
+            if (affectedRows == 0) {
+                throw new SQLException("Creating album root failed, no rows affected.");
+            }
+
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getLong(1);
+                } else {
+                    throw new SQLException("Creating album root failed, no ID obtained.");
+                }
+            }
+        }
     }
 
     private static class Holder {
