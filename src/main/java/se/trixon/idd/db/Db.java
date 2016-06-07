@@ -27,6 +27,7 @@ import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import se.trixon.idd.Config;
+import se.trixon.util.Xlog;
 
 /**
  *
@@ -35,6 +36,8 @@ import se.trixon.idd.Config;
 public class Db {
 
     private Connection mAutoCommitConnection = null;
+    private final String mConnString = String.format("jdbc:h2:%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
+    private Connection mConnection = null;
     private final DbSpec mSpec;
 
     public static Db getInstance() {
@@ -46,10 +49,39 @@ public class Db {
         init();
     }
 
+    public void connectionCommit() throws ClassNotFoundException, SQLException {
+        getConnection().commit();
+        Xlog.d(this.getClass(), "JDBC Commit");
+    }
+
+    public void connectionOpen() throws ClassNotFoundException, SQLException {
+        if (mConnection != null && !mConnection.isClosed()) {
+            connectionCommit();
+            mConnection.close();
+        }
+
+        Class.forName("org.h2.Driver");
+        mConnection = DriverManager.getConnection(mConnString);
+        mConnection.setAutoCommit(false);
+        Xlog.d(getClass(), "JDBC Connect: " + mConnString);
+    }
+
+    public boolean connectionRollback() {
+        try {
+            getConnection().rollback();
+            Xlog.d(this.getClass(), "JDBC Rollback");
+        } catch (SQLException ex) {
+            Xlog.d(this.getClass(), "JDBC Rollback failed: " + ex.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
     public boolean create(DbTable table, DbConstraint... constraints) {
         boolean tableCreated;
 
-        try (Statement statement = getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+        try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             for (DbConstraint constraint : constraints) {
                 table.addConstraint(constraint);
             }
@@ -58,7 +90,7 @@ public class Db {
             System.out.println("Db.create() " + sql);
 
             tableCreated = statement.execute(sql);
-        } catch (ClassNotFoundException | SQLException ex) {
+        } catch (SQLException ex) {
             System.err.println("Table creation failed. " + table.getName());
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
             tableCreated = false;
@@ -68,7 +100,7 @@ public class Db {
     }
 
     public void drop(DbTable table, boolean cascade) throws ClassNotFoundException, SQLException {
-        try (Statement statement = getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+        try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             String sql = String.format("DROP TABLE IF EXISTS %s %s;", table.getName(), cascade ? "CASCADE" : "");
             System.out.println(sql);
             statement.execute(sql);
@@ -76,8 +108,8 @@ public class Db {
     }
 
     public void dropAllObjects() throws ClassNotFoundException, SQLException {
-        try (Statement statement = getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            String sql = "DROP ALL OBJECTS";
+        try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            String sql = "DROP ALL OBJECTS;";
             System.out.println(sql);
             statement.execute(sql);
         }
@@ -86,10 +118,14 @@ public class Db {
     public Connection getAutoCommitConnection() throws ClassNotFoundException, SQLException {
         if (mAutoCommitConnection == null) {
             Class.forName("org.h2.Driver");
-            mAutoCommitConnection = DriverManager.getConnection(String.format("jdbc:h2:%s", Config.getInstance().getDbFile().getAbsolutePath()));
+            mAutoCommitConnection = DriverManager.getConnection(mConnString);
         }
 
         return mAutoCommitConnection;
+    }
+
+    public Connection getConnection() {
+        return mConnection;
     }
 
     public DbSpec getSpec() {

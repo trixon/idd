@@ -75,6 +75,16 @@ public class Main {
             } else {
                 String filename = commandLine.getArgs().length > 0 ? commandLine.getArgs()[0] : null;
                 if (mConfig.load(filename)) {
+                    Runtime.getRuntime().addShutdownHook(new Thread() {
+                        @Override
+                        public void run() {
+                            try {
+                                Db.getInstance().getConnection().close();
+                            } catch (SQLException ex) {
+                                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    });
                     //DbCreator.getInstance().initDb();
 //                    DbCreator.getInstance();
                     Executor executor = new Executor("update", null);

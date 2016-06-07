@@ -46,12 +46,13 @@ public class Executor {
 
     private void update() {
         try {
+            mDb.connectionOpen();
             mDb.dropAllObjects();
             DbCreator.getInstance().initDb();
             EnumSet<FileVisitOption> fileVisitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
             FileVisitor fileVisitor = new FileVisitor();
             Files.walkFileTree(mConfig.getImageDirectory().toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
-
+            mDb.connectionCommit();
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(Executor.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {

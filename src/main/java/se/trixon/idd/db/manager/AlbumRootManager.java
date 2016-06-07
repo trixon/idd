@@ -80,10 +80,8 @@ public class AlbumRootManager extends BaseManager {
 
         String sql = insertQuery.toString();
 
-        Connection connection = mDb.getAutoCommitConnection();
-        try (Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+        try (Statement statement = mDb.getConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             int affectedRows = statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
-//
             if (affectedRows == 0) {
                 throw new SQLException("Creating album root failed, no rows affected.");
             }
