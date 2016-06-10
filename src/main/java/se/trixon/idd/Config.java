@@ -19,6 +19,7 @@ import java.io.File;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.util.dictionary.Dict;
 
@@ -33,6 +34,7 @@ public class Config {
     private File mDbFile;
     private File mImageDirectory;
     private int mImageDirectoryLevel;
+    private String[] mImageFormats;
     private int mPort;
     private boolean mVerbose;
 
@@ -57,6 +59,10 @@ public class Config {
 
     public int getImageDirectoryLevel() {
         return mImageDirectoryLevel;
+    }
+
+    public String[] getImageFormats() {
+        return mImageFormats;
     }
 
     public int getPort() {
@@ -102,6 +108,7 @@ public class Config {
                 mDbFile = new File(mConfiguration.getString("db_file", "idd.db"));
                 mImageDirectory = new File(mConfiguration.getString("image_directory", SystemUtils.USER_HOME));
                 mImageDirectoryLevel = mImageDirectory.toPath().getNameCount();
+                mImageFormats = StringUtils.split(mConfiguration.getString("image_format", "jpeg").toLowerCase(), " ");
                 mConfigLoaded = true;
             } catch (ConfigurationException ex) {
                 System.err.println(ex.getMessage());

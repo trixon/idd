@@ -15,6 +15,10 @@
  */
 package se.trixon.idd.db;
 
+import com.drew.imaging.FileType;
+import com.drew.imaging.FileTypeDetector;
+import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -30,6 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 import se.trixon.idd.Config;
 import se.trixon.idd.db.manager.AlbumManager;
 import se.trixon.idd.db.manager.AlbumRootManager;
@@ -103,7 +108,7 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        if (mCurrentDirLevel > 0) {
+        if (mCurrentDirLevel > 0 && isSupported(file.toFile())) {
             Image image = new Image();
             image.setAlbumId(mAlbumId);
             image.setCategory(1);
@@ -142,5 +147,16 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
         }
 
         return md5;
+    }
+
+    private boolean isSupported(File file) throws IOException {
+        boolean supported;
+
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+            FileType fileType = FileTypeDetector.detectFileType(bis);
+            supported = ArrayUtils.contains(mConfig.getImageFormats(), fileType.toString().toLowerCase());
+        }
+
+        return supported;
     }
 }
