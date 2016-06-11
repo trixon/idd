@@ -17,15 +17,19 @@ package se.trixon.idd.db;
 
 import com.drew.imaging.FileType;
 import com.drew.imaging.FileTypeDetector;
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.lang.GeoLocation;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.GpsDescriptor;
+import com.drew.metadata.exif.GpsDirectory;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.SQLException;
@@ -50,17 +54,13 @@ import se.trixon.idl.shared.db.Image;
 public class FileVisitor extends SimpleFileVisitor<Path> {
 
     private Long mAlbumId;
-
     private Long mAlbumRootId;
-
     private final Config mConfig = Config.getInstance();
     private int mCurrentDirLevel;
     private boolean mInterrupted;
-    private final PathMatcher mPathMatcher;
     private Path mSpecificPath;
 
     public FileVisitor() {
-        mPathMatcher = FileSystems.getDefault().getPathMatcher("glob:" + "*.jpg");
     }
 
     public boolean isInterrupted() {
@@ -119,6 +119,13 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
             //image.setUniqueHash(getMd5(file));
 
             try {
+                Metadata metadata = ImageMetadataReader.readMetadata(file.toFile());
+                image.setPosition(getPosition(metadata));
+            } catch (ImageProcessingException ex) {
+                Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            try {
                 ImageManager.getInstance().insert(image);
             } catch (ClassNotFoundException | SQLException ex) {
                 Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
@@ -147,6 +154,32 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
         }
 
         return md5;
+    }
+
+    private Image.Position getPosition(Metadata metadata) {
+        Image.Position position = null;
+        GpsDirectory directory = metadata.getFirstDirectoryOfType(GpsDirectory.class);
+        GpsDescriptor descriptor = new GpsDescriptor(directory);
+
+        if (directory != null) {
+            GeoLocation location = directory.getGeoLocation();
+            if (location != null && !location.isZero()) {
+                position = new Image.Position();
+                position.setLatitude(descriptor.getGpsLatitudeDescription());
+                position.setLatitudeNumber(location.getLatitude());
+                position.setLongitude(descriptor.getGpsLongitudeDescription());
+                position.setLongitudeNumber(location.getLongitude());
+                position.setAccuracy(directory.getDoubleObject(GpsDirectory.TAG_DOP));
+                position.setAltitude(directory.getDoubleObject(GpsDirectory.TAG_ALTITUDE));
+                position.setOrientation(directory.getDoubleObject(GpsDirectory.TAG_IMG_DIRECTION));
+
+//position.setDescription(descriptor);
+//position.setRoll(Double.NaN);
+//position.setTilt(Double.NaN);
+            }
+        }
+
+        return position;
     }
 
     private boolean isSupported(File file) throws IOException {

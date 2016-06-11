@@ -15,6 +15,7 @@
  */
 package se.trixon.idd.db.manager;
 
+import com.healthmarketscience.sqlbuilder.QueryPreparer.PlaceHolder;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
@@ -30,6 +31,7 @@ public abstract class BaseManager {
 
     protected final Db mDb;
     protected DbColumn mId;
+    protected PlaceHolder mIdPlaceHolder;
     protected DbTable mTable;
 
     public BaseManager() {

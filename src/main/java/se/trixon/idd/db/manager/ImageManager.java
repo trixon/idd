@@ -108,7 +108,13 @@ public class ImageManager extends BaseManager {
 
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-                    return generatedKeys.getLong(1);
+                    long imageId = generatedKeys.getLong(1);
+                    
+                    if (image.getPosition() != null) {
+                        image.getPosition().setId(imageId);
+                        ImagePositionManager.getInstance().insert(image.getPosition());
+                    }
+                    return imageId;
                 } else {
                     throw new SQLException("Creating image failed, no ID obtained.");
                 }
