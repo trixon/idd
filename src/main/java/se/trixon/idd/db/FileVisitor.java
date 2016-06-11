@@ -17,12 +17,6 @@ package se.trixon.idd.db;
 
 import com.drew.imaging.FileType;
 import com.drew.imaging.FileTypeDetector;
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
-import com.drew.lang.GeoLocation;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.exif.GpsDescriptor;
-import com.drew.metadata.exif.GpsDirectory;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -108,7 +102,7 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        if (mCurrentDirLevel > 0 && isSupported(file.toFile())) {
+        if (mCurrentDirLevel > 0 && isFileTypeSupported(file.toFile())) {
             Image image = new Image();
             image.setAlbumId(mAlbumId);
             image.setCategory(1);
@@ -118,12 +112,7 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
             image.setName(file.getFileName().toString());
             //image.setUniqueHash(getMd5(file));
 
-            try {
-                Metadata metadata = ImageMetadataReader.readMetadata(file.toFile());
-                image.setPosition(getPosition(metadata));
-            } catch (ImageProcessingException ex) {
-                Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            MetadataLoader metadataLoader = new MetadataLoader(image, file.toFile());
 
             try {
                 ImageManager.getInstance().insert(image);
@@ -156,33 +145,7 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
         return md5;
     }
 
-    private Image.Position getPosition(Metadata metadata) {
-        Image.Position position = null;
-        GpsDirectory directory = metadata.getFirstDirectoryOfType(GpsDirectory.class);
-        GpsDescriptor descriptor = new GpsDescriptor(directory);
-
-        if (directory != null) {
-            GeoLocation location = directory.getGeoLocation();
-            if (location != null && !location.isZero()) {
-                position = new Image.Position();
-                position.setLatitude(descriptor.getGpsLatitudeDescription());
-                position.setLatitudeNumber(location.getLatitude());
-                position.setLongitude(descriptor.getGpsLongitudeDescription());
-                position.setLongitudeNumber(location.getLongitude());
-                position.setAccuracy(directory.getDoubleObject(GpsDirectory.TAG_DOP));
-                position.setAltitude(directory.getDoubleObject(GpsDirectory.TAG_ALTITUDE));
-                position.setOrientation(directory.getDoubleObject(GpsDirectory.TAG_IMG_DIRECTION));
-
-//position.setDescription(descriptor);
-//position.setRoll(Double.NaN);
-//position.setTilt(Double.NaN);
-            }
-        }
-
-        return position;
-    }
-
-    private boolean isSupported(File file) throws IOException {
+    private boolean isFileTypeSupported(File file) throws IOException {
         boolean supported;
 
         try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {

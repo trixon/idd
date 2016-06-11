@@ -21,6 +21,7 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSchema;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
+import java.sql.PreparedStatement;
 import se.trixon.idd.db.Db;
 
 /**
@@ -32,6 +33,7 @@ public abstract class BaseManager {
     protected final Db mDb;
     protected DbColumn mId;
     protected PlaceHolder mIdPlaceHolder;
+    protected PreparedStatement mInsertPreparedStatement;
     protected DbTable mTable;
 
     public BaseManager() {

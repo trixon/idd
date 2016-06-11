@@ -19,7 +19,6 @@ import com.healthmarketscience.sqlbuilder.InsertQuery;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -109,10 +108,14 @@ public class ImageManager extends BaseManager {
             try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     long imageId = generatedKeys.getLong(1);
-                    
+
                     if (image.getPosition() != null) {
                         image.getPosition().setId(imageId);
                         ImagePositionManager.getInstance().insert(image.getPosition());
+                    }
+                    if (image.getInformation() != null) {
+                        image.getInformation().setId(imageId);
+                        ImageInformationManager.getInstance().insert(image.getInformation());
                     }
                     return imageId;
                 } else {

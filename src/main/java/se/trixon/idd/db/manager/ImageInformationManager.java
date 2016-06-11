@@ -15,9 +15,15 @@
  */
 package se.trixon.idd.db.manager;
 
+import com.healthmarketscience.sqlbuilder.InsertQuery;
+import com.healthmarketscience.sqlbuilder.QueryPreparer;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import se.trixon.idl.shared.db.Image;
 
 /**
  *
@@ -36,14 +42,23 @@ public class ImageInformationManager extends BaseManager {
     public static final String COL_WIDTH = "width";
     public static final String TABLE_NAME = "image_information";
     private final DbColumn mColorDepth;
+    private final QueryPreparer.PlaceHolder mColorDepthPlaceHolder;
+    private final QueryPreparer.PlaceHolder mColorModePlaceHolder;
     private final DbColumn mColorModel;
     private final DbColumn mCreationDate;
+    private final QueryPreparer.PlaceHolder mCreationDatePlaceHolder;
     private final DbColumn mDigitizationDate;
+    private final QueryPreparer.PlaceHolder mDigitizationDatePlaceHolder;
     private final DbColumn mFormat;
+    private final QueryPreparer.PlaceHolder mFormatPlaceHolder;
     private final DbColumn mHeight;
+    private final QueryPreparer.PlaceHolder mHeightPlaceHolder;
     private final DbColumn mOrientation;
+    private final QueryPreparer.PlaceHolder mOrientationPlaceHolder;
     private final DbColumn mRating;
+    private final QueryPreparer.PlaceHolder mRatingPlaceHolder;
     private final DbColumn mWidth;
+    private final QueryPreparer.PlaceHolder mWidthPlaceHolder;
 
     public static ImageInformationManager getInstance() {
         return Holder.INSTANCE;
@@ -69,6 +84,19 @@ public class ImageInformationManager extends BaseManager {
         manager = ImageManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mId.references(indexName, manager.getTable().getName(), manager.getId().getName());
+
+        QueryPreparer preparer = new QueryPreparer();
+
+        mIdPlaceHolder = preparer.getNewPlaceHolder();
+        mRatingPlaceHolder = preparer.getNewPlaceHolder();
+        mCreationDatePlaceHolder = preparer.getNewPlaceHolder();
+        mDigitizationDatePlaceHolder = preparer.getNewPlaceHolder();
+        mOrientationPlaceHolder = preparer.getNewPlaceHolder();
+        mWidthPlaceHolder = preparer.getNewPlaceHolder();
+        mHeightPlaceHolder = preparer.getNewPlaceHolder();
+        mFormatPlaceHolder = preparer.getNewPlaceHolder();
+        mColorDepthPlaceHolder = preparer.getNewPlaceHolder();
+        mColorModePlaceHolder = preparer.getNewPlaceHolder();
     }
 
     @Override
@@ -77,6 +105,43 @@ public class ImageInformationManager extends BaseManager {
         DbConstraint primaryKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.PRIMARY_KEY, mId);
 
         mDb.create(mTable, primaryKeyConstraint);
+    }
+
+    void insert(Image.Information information) throws SQLException {
+        if (mInsertPreparedStatement == null) {
+            InsertQuery insertQuery = new InsertQuery(mTable)
+                    .addColumn(mId, mIdPlaceHolder)
+                    .addColumn(mRating, mRatingPlaceHolder)
+                    .addColumn(mCreationDate, mCreationDatePlaceHolder)
+                    .addColumn(mDigitizationDate, mDigitizationDatePlaceHolder)
+                    .addColumn(mOrientation, mOrientationPlaceHolder)
+                    .addColumn(mWidth, mWidthPlaceHolder)
+                    .addColumn(mHeight, mHeightPlaceHolder)
+                    .addColumn(mFormat, mFormatPlaceHolder)
+                    .addColumn(mColorDepth, mColorDepthPlaceHolder)
+                    .addColumn(mColorModel, mColorModePlaceHolder)
+                    .validate();
+
+            String sql = insertQuery.toString();
+            try {
+                mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql);
+            } catch (SQLException ex) {
+                Logger.getLogger(ImagePositionManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        mIdPlaceHolder.setLong(information.getId(), mInsertPreparedStatement);
+        mRatingPlaceHolder.setInt(information.getRating(), mInsertPreparedStatement);
+        mCreationDatePlaceHolder.setObject(information.getCreationDate(), mInsertPreparedStatement);
+        mDigitizationDatePlaceHolder.setObject(information.getDigitizationDate(), mInsertPreparedStatement);
+        mOrientationPlaceHolder.setInt(information.getOrientation(), mInsertPreparedStatement);
+        mWidthPlaceHolder.setInt(information.getWidth(), mInsertPreparedStatement);
+        mHeightPlaceHolder.setInt(information.getHeigth(), mInsertPreparedStatement);
+        mFormatPlaceHolder.setString(information.getFormat(), mInsertPreparedStatement);
+        mColorDepthPlaceHolder.setInt(information.getColorDepth(), mInsertPreparedStatement);
+        mColorModePlaceHolder.setInt(information.getColorModel(), mInsertPreparedStatement);
+
+        mInsertPreparedStatement.executeUpdate();
     }
 
     private static class Holder {

@@ -21,7 +21,6 @@ import com.healthmarketscience.sqlbuilder.QueryPreparer.PlaceHolder;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,7 +49,6 @@ public class ImagePositionManager extends BaseManager {
     private final PlaceHolder mAltitudePlaceHolder;
     private final DbColumn mDescription;
     private final PlaceHolder mDescriptionPlaceHolder;
-    private PreparedStatement mInsertPreparedStatement;
     private final DbColumn mLatitude;
     private final DbColumn mLatitudeNumber;
     private final PlaceHolder mLatitudeNumberPlaceHolder;
