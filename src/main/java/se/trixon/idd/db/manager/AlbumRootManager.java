@@ -16,13 +16,16 @@
 package se.trixon.idd.db.manager;
 
 import com.healthmarketscience.sqlbuilder.InsertQuery;
+import com.healthmarketscience.sqlbuilder.QueryPreparer;
+import com.healthmarketscience.sqlbuilder.QueryPreparer.PlaceHolder;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import se.trixon.idl.shared.db.AlbumRoot;
 
 /**
@@ -39,10 +42,15 @@ public class AlbumRootManager extends BaseManager {
     public static final String COL_TYPE = "type";
     public static final String TABLE_NAME = "album_root";
     private final DbColumn mIdentifier;
+    private final PlaceHolder mIdentifierPlaceHolder;
     private final DbColumn mLabel;
+    private final PlaceHolder mLabelPlaceHolder;
     private final DbColumn mSpecificPath;
+    private final PlaceHolder mSpecificPathPlaceHolder;
     private final DbColumn mStatus;
+    private final PlaceHolder mStatusPlaceHolder;
     private final DbColumn mType;
+    private final PlaceHolder mTypePlaceHolder;
 
     public static AlbumRootManager getInstance() {
         return Holder.INSTANCE;
@@ -60,6 +68,15 @@ public class AlbumRootManager extends BaseManager {
 
         addNotNullConstraint(mStatus);
         addNotNullConstraint(mType);
+
+        QueryPreparer preparer = new QueryPreparer();
+
+        mIdPlaceHolder = preparer.getNewPlaceHolder();
+        mLabelPlaceHolder = preparer.getNewPlaceHolder();
+        mStatusPlaceHolder = preparer.getNewPlaceHolder();
+        mTypePlaceHolder = preparer.getNewPlaceHolder();
+        mIdentifierPlaceHolder = preparer.getNewPlaceHolder();
+        mSpecificPathPlaceHolder = preparer.getNewPlaceHolder();
     }
 
     @Override
@@ -71,27 +88,42 @@ public class AlbumRootManager extends BaseManager {
     }
 
     public long insert(AlbumRoot albumRoot) throws SQLException, ClassNotFoundException {
-        InsertQuery insertQuery = new InsertQuery(mTable)
-                .addColumn(mSpecificPath, albumRoot.getSpecificPath())
-                .addColumn(mStatus, albumRoot.getStatus())
-                .addColumn(mType, albumRoot.getType())
-                .addColumn(mLabel, albumRoot.getLabel())
-                .validate();
+        if (mInsertPreparedStatement == null) {
+            InsertQuery insertQuery = new InsertQuery(mTable)
+                    .addColumn(mId, mIdPlaceHolder)
+                    .addColumn(mLabel, mLabelPlaceHolder)
+                    .addColumn(mStatus, mStatusPlaceHolder)
+                    .addColumn(mType, mTypePlaceHolder)
+                    .addColumn(mIdentifier, mIdentifierPlaceHolder)
+                    .addColumn(mSpecificPath, mSpecificPathPlaceHolder)
+                    .validate();
 
-        String sql = insertQuery.toString();
-
-        try (Statement statement = mDb.getConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            int affectedRows = statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
-            if (affectedRows == 0) {
-                throw new SQLException("Creating album root failed, no rows affected.");
+            String sql = insertQuery.toString();
+            try {
+                mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                System.out.println(mInsertPreparedStatement.toString());
+            } catch (SQLException ex) {
+                Logger.getLogger(ImagePositionManager.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
 
-            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    return generatedKeys.getLong(1);
-                } else {
-                    throw new SQLException("Creating album root failed, no ID obtained.");
-                }
+        mIdPlaceHolder.setLong(albumRoot.getId(), mInsertPreparedStatement);
+        mLabelPlaceHolder.setString(albumRoot.getLabel(), mInsertPreparedStatement);
+        mStatusPlaceHolder.setInt(albumRoot.getStatus(), mInsertPreparedStatement);
+        mTypePlaceHolder.setInt(albumRoot.getType(), mInsertPreparedStatement);
+        mSpecificPathPlaceHolder.setString(albumRoot.getSpecificPath(), mInsertPreparedStatement);
+        mIdentifierPlaceHolder.setString(albumRoot.getIdentifier(), mInsertPreparedStatement);
+
+        int affectedRows = mInsertPreparedStatement.executeUpdate();
+        if (affectedRows == 0) {
+            throw new SQLException("Creating album root failed, no rows affected.");
+        }
+
+        try (ResultSet generatedKeys = mInsertPreparedStatement.getGeneratedKeys()) {
+            if (generatedKeys.next()) {
+                return generatedKeys.getLong(1);
+            } else {
+                throw new SQLException("Creating album root failed, no ID obtained.");
             }
         }
     }

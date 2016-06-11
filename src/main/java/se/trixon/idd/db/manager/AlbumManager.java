@@ -16,13 +16,16 @@
 package se.trixon.idd.db.manager;
 
 import com.healthmarketscience.sqlbuilder.InsertQuery;
+import com.healthmarketscience.sqlbuilder.QueryPreparer;
+import com.healthmarketscience.sqlbuilder.QueryPreparer.PlaceHolder;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import se.trixon.idl.shared.db.Album;
 
 /**
@@ -39,11 +42,17 @@ public class AlbumManager extends BaseManager {
     public static final String COL_RELATIVE_PATH = "relative_path";
     public static final String TABLE_NAME = "album";
     private final DbColumn mAlbumRootId;
+    private final PlaceHolder mAlbumRootIdPlaceHolder;
     private final DbColumn mCaption;
+    private final PlaceHolder mCaptionPlaceHolder;
     private final DbColumn mCollection;
+    private final PlaceHolder mCollectionPlaceHolder;
     private final DbColumn mDate;
+    private final PlaceHolder mDatePlaceHolder;
     private final DbColumn mIcon;
+    private final PlaceHolder mIconPlaceHolder;
     private final DbColumn mRelativePath;
+    private final PlaceHolder mRelativePathPlaceHolder;
 
     public static AlbumManager getInstance() {
         return Holder.INSTANCE;
@@ -69,6 +78,16 @@ public class AlbumManager extends BaseManager {
         manager = AlbumRootManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mAlbumRootId.references(indexName, manager.getTable(), manager.getId());
+
+        QueryPreparer preparer = new QueryPreparer();
+
+        mIdPlaceHolder = preparer.getNewPlaceHolder();
+        mAlbumRootIdPlaceHolder = preparer.getNewPlaceHolder();
+        mRelativePathPlaceHolder = preparer.getNewPlaceHolder();
+        mDatePlaceHolder = preparer.getNewPlaceHolder();
+        mCaptionPlaceHolder = preparer.getNewPlaceHolder();
+        mCollectionPlaceHolder = preparer.getNewPlaceHolder();
+        mIconPlaceHolder = preparer.getNewPlaceHolder();
     }
 
     @Override
@@ -82,29 +101,42 @@ public class AlbumManager extends BaseManager {
     }
 
     public long insert(Album album) throws ClassNotFoundException, SQLException {
-        InsertQuery insertQuery = new InsertQuery(mTable)
-                .addColumn(mAlbumRootId, album.getAlbumRootId())
-                .addColumn(mCaption, album.getCaption())
-                .addColumn(mCollection, album.getCollection())
-                .addColumn(mDate, album.getDate())
-                .addColumn(mIcon, album.getIcon())
-                .addColumn(mRelativePath, album.getRelativePath())
-                .validate();
+        if (mInsertPreparedStatement == null) {
+            InsertQuery insertQuery = new InsertQuery(mTable)
+                    .addColumn(mAlbumRootId, mAlbumRootIdPlaceHolder)
+                    .addColumn(mCaption, mCaptionPlaceHolder)
+                    .addColumn(mCollection, mCollectionPlaceHolder)
+                    .addColumn(mDate, mDatePlaceHolder)
+                    .addColumn(mIcon, mIconPlaceHolder)
+                    .addColumn(mRelativePath, mRelativePathPlaceHolder)
+                    .validate();
 
-        String sql = insertQuery.toString();
-
-        try (Statement statement = mDb.getConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            int affectedRows = statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
-            if (affectedRows == 0) {
-                throw new SQLException("Creating album failed, no rows affected.");
+            String sql = insertQuery.toString();
+            try {
+                mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                System.out.println(mInsertPreparedStatement.toString());
+            } catch (SQLException ex) {
+                Logger.getLogger(ImagePositionManager.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
 
-            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    return generatedKeys.getLong(1);
-                } else {
-                    throw new SQLException("Creating album failed, no ID obtained.");
-                }
+        mAlbumRootIdPlaceHolder.setLong(album.getAlbumRootId(), mInsertPreparedStatement);
+        mCaptionPlaceHolder.setString(album.getCaption(), mInsertPreparedStatement);
+        mCollectionPlaceHolder.setString(album.getCollection(), mInsertPreparedStatement);
+        mDatePlaceHolder.setObject(album.getDate(), mInsertPreparedStatement);
+        mIconPlaceHolder.setInt(album.getIcon(), mInsertPreparedStatement);
+        mRelativePathPlaceHolder.setString(album.getRelativePath(), mInsertPreparedStatement);
+
+        int affectedRows = mInsertPreparedStatement.executeUpdate();
+        if (affectedRows == 0) {
+            throw new SQLException("Creating album failed, no rows affected.");
+        }
+
+        try (ResultSet generatedKeys = mInsertPreparedStatement.getGeneratedKeys()) {
+            if (generatedKeys.next()) {
+                return generatedKeys.getLong(1);
+            } else {
+                throw new SQLException("Creating album failed, no ID obtained.");
             }
         }
     }

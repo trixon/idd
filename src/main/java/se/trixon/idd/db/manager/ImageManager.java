@@ -16,12 +16,16 @@
 package se.trixon.idd.db.manager;
 
 import com.healthmarketscience.sqlbuilder.InsertQuery;
+import com.healthmarketscience.sqlbuilder.QueryPreparer;
+import com.healthmarketscience.sqlbuilder.QueryPreparer.PlaceHolder;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import se.trixon.idl.shared.db.Image;
 
 /**
@@ -39,12 +43,19 @@ public class ImageManager extends BaseManager {
     public static final String COL_UNIQUE_HASH = "unique_hash";
     public static final String TABLE_NAME = "image";
     private final DbColumn mAlbumId;
+    private final PlaceHolder mAlbumIdPlaceHolder;
     private final DbColumn mCategory;
+    private final PlaceHolder mCategoryPlaceHolder;
     private final DbColumn mFileSize;
+    private final PlaceHolder mFileSizePlaceHolder;
     private final DbColumn mModificationDate;
+    private final PlaceHolder mModificationDatePlaceHolder;
     private final DbColumn mName;
+    private final PlaceHolder mNamePlaceHolder;
     private final DbColumn mStatus;
+    private final PlaceHolder mStatusPlaceHolder;
     private final DbColumn mUniqueHash;
+    private final PlaceHolder mUniqueHashPlaceHolder;
 
     public static ImageManager getInstance() {
         return Holder.INSTANCE;
@@ -73,6 +84,17 @@ public class ImageManager extends BaseManager {
         manager = AlbumManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mAlbumId.references(indexName, manager.getTable(), manager.getId());
+
+        QueryPreparer preparer = new QueryPreparer();
+
+        mIdPlaceHolder = preparer.getNewPlaceHolder();
+        mAlbumIdPlaceHolder = preparer.getNewPlaceHolder();
+        mNamePlaceHolder = preparer.getNewPlaceHolder();
+        mStatusPlaceHolder = preparer.getNewPlaceHolder();
+        mCategoryPlaceHolder = preparer.getNewPlaceHolder();
+        mModificationDatePlaceHolder = preparer.getNewPlaceHolder();
+        mFileSizePlaceHolder = preparer.getNewPlaceHolder();
+        mUniqueHashPlaceHolder = preparer.getNewPlaceHolder();
     }
 
     @Override
@@ -87,40 +109,54 @@ public class ImageManager extends BaseManager {
     }
 
     public long insert(Image image) throws ClassNotFoundException, SQLException {
-        InsertQuery insertQuery = new InsertQuery(mTable)
-                .addColumn(mAlbumId, image.getAlbumId())
-                .addColumn(mCategory, image.getCategory())
-                .addColumn(mFileSize, image.getFileSize())
-                .addColumn(mModificationDate, image.getModificationDate())
-                .addColumn(mName, image.getName())
-                .addColumn(mStatus, image.getStatus())
-                .addColumn(mUniqueHash, image.getUniqueHash())
-                .validate();
+        if (mInsertPreparedStatement == null) {
+            InsertQuery insertQuery = new InsertQuery(mTable)
+                    .addColumn(mAlbumId, mAlbumIdPlaceHolder)
+                    .addColumn(mCategory, mCategoryPlaceHolder)
+                    .addColumn(mFileSize, mFileSizePlaceHolder)
+                    .addColumn(mModificationDate, mModificationDatePlaceHolder)
+                    .addColumn(mName, mNamePlaceHolder)
+                    .addColumn(mStatus, mStatusPlaceHolder)
+                    .addColumn(mUniqueHash, mUniqueHashPlaceHolder)
+                    .validate();
 
-        String sql = insertQuery.toString();
-
-        try (Statement statement = mDb.getConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            int affectedRows = statement.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
-            if (affectedRows == 0) {
-                throw new SQLException("Creating image failed, no rows affected.");
+            String sql = insertQuery.toString();
+            try {
+                mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                System.out.println(mInsertPreparedStatement.toString());
+            } catch (SQLException ex) {
+                Logger.getLogger(ImagePositionManager.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
 
-            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    long imageId = generatedKeys.getLong(1);
+        mAlbumIdPlaceHolder.setLong(image.getAlbumId(), mInsertPreparedStatement);
+        mCategoryPlaceHolder.setInt(image.getCategory(), mInsertPreparedStatement);
+        mFileSizePlaceHolder.setLong(image.getFileSize(), mInsertPreparedStatement);
+        mModificationDatePlaceHolder.setObject(image.getModificationDate(), mInsertPreparedStatement);
+        mNamePlaceHolder.setString(image.getName(), mInsertPreparedStatement);
+        mStatusPlaceHolder.setInt(image.getStatus(), mInsertPreparedStatement);
+        mUniqueHashPlaceHolder.setString(image.getUniqueHash(), mInsertPreparedStatement);
 
-                    if (image.getPosition() != null) {
-                        image.getPosition().setId(imageId);
-                        ImagePositionManager.getInstance().insert(image.getPosition());
-                    }
-                    if (image.getInformation() != null) {
-                        image.getInformation().setId(imageId);
-                        ImageInformationManager.getInstance().insert(image.getInformation());
-                    }
-                    return imageId;
-                } else {
-                    throw new SQLException("Creating image failed, no ID obtained.");
+        int affectedRows = mInsertPreparedStatement.executeUpdate();
+        if (affectedRows == 0) {
+            throw new SQLException("Creating image failed, no rows affected.");
+        }
+
+        try (ResultSet generatedKeys = mInsertPreparedStatement.getGeneratedKeys()) {
+            if (generatedKeys.next()) {
+                long imageId = generatedKeys.getLong(1);
+
+                if (image.getPosition() != null) {
+                    image.getPosition().setId(imageId);
+                    ImagePositionManager.getInstance().insert(image.getPosition());
                 }
+                if (image.getInformation() != null) {
+                    image.getInformation().setId(imageId);
+                    ImageInformationManager.getInstance().insert(image.getInformation());
+                }
+                return imageId;
+            } else {
+                throw new SQLException("Creating image failed, no ID obtained.");
             }
         }
     }

@@ -80,7 +80,7 @@ public class MetadataLoader {
             information.setOrientation(mExifSubIFDDirectory.getInteger(mExifIFD0Directory.TAG_ORIENTATION));
             information.setRating(-1);
 
-            System.out.println("orientation: " + mExifSubIFDDirectory.getObject(mExifIFD0Directory.TAG_ORIENTATION));
+//            System.out.println("orientation: " + mExifSubIFDDirectory.getObject(mExifIFD0Directory.TAG_ORIENTATION));
 
             //System.out.println(descriptor.getOrientationDescription());
         }
