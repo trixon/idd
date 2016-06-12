@@ -15,20 +15,22 @@
  */
 package se.trixon.idd.db;
 
+import com.drew.imaging.FileType;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.lang.GeoLocation;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifDirectoryBase;
+import com.drew.metadata.exif.ExifIFD0Descriptor;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDescriptor;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.GpsDescriptor;
 import com.drew.metadata.exif.GpsDirectory;
+import com.drew.metadata.jpeg.JpegDescriptor;
+import com.drew.metadata.jpeg.JpegDirectory;
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import se.trixon.idl.shared.db.Image;
 
 /**
@@ -37,64 +39,98 @@ import se.trixon.idl.shared.db.Image;
  */
 public class MetadataLoader {
 
-    private ExifIFD0Directory mExifIFD0Directory;
-    private ExifSubIFDDescriptor mExifSubIFDDescriptor;
-    private ExifSubIFDDirectory mExifSubIFDDirectory;
-    private GpsDescriptor mGpsDescriptor;
-    private GpsDirectory mGpsDirectory;
+    private final ExifIFD0Descriptor mExifIFD0Descriptor;
+    private final ExifIFD0Directory mExifIFD0Directory;
+    private final ExifSubIFDDescriptor mExifSubIFDDescriptor;
+    private final ExifSubIFDDirectory mExifSubIFDDirectory;
+    private final FileType mFileType;
+    private final GpsDescriptor mGpsDescriptor;
+    private final GpsDirectory mGpsDirectory;
+    private final Image mImage;
+    private final JpegDescriptor mJpegDescriptor;
+    private final JpegDirectory mJpegDirectory;
 
-    public MetadataLoader(Image image, File file) throws IOException {
-        try {
-            Metadata metadata = ImageMetadataReader.readMetadata(file);
-            mExifSubIFDDirectory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
-            mExifSubIFDDescriptor = new ExifSubIFDDescriptor(mExifSubIFDDirectory);
-            mExifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
-            mGpsDirectory = metadata.getFirstDirectoryOfType(GpsDirectory.class);
-            mGpsDescriptor = new GpsDescriptor(mGpsDirectory);
+    public MetadataLoader(Image image, File file, FileType fileType) throws IOException, ImageProcessingException {
+        mImage = image;
+        mFileType = fileType;
+        Metadata metadata = ImageMetadataReader.readMetadata(file);
 
-            image.setPosition(getPosition());
-            image.setInformation(getInformation());
-        } catch (ImageProcessingException ex) {
-            Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        mExifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+        mExifIFD0Descriptor = new ExifIFD0Descriptor(mExifIFD0Directory);
 
+        mExifSubIFDDirectory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+        mExifSubIFDDescriptor = new ExifSubIFDDescriptor(mExifSubIFDDirectory);
+
+        mGpsDirectory = metadata.getFirstDirectoryOfType(GpsDirectory.class);
+        mGpsDescriptor = new GpsDescriptor(mGpsDirectory);
+
+        mJpegDirectory = metadata.getFirstDirectoryOfType(JpegDirectory.class);
+        mJpegDescriptor = new JpegDescriptor(mJpegDirectory);
+
+        loadPosition();
+        loadInformation();
+        loadMetadata();
     }
 
-    private Image.Information getInformation() {
-        Image.Information information = null;
+    private void loadInformation() {
+        Image.Information information = mImage.getInformation();
 
+        information.setRating(-1);
+        information.setFormat(mFileType.toString());
         if (mExifSubIFDDirectory != null) {
-            information = new Image.Information();
-            information.setColorDepth(0);
-            information.setColorModel(0);
             if (mExifSubIFDDirectory.containsTag(ExifDirectoryBase.TAG_DATETIME_ORIGINAL)) {
                 information.setCreationDate(mExifSubIFDDirectory.getDate(ExifDirectoryBase.TAG_DATETIME_ORIGINAL).getTime());
             }
             if (mExifSubIFDDirectory.containsTag(ExifDirectoryBase.TAG_DATETIME_DIGITIZED)) {
                 information.setDigitizationDate(mExifSubIFDDirectory.getDate(ExifDirectoryBase.TAG_DATETIME_DIGITIZED).getTime());
-
             }
-//            information.setFormat(format);
-            information.setHeigth(mExifSubIFDDirectory.getInteger(ExifDirectoryBase.TAG_EXIF_IMAGE_HEIGHT));
+
             information.setWidth(mExifSubIFDDirectory.getInteger(ExifDirectoryBase.TAG_EXIF_IMAGE_WIDTH));
-            information.setOrientation(mExifSubIFDDirectory.getInteger(mExifIFD0Directory.TAG_ORIENTATION));
-            information.setRating(-1);
-
-//            System.out.println("orientation: " + mExifSubIFDDirectory.getObject(mExifIFD0Directory.TAG_ORIENTATION));
-
-            //System.out.println(descriptor.getOrientationDescription());
+            information.setHeigth(mExifSubIFDDirectory.getInteger(ExifDirectoryBase.TAG_EXIF_IMAGE_HEIGHT));
+            //TODO setColorModel
+            //TODO setColorDepth
         }
-
-        return information;
+        
+        if (mExifIFD0Directory != null) {
+            information.setOrientation(mExifIFD0Directory.getInteger(ExifIFD0Directory.TAG_ORIENTATION));
+        }
+        
+        if (mJpegDirectory != null) {
+        }
     }
 
-    private Image.Position getPosition() {
-        Image.Position position = null;
+    private void loadMetadata() {
+        Image.Metadata metadata = mImage.getMetadata();
+
+        if (mExifIFD0Directory != null) {
+            metadata.setMake(mExifIFD0Directory.getString(ExifIFD0Directory.TAG_MAKE));
+            metadata.setModel(mExifIFD0Directory.getString(ExifIFD0Directory.TAG_MODEL));
+        }
+        if (mExifSubIFDDirectory != null) {
+            metadata.setLens(mExifSubIFDDirectory.getString(ExifSubIFDDirectory.TAG_LENS_MODEL));
+            metadata.setAperture(mExifSubIFDDirectory.getDoubleObject(ExifSubIFDDirectory.TAG_APERTURE));
+            metadata.setFocalLength(mExifSubIFDDirectory.getDoubleObject(ExifSubIFDDirectory.TAG_FOCAL_LENGTH));
+            metadata.setFocalLength35(mExifSubIFDDirectory.getDoubleObject(ExifSubIFDDirectory.TAG_35MM_FILM_EQUIV_FOCAL_LENGTH));
+            metadata.setExposureTime(mExifSubIFDDirectory.getDoubleObject(ExifSubIFDDirectory.TAG_EXPOSURE_TIME));
+            metadata.setExposureProgram(mExifSubIFDDirectory.getInteger(ExifSubIFDDirectory.TAG_EXPOSURE_PROGRAM));
+            metadata.setExposureMode(mExifSubIFDDirectory.getInteger(ExifSubIFDDirectory.TAG_EXPOSURE_MODE));
+            metadata.setSensitivity(mExifSubIFDDirectory.getInteger(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT));
+            metadata.setFlash(mExifSubIFDDirectory.getInteger(ExifSubIFDDirectory.TAG_FLASH));
+            metadata.setWhiteBalance(mExifSubIFDDirectory.getInteger(ExifSubIFDDirectory.TAG_WHITE_BALANCE_MODE));
+            metadata.setMeteringMode(mExifSubIFDDirectory.getInteger(ExifSubIFDDirectory.TAG_METERING_MODE));
+
+            //TODO setWhiteBalanceColorTemperature
+            //TODO setSubjectDistance;
+            //TODO setSubjectDistanceCategory
+        }
+    }
+
+    private void loadPosition() {
+        Image.Position position = mImage.getPosition();
 
         if (mGpsDirectory != null) {
             GeoLocation location = mGpsDirectory.getGeoLocation();
             if (location != null && !location.isZero()) {
-                position = new Image.Position();
                 position.setLatitude(mGpsDescriptor.getGpsLatitudeDescription());
                 position.setLatitudeNumber(location.getLatitude());
                 position.setLongitude(mGpsDescriptor.getGpsLongitudeDescription());
@@ -103,13 +139,10 @@ public class MetadataLoader {
                 position.setAltitude(mGpsDirectory.getDoubleObject(GpsDirectory.TAG_ALTITUDE));
                 position.setOrientation(mGpsDirectory.getDoubleObject(GpsDirectory.TAG_IMG_DIRECTION));
 
-//position.setDescription(descriptor);
-//position.setRoll(Double.NaN);
-//position.setTilt(Double.NaN);
+                //TODO setDescription
+                //TODO setRoll
+                //TODO setTilt
             }
         }
-
-        return position;
     }
-
 }

@@ -17,6 +17,7 @@ package se.trixon.idd.db;
 
 import com.drew.imaging.FileType;
 import com.drew.imaging.FileTypeDetector;
+import com.drew.imaging.ImageProcessingException;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -51,6 +52,7 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
     private Long mAlbumRootId;
     private final Config mConfig = Config.getInstance();
     private int mCurrentDirLevel;
+    private FileType mFileType;
     private boolean mInterrupted;
     private Path mSpecificPath;
 
@@ -111,8 +113,11 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
             image.setModificationDate(new Timestamp(attrs.lastModifiedTime().toMillis()));
             image.setName(file.getFileName().toString());
             //image.setUniqueHash(getMd5(file));
-
-            MetadataLoader metadataLoader = new MetadataLoader(image, file.toFile());
+            try {
+                MetadataLoader metadataLoader = new MetadataLoader(image, file.toFile(),mFileType);
+            } catch (ImageProcessingException ex) {
+                Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
             try {
                 ImageManager.getInstance().insert(image);
@@ -147,10 +152,11 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
 
     private boolean isFileTypeSupported(File file) throws IOException {
         boolean supported;
-
+        mFileType = null;
+        
         try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
-            FileType fileType = FileTypeDetector.detectFileType(bis);
-            supported = ArrayUtils.contains(mConfig.getImageFormats(), fileType.toString().toLowerCase());
+            mFileType = FileTypeDetector.detectFileType(bis);
+            supported = ArrayUtils.contains(mConfig.getImageFormats(), mFileType.toString().toLowerCase());
         }
 
         return supported;

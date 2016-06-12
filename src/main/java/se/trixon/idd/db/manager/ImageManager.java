@@ -146,13 +146,19 @@ public class ImageManager extends BaseManager {
             if (generatedKeys.next()) {
                 long imageId = generatedKeys.getLong(1);
 
-                if (image.getPosition() != null) {
+                if (image.getPosition().hasData()) {
                     image.getPosition().setId(imageId);
                     ImagePositionManager.getInstance().insert(image.getPosition());
                 }
-                if (image.getInformation() != null) {
+                
+                if (image.getInformation().hasData()) {
                     image.getInformation().setId(imageId);
                     ImageInformationManager.getInstance().insert(image.getInformation());
+                }
+
+                if (image.getMetadata().hasData()) {
+                    image.getMetadata().setId(imageId);
+                    ImageMetadataManager.getInstance().insert(image.getMetadata());
                 }
                 return imageId;
             } else {

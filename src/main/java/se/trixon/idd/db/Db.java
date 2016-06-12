@@ -36,7 +36,8 @@ import se.trixon.util.Xlog;
 public class Db {
 
     private Connection mAutoCommitConnection = null;
-    private final String mConnString = String.format("jdbc:h2:%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
+//    private final String mConnString = String.format("jdbc:h2:%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
+    private final String mConnString = String.format("jdbc:h2:tcp://localhost/%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
     private Connection mConnection = null;
     private final DbSpec mSpec;
 
