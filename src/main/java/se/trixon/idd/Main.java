@@ -87,14 +87,9 @@ public class Main {
                     });
                     //DbCreator.getInstance().initDb();
 //                    DbCreator.getInstance();
-                    Executor executor = new Executor("update", null);
-                    executor.execute();
-
-//                    try {
-////                        ImageServer imageServer = new ImageServer();
-//                    } catch (ClassNotFoundException | SQLException ex) {
-//                        Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-//                    }
+//                    Executor executor = new Executor("update", null);
+//                    executor.execute();
+                    ImageServer imageServer = new ImageServer();
                 }
             }
         } catch (ParseException ex) {

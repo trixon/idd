@@ -52,7 +52,7 @@ public class Db {
 
     public void connectionCommit() throws ClassNotFoundException, SQLException {
         getConnection().commit();
-        Xlog.d(this.getClass(), "JDBC Commit");
+        //Xlog.d(this.getClass(), "JDBC Commit");
     }
 
     public void connectionOpen() throws ClassNotFoundException, SQLException {
@@ -64,13 +64,13 @@ public class Db {
         Class.forName("org.h2.Driver");
         mConnection = DriverManager.getConnection(mConnString);
         mConnection.setAutoCommit(false);
-        Xlog.d(getClass(), "JDBC Connect: " + mConnString);
+        //Xlog.d(getClass(), "JDBC Connect: " + mConnString);
     }
 
     public boolean connectionRollback() {
         try {
             getConnection().rollback();
-            Xlog.d(this.getClass(), "JDBC Rollback");
+            //Xlog.d(this.getClass(), "JDBC Rollback");
         } catch (SQLException ex) {
             Xlog.d(this.getClass(), "JDBC Rollback failed: " + ex.getMessage());
             return false;
@@ -88,7 +88,7 @@ public class Db {
             }
 
             String sql = new CreateTableQuery(table, true).validate().toString();
-            System.out.println("Db.create() " + sql);
+            //System.out.println("Db.create() " + sql);
 
             tableCreated = statement.execute(sql);
         } catch (SQLException ex) {
@@ -111,7 +111,7 @@ public class Db {
     public void dropAllObjects() throws ClassNotFoundException, SQLException {
         try (Statement statement = mConnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             String sql = "DROP ALL OBJECTS;";
-            System.out.println(sql);
+            //System.out.println(sql);
             statement.execute(sql);
         }
     }

@@ -42,11 +42,11 @@ public class DbCreator {
     }
 
     private void init(BaseManager manager) {
-        try {
-            mDb.drop(manager.getTable(), true);
-        } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(DbCreator.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            mDb.drop(manager.getTable(), true);
+//        } catch (ClassNotFoundException | SQLException ex) {
+//            Logger.getLogger(DbCreator.class.getName()).log(Level.SEVERE, null, ex);
+//        }
 
         manager.create();
     }

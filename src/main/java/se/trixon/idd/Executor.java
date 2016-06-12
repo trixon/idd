@@ -27,6 +27,7 @@ import se.trixon.idd.db.DbCreator;
 import se.trixon.idd.db.FileVisitor;
 import se.trixon.idl.shared.Commands;
 import se.trixon.util.SystemHelper;
+import se.trixon.util.Xlog;
 
 /**
  *
@@ -61,7 +62,7 @@ public class Executor {
     }
 
     String execute() {
-        System.out.format("execute: %s\n", mCommand);
+        Xlog.timedOut(String.format("execute: %s", mCommand));
         String result = null;
 
         switch (mCommand) {

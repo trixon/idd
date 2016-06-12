@@ -41,6 +41,7 @@ import se.trixon.idd.db.manager.ImageManager;
 import se.trixon.idl.shared.db.Album;
 import se.trixon.idl.shared.db.AlbumRoot;
 import se.trixon.idl.shared.db.Image;
+import se.trixon.util.Xlog;
 
 /**
  *
@@ -84,6 +85,7 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
                 Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
             }
             mSpecificPath = dir;
+            Xlog.timedOut("Adding album root: " + dir.toString());
         } else if (mCurrentDirLevel > 1) {
             Album album = new Album();
             album.setAlbumRootId(mAlbumRootId);
@@ -114,7 +116,7 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
             image.setName(file.getFileName().toString());
             //image.setUniqueHash(getMd5(file));
             try {
-                MetadataLoader metadataLoader = new MetadataLoader(image, file.toFile(),mFileType);
+                MetadataLoader metadataLoader = new MetadataLoader(image, file.toFile(), mFileType);
             } catch (ImageProcessingException ex) {
                 Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -153,7 +155,7 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
     private boolean isFileTypeSupported(File file) throws IOException {
         boolean supported;
         mFileType = null;
-        
+
         try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
             mFileType = FileTypeDetector.detectFileType(bis);
             supported = ArrayUtils.contains(mConfig.getImageFormats(), mFileType.toString().toLowerCase());

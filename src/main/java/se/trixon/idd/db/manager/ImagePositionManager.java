@@ -132,7 +132,7 @@ public class ImagePositionManager extends BaseManager {
             String sql = insertQuery.toString();
             try {
                 mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql);
-                System.out.println(mInsertPreparedStatement.toString());
+                //System.out.println(mInsertPreparedStatement.toString());
             } catch (SQLException ex) {
                 Logger.getLogger(ImagePositionManager.class.getName()).log(Level.SEVERE, null, ex);
             }
