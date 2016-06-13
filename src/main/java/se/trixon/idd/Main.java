@@ -89,6 +89,7 @@ public class Main {
 //                    DbCreator.getInstance();
 //                    Executor executor = new Executor("update", null);
 //                    executor.execute();
+
                     ImageServer imageServer = new ImageServer();
                 }
             }

@@ -22,6 +22,7 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSchema;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import se.trixon.idd.db.Db;
 
 /**
@@ -77,5 +78,7 @@ public abstract class BaseManager {
     public DbTable getTable() {
         return mTable;
     }
+
+    public abstract void prepare() throws SQLException;
 
 }

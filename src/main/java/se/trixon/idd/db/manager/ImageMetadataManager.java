@@ -22,8 +22,6 @@ import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import se.trixon.idl.shared.db.Image;
 
 /**
@@ -50,37 +48,37 @@ public class ImageMetadataManager extends BaseManager {
     public static final String COL_WHITE_BALANCE_COLOR_TEMPERATURE = "white_balance_color_temperature";
     public static final String TABLE_NAME = "image_metadata";
     private final DbColumn mAperture;
-    private final PlaceHolder mAperturePlaceHolder;
+    private PlaceHolder mAperturePlaceHolder;
     private final DbColumn mExposureMode;
-    private final PlaceHolder mExposureModePlaceHolder;
+    private PlaceHolder mExposureModePlaceHolder;
     private final DbColumn mExposureProgram;
-    private final PlaceHolder mExposureProgramPlaceHolder;
+    private PlaceHolder mExposureProgramPlaceHolder;
     private final DbColumn mExposureTime;
-    private final PlaceHolder mExposureTimePlaceHolder;
+    private PlaceHolder mExposureTimePlaceHolder;
     private final DbColumn mFlash;
-    private final PlaceHolder mFlashPlaceHolder;
+    private PlaceHolder mFlashPlaceHolder;
     private final DbColumn mFocalLength;
     private final DbColumn mFocalLength35;
-    private final PlaceHolder mFocalLength35PlaceHolder;
-    private final PlaceHolder mFocalLengthPlaceHolder;
+    private PlaceHolder mFocalLength35PlaceHolder;
+    private PlaceHolder mFocalLengthPlaceHolder;
     private final DbColumn mLens;
-    private final PlaceHolder mLensPlaceHolder;
+    private PlaceHolder mLensPlaceHolder;
     private final DbColumn mMake;
-    private final PlaceHolder mMakePlaceHolder;
+    private PlaceHolder mMakePlaceHolder;
     private final DbColumn mMeteringMode;
-    private final PlaceHolder mMeteringModePlaceHolder;
+    private PlaceHolder mMeteringModePlaceHolder;
     private final DbColumn mModel;
-    private final PlaceHolder mModelPlaceHolder;
+    private PlaceHolder mModelPlaceHolder;
     private final DbColumn mSensitivity;
-    private final PlaceHolder mSensitivityPlaceHolder;
+    private PlaceHolder mSensitivityPlaceHolder;
     private final DbColumn mSubjectDistance;
     private final DbColumn mSubjectDistanceCategory;
-    private final PlaceHolder mSubjectDistanceCategoryPlaceHolder;
-    private final PlaceHolder mSubjectDistancePlaceHolder;
+    private PlaceHolder mSubjectDistanceCategoryPlaceHolder;
+    private PlaceHolder mSubjectDistancePlaceHolder;
     private final DbColumn mWhiteBalance;
     private final DbColumn mWhiteBalanceColorTemperature;
-    private final PlaceHolder mWhiteBalanceColorTemperaturePlaceHolder;
-    private final PlaceHolder mWhiteBalancePlaceHolder;
+    private PlaceHolder mWhiteBalanceColorTemperaturePlaceHolder;
+    private PlaceHolder mWhiteBalancePlaceHolder;
 
     public static ImageMetadataManager getInstance() {
         return Holder.INSTANCE;
@@ -112,7 +110,18 @@ public class ImageMetadataManager extends BaseManager {
         manager = ImageManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mId.references(indexName, manager.getTable().getName(), manager.getId().getName());
+    }
 
+    @Override
+    public void create() {
+        String indexName = getIndexName(new DbColumn[]{mId}, "pkey");
+        DbConstraint primaryKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.PRIMARY_KEY, mId);
+
+        mDb.create(mTable, primaryKeyConstraint);
+    }
+
+    @Override
+    public void prepare() throws SQLException {
         QueryPreparer preparer = new QueryPreparer();
 
         mIdPlaceHolder = preparer.getNewPlaceHolder();
@@ -132,46 +141,33 @@ public class ImageMetadataManager extends BaseManager {
         mMeteringModePlaceHolder = preparer.getNewPlaceHolder();
         mSubjectDistancePlaceHolder = preparer.getNewPlaceHolder();
         mSubjectDistanceCategoryPlaceHolder = preparer.getNewPlaceHolder();
+
+        InsertQuery insertQuery = new InsertQuery(mTable)
+                .addColumn(mId, mIdPlaceHolder)
+                .addColumn(mMake, mMakePlaceHolder)
+                .addColumn(mModel, mModelPlaceHolder)
+                .addColumn(mLens, mLensPlaceHolder)
+                .addColumn(mAperture, mAperturePlaceHolder)
+                .addColumn(mFocalLength, mFocalLengthPlaceHolder)
+                .addColumn(mFocalLength35, mFocalLength35PlaceHolder)
+                .addColumn(mExposureTime, mExposureTimePlaceHolder)
+                .addColumn(mExposureProgram, mExposureProgramPlaceHolder)
+                .addColumn(mExposureMode, mExposureModePlaceHolder)
+                .addColumn(mSensitivity, mSensitivityPlaceHolder)
+                .addColumn(mFlash, mFlashPlaceHolder)
+                .addColumn(mWhiteBalance, mWhiteBalancePlaceHolder)
+                .addColumn(mWhiteBalanceColorTemperature, mWhiteBalanceColorTemperaturePlaceHolder)
+                .addColumn(mMeteringMode, mMeteringModePlaceHolder)
+                .addColumn(mSubjectDistance, mSubjectDistancePlaceHolder)
+                .addColumn(mSubjectDistanceCategory, mSubjectDistanceCategoryPlaceHolder)
+                .validate();
+
+        String sql = insertQuery.toString();
+        mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql);
+        //System.out.println(mInsertPreparedStatement.toString());
     }
 
-    @Override
-    public void create() {
-        String indexName = getIndexName(new DbColumn[]{mId}, "pkey");
-        DbConstraint primaryKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.PRIMARY_KEY, mId);
-
-        mDb.create(mTable, primaryKeyConstraint);
-    }
     void insert(Image.Metadata metadata) throws SQLException {
-        if (mInsertPreparedStatement == null) {
-            InsertQuery insertQuery = new InsertQuery(mTable)
-                    .addColumn(mId, mIdPlaceHolder)
-                    .addColumn(mMake, mMakePlaceHolder)
-                    .addColumn(mModel, mModelPlaceHolder)
-                    .addColumn(mLens, mLensPlaceHolder)
-                    .addColumn(mAperture, mAperturePlaceHolder)
-                    .addColumn(mFocalLength, mFocalLengthPlaceHolder)
-                    .addColumn(mFocalLength35, mFocalLength35PlaceHolder)
-                    .addColumn(mExposureTime, mExposureTimePlaceHolder)
-                    .addColumn(mExposureProgram, mExposureProgramPlaceHolder)
-                    .addColumn(mExposureMode, mExposureModePlaceHolder)
-                    .addColumn(mSensitivity, mSensitivityPlaceHolder)
-                    .addColumn(mFlash, mFlashPlaceHolder)
-                    .addColumn(mWhiteBalance, mWhiteBalancePlaceHolder)
-                    .addColumn(mWhiteBalanceColorTemperature, mWhiteBalanceColorTemperaturePlaceHolder)
-                    .addColumn(mMeteringMode, mMeteringModePlaceHolder)
-                    .addColumn(mSubjectDistance, mSubjectDistancePlaceHolder)
-                    .addColumn(mSubjectDistanceCategory, mSubjectDistanceCategoryPlaceHolder)
-                    .validate();
-
-            String sql = insertQuery.toString();
-            try {
-                mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql);
-                //System.out.println(mInsertPreparedStatement.toString());
-            } catch (SQLException ex) {
-                Logger.getLogger(ImagePositionManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
         mIdPlaceHolder.setLong(metadata.getId(), mInsertPreparedStatement);
         mMakePlaceHolder.setString(metadata.getMake(), mInsertPreparedStatement);
         mModelPlaceHolder.setString(metadata.getModel(), mInsertPreparedStatement);

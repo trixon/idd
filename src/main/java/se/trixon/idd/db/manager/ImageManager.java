@@ -24,8 +24,6 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import se.trixon.idl.shared.db.Image;
 
 /**
@@ -43,19 +41,19 @@ public class ImageManager extends BaseManager {
     public static final String COL_UNIQUE_HASH = "unique_hash";
     public static final String TABLE_NAME = "image";
     private final DbColumn mAlbumId;
-    private final PlaceHolder mAlbumIdPlaceHolder;
+    private PlaceHolder mAlbumIdPlaceHolder;
     private final DbColumn mCategory;
-    private final PlaceHolder mCategoryPlaceHolder;
+    private PlaceHolder mCategoryPlaceHolder;
     private final DbColumn mFileSize;
-    private final PlaceHolder mFileSizePlaceHolder;
+    private PlaceHolder mFileSizePlaceHolder;
     private final DbColumn mModificationDate;
-    private final PlaceHolder mModificationDatePlaceHolder;
+    private PlaceHolder mModificationDatePlaceHolder;
     private final DbColumn mName;
-    private final PlaceHolder mNamePlaceHolder;
+    private PlaceHolder mNamePlaceHolder;
     private final DbColumn mStatus;
-    private final PlaceHolder mStatusPlaceHolder;
+    private PlaceHolder mStatusPlaceHolder;
     private final DbColumn mUniqueHash;
-    private final PlaceHolder mUniqueHashPlaceHolder;
+    private PlaceHolder mUniqueHashPlaceHolder;
 
     public static ImageManager getInstance() {
         return Holder.INSTANCE;
@@ -84,22 +82,12 @@ public class ImageManager extends BaseManager {
         manager = AlbumManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mAlbumId.references(indexName, manager.getTable(), manager.getId());
-
-        QueryPreparer preparer = new QueryPreparer();
-
-        mIdPlaceHolder = preparer.getNewPlaceHolder();
-        mAlbumIdPlaceHolder = preparer.getNewPlaceHolder();
-        mNamePlaceHolder = preparer.getNewPlaceHolder();
-        mStatusPlaceHolder = preparer.getNewPlaceHolder();
-        mCategoryPlaceHolder = preparer.getNewPlaceHolder();
-        mModificationDatePlaceHolder = preparer.getNewPlaceHolder();
-        mFileSizePlaceHolder = preparer.getNewPlaceHolder();
-        mUniqueHashPlaceHolder = preparer.getNewPlaceHolder();
     }
 
     @Override
     public void create() {
-        String indexName = getIndexName(new DbColumn[]{mId}, "pkey");
+        String indexName;
+        indexName = getIndexName(new DbColumn[]{mId}, "pkey");
         DbConstraint primaryKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.PRIMARY_KEY, mId);
 
         indexName = getIndexName(new DbColumn[]{mAlbumId, mName}, "key");
@@ -109,26 +97,6 @@ public class ImageManager extends BaseManager {
     }
 
     public long insert(Image image) throws ClassNotFoundException, SQLException {
-        if (mInsertPreparedStatement == null) {
-            InsertQuery insertQuery = new InsertQuery(mTable)
-                    .addColumn(mAlbumId, mAlbumIdPlaceHolder)
-                    .addColumn(mCategory, mCategoryPlaceHolder)
-                    .addColumn(mFileSize, mFileSizePlaceHolder)
-                    .addColumn(mModificationDate, mModificationDatePlaceHolder)
-                    .addColumn(mName, mNamePlaceHolder)
-                    .addColumn(mStatus, mStatusPlaceHolder)
-                    .addColumn(mUniqueHash, mUniqueHashPlaceHolder)
-                    .validate();
-
-            String sql = insertQuery.toString();
-            try {
-                mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                //System.out.println(mInsertPreparedStatement.toString());
-            } catch (SQLException ex) {
-                Logger.getLogger(ImagePositionManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
         mAlbumIdPlaceHolder.setLong(image.getAlbumId(), mInsertPreparedStatement);
         mCategoryPlaceHolder.setInt(image.getCategory(), mInsertPreparedStatement);
         mFileSizePlaceHolder.setLong(image.getFileSize(), mInsertPreparedStatement);
@@ -150,7 +118,7 @@ public class ImageManager extends BaseManager {
                     image.getPosition().setId(imageId);
                     ImagePositionManager.getInstance().insert(image.getPosition());
                 }
-                
+
                 if (image.getInformation().hasData()) {
                     image.getInformation().setId(imageId);
                     ImageInformationManager.getInstance().insert(image.getInformation());
@@ -165,6 +133,34 @@ public class ImageManager extends BaseManager {
                 throw new SQLException("Creating image failed, no ID obtained.");
             }
         }
+    }
+
+    @Override
+    public void prepare() throws SQLException {
+        QueryPreparer preparer = new QueryPreparer();
+
+        mIdPlaceHolder = preparer.getNewPlaceHolder();
+        mAlbumIdPlaceHolder = preparer.getNewPlaceHolder();
+        mNamePlaceHolder = preparer.getNewPlaceHolder();
+        mStatusPlaceHolder = preparer.getNewPlaceHolder();
+        mCategoryPlaceHolder = preparer.getNewPlaceHolder();
+        mModificationDatePlaceHolder = preparer.getNewPlaceHolder();
+        mFileSizePlaceHolder = preparer.getNewPlaceHolder();
+        mUniqueHashPlaceHolder = preparer.getNewPlaceHolder();
+
+        InsertQuery insertQuery = new InsertQuery(mTable)
+                .addColumn(mAlbumId, mAlbumIdPlaceHolder)
+                .addColumn(mCategory, mCategoryPlaceHolder)
+                .addColumn(mFileSize, mFileSizePlaceHolder)
+                .addColumn(mModificationDate, mModificationDatePlaceHolder)
+                .addColumn(mName, mNamePlaceHolder)
+                .addColumn(mStatus, mStatusPlaceHolder)
+                .addColumn(mUniqueHash, mUniqueHashPlaceHolder)
+                .validate();
+
+        String sql = insertQuery.toString();
+        mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        //System.out.println(mInsertPreparedStatement.toString());
     }
 
     private static class Holder {

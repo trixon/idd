@@ -17,6 +17,7 @@ package se.trixon.idd.db.manager;
 
 import com.healthmarketscience.sqlbuilder.InsertQuery;
 import com.healthmarketscience.sqlbuilder.QueryPreparer;
+import com.healthmarketscience.sqlbuilder.QueryPreparer.PlaceHolder;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
@@ -42,23 +43,23 @@ public class ImageInformationManager extends BaseManager {
     public static final String COL_WIDTH = "width";
     public static final String TABLE_NAME = "image_information";
     private final DbColumn mColorDepth;
-    private final QueryPreparer.PlaceHolder mColorDepthPlaceHolder;
-    private final QueryPreparer.PlaceHolder mColorModePlaceHolder;
+    private PlaceHolder mColorDepthPlaceHolder;
+    private PlaceHolder mColorModePlaceHolder;
     private final DbColumn mColorModel;
     private final DbColumn mCreationDate;
-    private final QueryPreparer.PlaceHolder mCreationDatePlaceHolder;
+    private PlaceHolder mCreationDatePlaceHolder;
     private final DbColumn mDigitizationDate;
-    private final QueryPreparer.PlaceHolder mDigitizationDatePlaceHolder;
+    private PlaceHolder mDigitizationDatePlaceHolder;
     private final DbColumn mFormat;
-    private final QueryPreparer.PlaceHolder mFormatPlaceHolder;
+    private PlaceHolder mFormatPlaceHolder;
     private final DbColumn mHeight;
-    private final QueryPreparer.PlaceHolder mHeightPlaceHolder;
+    private PlaceHolder mHeightPlaceHolder;
     private final DbColumn mOrientation;
-    private final QueryPreparer.PlaceHolder mOrientationPlaceHolder;
+    private PlaceHolder mOrientationPlaceHolder;
     private final DbColumn mRating;
-    private final QueryPreparer.PlaceHolder mRatingPlaceHolder;
+    private PlaceHolder mRatingPlaceHolder;
     private final DbColumn mWidth;
-    private final QueryPreparer.PlaceHolder mWidthPlaceHolder;
+    private PlaceHolder mWidthPlaceHolder;
 
     public static ImageInformationManager getInstance() {
         return Holder.INSTANCE;
@@ -84,7 +85,18 @@ public class ImageInformationManager extends BaseManager {
         manager = ImageManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mId.references(indexName, manager.getTable().getName(), manager.getId().getName());
+    }
 
+    @Override
+    public void create() {
+        String indexName = getIndexName(new DbColumn[]{mId}, "pkey");
+        DbConstraint primaryKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.PRIMARY_KEY, mId);
+
+        mDb.create(mTable, primaryKeyConstraint);
+    }
+
+    @Override
+    public void prepare() throws SQLException {
         QueryPreparer preparer = new QueryPreparer();
 
         mIdPlaceHolder = preparer.getNewPlaceHolder();
@@ -97,40 +109,26 @@ public class ImageInformationManager extends BaseManager {
         mFormatPlaceHolder = preparer.getNewPlaceHolder();
         mColorDepthPlaceHolder = preparer.getNewPlaceHolder();
         mColorModePlaceHolder = preparer.getNewPlaceHolder();
-    }
 
-    @Override
-    public void create() {
-        String indexName = getIndexName(new DbColumn[]{mId}, "pkey");
-        DbConstraint primaryKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.PRIMARY_KEY, mId);
+        InsertQuery insertQuery = new InsertQuery(mTable)
+                .addColumn(mId, mIdPlaceHolder)
+                .addColumn(mRating, mRatingPlaceHolder)
+                .addColumn(mCreationDate, mCreationDatePlaceHolder)
+                .addColumn(mDigitizationDate, mDigitizationDatePlaceHolder)
+                .addColumn(mOrientation, mOrientationPlaceHolder)
+                .addColumn(mWidth, mWidthPlaceHolder)
+                .addColumn(mHeight, mHeightPlaceHolder)
+                .addColumn(mFormat, mFormatPlaceHolder)
+                .addColumn(mColorDepth, mColorDepthPlaceHolder)
+                .addColumn(mColorModel, mColorModePlaceHolder)
+                .validate();
 
-        mDb.create(mTable, primaryKeyConstraint);
+        String sql = insertQuery.toString();
+        mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql);
+        //System.out.println(mInsertPreparedStatement.toString());
     }
 
     void insert(Image.Information information) throws SQLException {
-        if (mInsertPreparedStatement == null) {
-            InsertQuery insertQuery = new InsertQuery(mTable)
-                    .addColumn(mId, mIdPlaceHolder)
-                    .addColumn(mRating, mRatingPlaceHolder)
-                    .addColumn(mCreationDate, mCreationDatePlaceHolder)
-                    .addColumn(mDigitizationDate, mDigitizationDatePlaceHolder)
-                    .addColumn(mOrientation, mOrientationPlaceHolder)
-                    .addColumn(mWidth, mWidthPlaceHolder)
-                    .addColumn(mHeight, mHeightPlaceHolder)
-                    .addColumn(mFormat, mFormatPlaceHolder)
-                    .addColumn(mColorDepth, mColorDepthPlaceHolder)
-                    .addColumn(mColorModel, mColorModePlaceHolder)
-                    .validate();
-
-            String sql = insertQuery.toString();
-            try {
-                mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql);
-                //System.out.println(mInsertPreparedStatement.toString());
-            } catch (SQLException ex) {
-                Logger.getLogger(ImagePositionManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
         mIdPlaceHolder.setLong(information.getId(), mInsertPreparedStatement);
         mRatingPlaceHolder.setInt(information.getRating(), mInsertPreparedStatement);
         mCreationDatePlaceHolder.setObject(information.getCreationDate(), mInsertPreparedStatement);

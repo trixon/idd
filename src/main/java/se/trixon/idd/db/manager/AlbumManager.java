@@ -24,8 +24,6 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import se.trixon.idl.shared.db.Album;
 
 /**
@@ -42,17 +40,17 @@ public class AlbumManager extends BaseManager {
     public static final String COL_RELATIVE_PATH = "relative_path";
     public static final String TABLE_NAME = "album";
     private final DbColumn mAlbumRootId;
-    private final PlaceHolder mAlbumRootIdPlaceHolder;
+    private PlaceHolder mAlbumRootIdPlaceHolder;
     private final DbColumn mCaption;
-    private final PlaceHolder mCaptionPlaceHolder;
+    private PlaceHolder mCaptionPlaceHolder;
     private final DbColumn mCollection;
-    private final PlaceHolder mCollectionPlaceHolder;
+    private PlaceHolder mCollectionPlaceHolder;
     private final DbColumn mDate;
-    private final PlaceHolder mDatePlaceHolder;
+    private PlaceHolder mDatePlaceHolder;
     private final DbColumn mIcon;
-    private final PlaceHolder mIconPlaceHolder;
+    private PlaceHolder mIconPlaceHolder;
     private final DbColumn mRelativePath;
-    private final PlaceHolder mRelativePathPlaceHolder;
+    private PlaceHolder mRelativePathPlaceHolder;
 
     public static AlbumManager getInstance() {
         return Holder.INSTANCE;
@@ -78,16 +76,6 @@ public class AlbumManager extends BaseManager {
         manager = AlbumRootManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mAlbumRootId.references(indexName, manager.getTable(), manager.getId());
-
-        QueryPreparer preparer = new QueryPreparer();
-
-        mIdPlaceHolder = preparer.getNewPlaceHolder();
-        mAlbumRootIdPlaceHolder = preparer.getNewPlaceHolder();
-        mRelativePathPlaceHolder = preparer.getNewPlaceHolder();
-        mDatePlaceHolder = preparer.getNewPlaceHolder();
-        mCaptionPlaceHolder = preparer.getNewPlaceHolder();
-        mCollectionPlaceHolder = preparer.getNewPlaceHolder();
-        mIconPlaceHolder = preparer.getNewPlaceHolder();
     }
 
     @Override
@@ -101,25 +89,6 @@ public class AlbumManager extends BaseManager {
     }
 
     public long insert(Album album) throws ClassNotFoundException, SQLException {
-        if (mInsertPreparedStatement == null) {
-            InsertQuery insertQuery = new InsertQuery(mTable)
-                    .addColumn(mAlbumRootId, mAlbumRootIdPlaceHolder)
-                    .addColumn(mCaption, mCaptionPlaceHolder)
-                    .addColumn(mCollection, mCollectionPlaceHolder)
-                    .addColumn(mDate, mDatePlaceHolder)
-                    .addColumn(mIcon, mIconPlaceHolder)
-                    .addColumn(mRelativePath, mRelativePathPlaceHolder)
-                    .validate();
-
-            String sql = insertQuery.toString();
-            try {
-                mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                //System.out.println(mInsertPreparedStatement.toString());
-            } catch (SQLException ex) {
-                Logger.getLogger(ImagePositionManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
         mAlbumRootIdPlaceHolder.setLong(album.getAlbumRootId(), mInsertPreparedStatement);
         mCaptionPlaceHolder.setString(album.getCaption(), mInsertPreparedStatement);
         mCollectionPlaceHolder.setString(album.getCollection(), mInsertPreparedStatement);
@@ -139,6 +108,32 @@ public class AlbumManager extends BaseManager {
                 throw new SQLException("Creating album failed, no ID obtained.");
             }
         }
+    }
+
+    @Override
+    public void prepare() throws SQLException {
+        QueryPreparer preparer = new QueryPreparer();
+
+        mIdPlaceHolder = preparer.getNewPlaceHolder();
+        mAlbumRootIdPlaceHolder = preparer.getNewPlaceHolder();
+        mRelativePathPlaceHolder = preparer.getNewPlaceHolder();
+        mDatePlaceHolder = preparer.getNewPlaceHolder();
+        mCaptionPlaceHolder = preparer.getNewPlaceHolder();
+        mCollectionPlaceHolder = preparer.getNewPlaceHolder();
+        mIconPlaceHolder = preparer.getNewPlaceHolder();
+
+        InsertQuery insertQuery = new InsertQuery(mTable)
+                .addColumn(mAlbumRootId, mAlbumRootIdPlaceHolder)
+                .addColumn(mCaption, mCaptionPlaceHolder)
+                .addColumn(mCollection, mCollectionPlaceHolder)
+                .addColumn(mDate, mDatePlaceHolder)
+                .addColumn(mIcon, mIconPlaceHolder)
+                .addColumn(mRelativePath, mRelativePathPlaceHolder)
+                .validate();
+
+        String sql = insertQuery.toString();
+        mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        //System.out.println(mInsertPreparedStatement.toString());
     }
 
     private static class Holder {

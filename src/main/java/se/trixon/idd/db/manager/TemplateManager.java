@@ -37,6 +37,9 @@ public class TemplateManager extends BaseManager {
 
         mId = mTable.addColumn(COL_ID, "IDENTITY", null);
     }
+    @Override
+    public void prepare() {
+    }
 
     @Override
     public void create() {

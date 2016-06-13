@@ -42,15 +42,15 @@ public class AlbumRootManager extends BaseManager {
     public static final String COL_TYPE = "type";
     public static final String TABLE_NAME = "album_root";
     private final DbColumn mIdentifier;
-    private final PlaceHolder mIdentifierPlaceHolder;
+    private PlaceHolder mIdentifierPlaceHolder;
     private final DbColumn mLabel;
-    private final PlaceHolder mLabelPlaceHolder;
+    private PlaceHolder mLabelPlaceHolder;
     private final DbColumn mSpecificPath;
-    private final PlaceHolder mSpecificPathPlaceHolder;
+    private PlaceHolder mSpecificPathPlaceHolder;
     private final DbColumn mStatus;
-    private final PlaceHolder mStatusPlaceHolder;
+    private PlaceHolder mStatusPlaceHolder;
     private final DbColumn mType;
-    private final PlaceHolder mTypePlaceHolder;
+    private PlaceHolder mTypePlaceHolder;
 
     public static AlbumRootManager getInstance() {
         return Holder.INSTANCE;
@@ -68,45 +68,21 @@ public class AlbumRootManager extends BaseManager {
 
         addNotNullConstraint(mStatus);
         addNotNullConstraint(mType);
-
-        QueryPreparer preparer = new QueryPreparer();
-
-        mIdPlaceHolder = preparer.getNewPlaceHolder();
-        mLabelPlaceHolder = preparer.getNewPlaceHolder();
-        mStatusPlaceHolder = preparer.getNewPlaceHolder();
-        mTypePlaceHolder = preparer.getNewPlaceHolder();
-        mIdentifierPlaceHolder = preparer.getNewPlaceHolder();
-        mSpecificPathPlaceHolder = preparer.getNewPlaceHolder();
     }
 
     @Override
     public void create() {
-        String indexName = getIndexName(new DbColumn[]{mId}, "pkey");
+        String indexName;
+        indexName = getIndexName(new DbColumn[]{mId}, "pkey");
         DbConstraint primaryKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.PRIMARY_KEY, mId);
+
+        indexName = getIndexName(new DbColumn[]{mIdentifier, mSpecificPath}, "key");
         DbConstraint uniqueKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.UNIQUE, mIdentifier, mSpecificPath);
+
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }
 
     public long insert(AlbumRoot albumRoot) throws SQLException, ClassNotFoundException {
-        if (mInsertPreparedStatement == null) {
-            InsertQuery insertQuery = new InsertQuery(mTable)
-                    .addColumn(mId, mIdPlaceHolder)
-                    .addColumn(mLabel, mLabelPlaceHolder)
-                    .addColumn(mStatus, mStatusPlaceHolder)
-                    .addColumn(mType, mTypePlaceHolder)
-                    .addColumn(mIdentifier, mIdentifierPlaceHolder)
-                    .addColumn(mSpecificPath, mSpecificPathPlaceHolder)
-                    .validate();
-
-            String sql = insertQuery.toString();
-            try {
-                mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                //System.out.println(mInsertPreparedStatement.toString());
-            } catch (SQLException ex) {
-                Logger.getLogger(ImagePositionManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
         mIdPlaceHolder.setLong(albumRoot.getId(), mInsertPreparedStatement);
         mLabelPlaceHolder.setString(albumRoot.getLabel(), mInsertPreparedStatement);
         mStatusPlaceHolder.setInt(albumRoot.getStatus(), mInsertPreparedStatement);
@@ -126,6 +102,32 @@ public class AlbumRootManager extends BaseManager {
                 throw new SQLException("Creating album root failed, no ID obtained.");
             }
         }
+    }
+
+    @Override
+    public void prepare() throws SQLException {
+        QueryPreparer preparer = new QueryPreparer();
+
+        mIdPlaceHolder = preparer.getNewPlaceHolder();
+        mLabelPlaceHolder = preparer.getNewPlaceHolder();
+        mStatusPlaceHolder = preparer.getNewPlaceHolder();
+        mTypePlaceHolder = preparer.getNewPlaceHolder();
+        mIdentifierPlaceHolder = preparer.getNewPlaceHolder();
+        mSpecificPathPlaceHolder = preparer.getNewPlaceHolder();
+
+        InsertQuery insertQuery = new InsertQuery(mTable)
+                .addColumn(mId, mIdPlaceHolder)
+                .addColumn(mLabel, mLabelPlaceHolder)
+                .addColumn(mStatus, mStatusPlaceHolder)
+                .addColumn(mType, mTypePlaceHolder)
+                .addColumn(mIdentifier, mIdentifierPlaceHolder)
+                .addColumn(mSpecificPath, mSpecificPathPlaceHolder)
+                .validate();
+
+        String sql = insertQuery.toString();
+
+        mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        //System.out.println(mInsertPreparedStatement.toString());
     }
 
     private static class Holder {

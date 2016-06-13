@@ -25,6 +25,7 @@ import se.trixon.idd.db.manager.ImageInformationManager;
 import se.trixon.idd.db.manager.ImageManager;
 import se.trixon.idd.db.manager.ImageMetadataManager;
 import se.trixon.idd.db.manager.ImagePositionManager;
+import se.trixon.util.Xlog;
 
 /**
  *
@@ -42,13 +43,17 @@ public class DbCreator {
     }
 
     private void init(BaseManager manager) {
-//        try {
-//            mDb.drop(manager.getTable(), true);
-//        } catch (ClassNotFoundException | SQLException ex) {
-//            Logger.getLogger(DbCreator.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-
+        try {
+            mDb.drop(manager.getTable(), true);
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(DbCreator.class.getName()).log(Level.SEVERE, null, ex);
+        }
         manager.create();
+        try {
+            manager.prepare();
+        } catch (SQLException ex) {
+            Logger.getLogger(DbCreator.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public void initDb() {
