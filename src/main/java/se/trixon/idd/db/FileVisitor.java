@@ -41,7 +41,7 @@ import se.trixon.idd.db.manager.ImageManager;
 import se.trixon.idl.shared.db.Album;
 import se.trixon.idl.shared.db.AlbumRoot;
 import se.trixon.idl.shared.db.Image;
-import se.trixon.util.Xlog;
+import se.trixon.almond.util.Xlog;
 
 /**
  *

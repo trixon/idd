@@ -21,7 +21,7 @@ import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
-import se.trixon.util.dictionary.Dict;
+import se.trixon.almond.util.Dict;
 
 /**
  *

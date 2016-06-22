@@ -33,8 +33,8 @@ import org.apache.commons.lang3.SystemUtils;
 import se.trixon.idd.db.Db;
 import se.trixon.idd.db.DbCreator;
 import se.trixon.idl.shared.IddHelper;
-import se.trixon.util.BundleHelper;
-import se.trixon.util.SystemHelper;
+import se.trixon.almond.util.BundleHelper;
+import se.trixon.almond.util.SystemHelper;
 
 /**
  *
@@ -85,10 +85,6 @@ public class Main {
                             }
                         }
                     });
-                    //DbCreator.getInstance().initDb();
-//                    DbCreator.getInstance();
-//                    Executor executor = new Executor("update", null);
-//                    executor.execute();
 
                     ImageServer imageServer = new ImageServer();
                 }

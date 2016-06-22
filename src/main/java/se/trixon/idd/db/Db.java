@@ -27,7 +27,7 @@ import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import se.trixon.idd.Config;
-import se.trixon.util.Xlog;
+import se.trixon.almond.util.Xlog;
 
 /**
  *
@@ -40,6 +40,7 @@ public class Db {
     private final String mConnString = String.format("jdbc:h2:tcp://localhost/%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
     private Connection mConnection = null;
     private final DbSpec mSpec;
+    private boolean mUpdating;
 
     public static Db getInstance() {
         return Holder.INSTANCE;
@@ -53,7 +54,7 @@ public class Db {
     public void connectionCommit() throws ClassNotFoundException, SQLException {
         getConnection().commit();
         //getConnection().close();
-        Xlog.d(this.getClass(), "JDBC Commit");
+        //Xlog.d(this.getClass(), "JDBC Commit");
     }
 
     public void connectionOpen() throws ClassNotFoundException, SQLException {
@@ -65,7 +66,7 @@ public class Db {
         Class.forName("org.h2.Driver");
         mConnection = DriverManager.getConnection(mConnString);
         mConnection.setAutoCommit(false);
-        Xlog.d(getClass(), "JDBC Connect: " + mConnString);
+        //Xlog.d(getClass(), "JDBC Connect: " + mConnString);
     }
 
     public boolean connectionRollback() {
@@ -138,6 +139,14 @@ public class Db {
 
     public DbSpec getSpec() {
         return mSpec;
+    }
+
+    public boolean isUpdating() {
+        return mUpdating;
+    }
+
+    public void setUpdating(boolean updating) {
+        mUpdating = updating;
     }
 
     private void init() {

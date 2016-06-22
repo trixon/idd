@@ -25,7 +25,6 @@ import se.trixon.idd.db.manager.ImageInformationManager;
 import se.trixon.idd.db.manager.ImageManager;
 import se.trixon.idd.db.manager.ImageMetadataManager;
 import se.trixon.idd.db.manager.ImagePositionManager;
-import se.trixon.util.Xlog;
 
 /**
  *

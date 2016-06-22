@@ -26,8 +26,8 @@ import se.trixon.idd.db.Db;
 import se.trixon.idd.db.DbCreator;
 import se.trixon.idd.db.FileVisitor;
 import se.trixon.idl.shared.Commands;
-import se.trixon.util.SystemHelper;
-import se.trixon.util.Xlog;
+import se.trixon.almond.util.SystemHelper;
+import se.trixon.almond.util.Xlog;
 
 /**
  *
@@ -45,38 +45,48 @@ public class Executor {
         mArgs = args;
     }
 
-    private void update() {
-        try {
-            mDb.connectionOpen();
-            DbCreator.getInstance().initDb();
-            EnumSet<FileVisitOption> fileVisitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-            FileVisitor fileVisitor = new FileVisitor();
-            Files.walkFileTree(mConfig.getImageDirectory().toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
-            mDb.connectionCommit();
-        } catch (ClassNotFoundException | SQLException | IOException ex) {
-            Logger.getLogger(Executor.class.getName()).log(Level.SEVERE, null, ex);
+    private String update() {
+        String resultMessage = null;
+
+        if (mDb.isUpdating()) {
+            resultMessage = "Update already in progress";
+        } else {
+            try {
+                mDb.setUpdating(true);
+                mDb.connectionOpen();
+                DbCreator.getInstance().initDb();
+                EnumSet<FileVisitOption> fileVisitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+                FileVisitor fileVisitor = new FileVisitor();
+                Files.walkFileTree(mConfig.getImageDirectory().toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
+                mDb.connectionCommit();
+                resultMessage = "Update done";
+            } catch (ClassNotFoundException | SQLException | IOException ex) {
+                Logger.getLogger(Executor.class.getName()).log(Level.SEVERE, null, ex);
+                resultMessage = "Update failed";
+            } finally {
+                mDb.setUpdating(false);
+            }
         }
+
+        return resultMessage;
     }
 
     String execute() {
         Xlog.timedOut(String.format("execute: %s", mCommand));
-        String result = null;
+        String resultMessage = null;
 
         switch (mCommand) {
             case Commands.STATS:
-                result = "stats";
                 break;
             case Commands.UPDATE:
-                update();
-                result = "update";
+                resultMessage = update();
                 break;
             case Commands.VERSION:
-                result = String.format("idd version: %s", SystemHelper.getJarVersion(getClass()));
+                resultMessage = String.format("idd version: %s", SystemHelper.getJarVersion(getClass()));
                 break;
-
         }
 
-        return result;
+        Xlog.timedOut(resultMessage);
+        return resultMessage;
     }
-
 }

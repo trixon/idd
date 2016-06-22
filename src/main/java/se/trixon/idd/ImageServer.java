@@ -24,18 +24,18 @@ import java.rmi.dgc.VMID;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import se.trixon.idl.shared.ClientCallbacks;
+import se.trixon.idl.shared.Commands;
 import se.trixon.idl.shared.IDServer;
 import se.trixon.idl.shared.ImageServerCommander;
 import se.trixon.idl.shared.IddHelper;
 import se.trixon.idl.shared.ImageServerEvent;
-import se.trixon.util.SystemHelper;
-import se.trixon.util.Xlog;
+import se.trixon.almond.util.SystemHelper;
+import se.trixon.almond.util.Xlog;
 
 /**
  *
@@ -56,10 +56,19 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
     }
 
     @Override
-    public String execute(String command, String... args) throws RemoteException {
+    public void execute(String command, String... args) throws RemoteException {
         Executor executor = new Executor(command, args);
+        if (command.equalsIgnoreCase(Commands.UPDATE)) {
+            Thread t = new Thread(() -> {
+                String resultMessage = executor.execute();
+                notifyClientsExecutor(command, resultMessage);
+            });
 
-        return executor.execute();
+            t.start();
+        } else {
+            String resultMessage = executor.execute();
+            notifyClientsExecutor(command, resultMessage);
+        }
     }
 
     @Override
@@ -104,6 +113,16 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             notifyClientsShutdown();
         }));
+    }
+
+    private void notifyClientsExecutor(String command, String... strings) {
+        mClientCallbacks.stream().forEach((clientCallback) -> {
+            try {
+                clientCallback.onExecutorEvent(command, strings);
+            } catch (RemoteException ex) {
+                // nvm
+            }
+        });
     }
 
     private void notifyClientsShutdown() {
