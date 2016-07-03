@@ -96,6 +96,14 @@ public class ImageManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }
 
+    public DbColumn getAlbumId() {
+        return mAlbumId;
+    }
+
+    public DbColumn getName() {
+        return mName;
+    }
+
     public long insert(Image image) throws ClassNotFoundException, SQLException {
         mAlbumIdPlaceHolder.setLong(image.getAlbumId(), mInsertPreparedStatement);
         mCategoryPlaceHolder.setInt(image.getCategory(), mInsertPreparedStatement);

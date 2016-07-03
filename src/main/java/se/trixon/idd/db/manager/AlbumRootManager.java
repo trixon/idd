@@ -82,6 +82,10 @@ public class AlbumRootManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }
 
+    public DbColumn getSpecificPath() {
+        return mSpecificPath;
+    }
+
     public long insert(AlbumRoot albumRoot) throws SQLException, ClassNotFoundException {
         mIdPlaceHolder.setLong(albumRoot.getId(), mInsertPreparedStatement);
         mLabelPlaceHolder.setString(albumRoot.getLabel(), mInsertPreparedStatement);

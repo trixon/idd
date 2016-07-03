@@ -88,6 +88,14 @@ public class AlbumManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }
 
+    public DbColumn getAlbumRootId() {
+        return mAlbumRootId;
+    }
+
+    public DbColumn getRelativePath() {
+        return mRelativePath;
+    }
+
     public long insert(Album album) throws ClassNotFoundException, SQLException {
         mAlbumRootIdPlaceHolder.setLong(album.getAlbumRootId(), mInsertPreparedStatement);
         mCaptionPlaceHolder.setString(album.getCaption(), mInsertPreparedStatement);
