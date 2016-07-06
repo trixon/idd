@@ -97,16 +97,16 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
     }
 
     @Override
-    public void registerClient(ImageClientCommander clientCommander, String hostname) throws RemoteException {
+    public void registerClientCommander(ImageClientCommander imageClientCommander, String hostname) throws RemoteException {
         Xlog.timedOut("client connected: " + hostname);
-        mImageClientCommanders.add(clientCommander);
+        mImageClientCommanders.add(imageClientCommander);
     }
 
     @Override
-    public void removeClient(ImageClientCommander clientCommander, String hostname) throws RemoteException {
-        if (mImageClientCommanders.contains(clientCommander)) {
+    public void removeClientCommander(ImageClientCommander imageClientCommander, String hostname) throws RemoteException {
+        if (mImageClientCommanders.contains(imageClientCommander)) {
             Xlog.timedOut("client disconnected: " + hostname);
-            mImageClientCommanders.remove(clientCommander);
+            mImageClientCommanders.remove(imageClientCommander);
         }
     }
 
@@ -165,6 +165,40 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
         });
     }
 
+    private String sendFile(String path) {
+        RemoteInputStreamServer remoteInputStreamServer = null;
+        String result = null;
+
+        if (mImageClientCommanders.isEmpty()) {
+            result = "no recievers connected - not sending";
+
+        } else {
+            result = "sendFile OK";
+            try {
+                remoteInputStreamServer = new GZIPRemoteInputStream(new BufferedInputStream(new FileInputStream(path)));
+                for (ImageClientCommander clientCommander : mImageClientCommanders) {
+                    try {
+                        clientCommander.sendFile(remoteInputStreamServer.export());
+                    } catch (RemoteException ex) {
+                        Xlog.timedErr(ex.getMessage());
+                        result = ex.getMessage();
+                    }
+
+                }
+
+            } catch (IOException ex) {
+                result = ex.getMessage();
+                Logger.getLogger(ImageServer.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                if (remoteInputStreamServer != null) {
+                    remoteInputStreamServer.close();
+                }
+            }
+        }
+
+        return result;
+    }
+
     private void startServer() {
         SystemHelper.enableRmiServer();
         mRmiNameServer = IddHelper.getRmiName(SystemHelper.getHostname(), mConfig.getPort(), IDServer.class);
@@ -176,37 +210,15 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
             String message = String.format("started: %s (%s)", mRmiNameServer, mServerVmid.toString());
             Xlog.timedOut(message);
         } catch (IllegalArgumentException e) {
-            Xlog.timedErr(e.getLocalizedMessage());
+            Xlog.timedErr(e.getMessage());
             IddHelper.exit();
         } catch (RemoteException e) {
             //nvm - server was running
-            Xlog.timedErr(e.getLocalizedMessage());
+            Xlog.timedErr(e.getMessage());
             IddHelper.exit();
         } catch (MalformedURLException ex) {
-            Xlog.timedErr(ex.getLocalizedMessage());
+            Xlog.timedErr(ex.getMessage());
             IddHelper.exit();
-        }
-    }
-
-    private void sendFile(String path) {
-        RemoteInputStreamServer remoteInputStreamServer = null;
-        try {
-            remoteInputStreamServer = new GZIPRemoteInputStream(new BufferedInputStream(new FileInputStream(path)));
-
-            for (ImageClientCommander clientCommander : mImageClientCommanders) {
-                try {
-                    clientCommander.sendFile(remoteInputStreamServer.export());
-                } catch (RemoteException ex) {
-                    System.err.println(ex.getMessage());
-                }
-
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(ImageServer.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            if (remoteInputStreamServer != null) {
-                remoteInputStreamServer.close();
-            }
         }
     }
 
@@ -254,7 +266,7 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
 
             switch (mCommand) {
                 case Commands.RANDOM:
-                    sendFile(Querator.getInstance().getRandomPath());
+                    resultMessage = sendFile(Querator.getInstance().getRandomPath());
                     break;
 
                 case Commands.STATS:
