@@ -200,7 +200,6 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
     }
 
     private void startServer() {
-        SystemHelper.enableRmiServer();
         mRmiNameServer = IddHelper.getRmiName(SystemHelper.getHostname(), mConfig.getPort(), IDServer.class);
 
         try {

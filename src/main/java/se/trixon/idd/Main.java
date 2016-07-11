@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2016 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,11 +30,10 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
-import se.trixon.idd.db.Db;
-import se.trixon.idd.db.DbCreator;
-import se.trixon.idl.shared.IddHelper;
 import se.trixon.almond.util.BundleHelper;
 import se.trixon.almond.util.SystemHelper;
+import se.trixon.idd.db.Db;
+import se.trixon.idl.shared.IddHelper;
 
 /**
  *
@@ -55,6 +54,7 @@ public class Main {
      * @throws java.io.IOException
      */
     public static void main(String[] args) throws IOException {
+        SystemHelper.enableRmiServer();
         new Main(args);
     }
 
