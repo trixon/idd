@@ -18,7 +18,6 @@ package se.trixon.idd;
 import com.healthmarketscience.rmiio.GZIPRemoteInputStream;
 import com.healthmarketscience.rmiio.RemoteInputStreamServer;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -125,18 +124,14 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
     }
 
     private void initTimer() {
-        Timer t = new Timer(5000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    execute("random", null);
-                } catch (RemoteException ex) {
-                    Logger.getLogger(ImageServer.class.getName()).log(Level.SEVERE, null, ex);
-                }
+        Timer timer = new Timer(5000, (ActionEvent e) -> {
+            try {
+                execute("random", null);
+            } catch (RemoteException ex) {
+                Logger.getLogger(ImageServer.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
-        t.start();
-
+        timer.start();
     }
 
     private void intiListeners() {
@@ -166,33 +161,24 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
     }
 
     private String sendFile(String path) {
-        RemoteInputStreamServer remoteInputStreamServer = null;
         String result = null;
 
         if (mImageClientCommanders.isEmpty()) {
             result = "no recievers connected - not sending";
-
         } else {
-            result = "sendFile OK";
-            try {
-                remoteInputStreamServer = new GZIPRemoteInputStream(new BufferedInputStream(new FileInputStream(path)));
-                for (ImageClientCommander clientCommander : mImageClientCommanders) {
-                    try {
+            result = "recievers connected - try sending file";
+            for (ImageClientCommander clientCommander : mImageClientCommanders) {
+                Thread thread = new Thread(() -> {
+                    try (RemoteInputStreamServer remoteInputStreamServer = new GZIPRemoteInputStream(new BufferedInputStream(new FileInputStream(path)))) {
                         clientCommander.sendFile(remoteInputStreamServer.export());
                     } catch (RemoteException ex) {
                         Xlog.timedErr(ex.getMessage());
-                        result = ex.getMessage();
+                    } catch (IOException ex) {
+                        Xlog.timedErr(ex.getMessage());
                     }
+                });
 
-                }
-
-            } catch (IOException ex) {
-                result = ex.getMessage();
-                Logger.getLogger(ImageServer.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
-                if (remoteInputStreamServer != null) {
-                    remoteInputStreamServer.close();
-                }
+                thread.start();
             }
         }
 
