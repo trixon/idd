@@ -114,7 +114,7 @@ public class Config {
                 System.err.println(ex.getMessage());
             }
         } else {
-            System.err.format(Dict.FILE_NOT_FOUND_MESSAGE.toString(), file.getAbsolutePath());
+            System.err.format(Dict.Dialog.MESSAGE_FILE_NOT_FOUND.toString(), file.getAbsolutePath());
             System.err.println("");
         }
     }
