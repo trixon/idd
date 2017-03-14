@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2016 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import se.trixon.almond.util.Xlog;
 import se.trixon.idd.Config;
 import se.trixon.idd.db.manager.AlbumManager;
 import se.trixon.idd.db.manager.AlbumRootManager;
@@ -41,7 +42,6 @@ import se.trixon.idd.db.manager.ImageManager;
 import se.trixon.idl.shared.db.Album;
 import se.trixon.idl.shared.db.AlbumRoot;
 import se.trixon.idl.shared.db.Image;
-import se.trixon.almond.util.Xlog;
 
 /**
  *
