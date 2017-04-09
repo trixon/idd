@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -124,7 +124,7 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
     }
 
     private void initTimer() {
-        Timer timer = new Timer(5000, (ActionEvent e) -> {
+        Timer timer = new Timer(2000, (ActionEvent e) -> {
             try {
                 execute("random", null);
             } catch (RemoteException ex) {
@@ -256,9 +256,11 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
 
                 case Commands.STATS:
                     break;
+
                 case Commands.UPDATE:
                     resultMessage = update();
                     break;
+
                 case Commands.VERSION:
                     resultMessage = String.format("idd version: %s", SystemHelper.getJarVersion(getClass()));
                     break;

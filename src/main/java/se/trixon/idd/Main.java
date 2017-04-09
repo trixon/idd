@@ -30,7 +30,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
-import se.trixon.almond.util.BundleHelper;
+import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.idd.db.Db;
 import se.trixon.idl.shared.IddHelper;
@@ -45,7 +45,7 @@ public class Main {
     public static final String VERBOSE = "verbose";
     public static final String VERSION = "version";
 
-    private final ResourceBundle mBundle = BundleHelper.getBundle(Main.class, "Bundle");
+    private final ResourceBundle mBundle = SystemHelper.getBundle(Main.class, "Bundle");
     private final Config mConfig = Config.getInstance();
     private Options mOptions;
 
