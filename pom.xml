@@ -39,6 +39,21 @@
         <tag>HEAD</tag>
     </scm>
     <dependencies>
+        <!--idd-->
+        <dependency>
+            <groupId>se.trixon.idd</groupId>
+            <artifactId>idl</artifactId>
+            <version>0.0.2-SNAPSHOT</version>
+        </dependency>
+
+        <!--trixon-->
+        <dependency>
+            <groupId>se.trixon.almond</groupId>
+            <artifactId>almond-util</artifactId>
+            <version>1.2.1-SNAPSHOT</version>
+        </dependency>
+
+        <!--apache-->
         <dependency>
             <groupId>commons-cli</groupId>
             <artifactId>commons-cli</artifactId>
@@ -64,21 +79,8 @@
             <artifactId>commons-codec</artifactId>
             <version>1.10</version>
         </dependency>
-        <dependency>
-            <groupId>se.trixon.idd</groupId>
-            <artifactId>idl</artifactId>
-            <version>0.0.2-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>se.trixon.almond</groupId>
-            <artifactId>almond-util</artifactId>
-            <version>1.2.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils</artifactId>
-            <version>1.9.3</version>
-        </dependency>
+
+        <!--other-->
         <dependency>
             <groupId>com.healthmarketscience.sqlbuilder</groupId>
             <artifactId>sqlbuilder</artifactId>
@@ -93,11 +95,6 @@
             <groupId>com.drewnoakes</groupId>
             <artifactId>metadata-extractor</artifactId>
             <version>2.10.1</version>
-        </dependency>
-        <dependency>
-            <groupId>com.healthmarketscience.rmiio</groupId>
-            <artifactId>rmiio</artifactId>
-            <version>2.1.2</version>
         </dependency>
     </dependencies>
     <build>

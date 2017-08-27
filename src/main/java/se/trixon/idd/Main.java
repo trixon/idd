@@ -53,7 +53,6 @@ public class Main {
      * @throws java.io.IOException
      */
     public static void main(String[] args) throws IOException {
-        SystemHelper.enableRmiServer();
         new Main(args);
     }
 

@@ -15,21 +15,10 @@
  */
 package se.trixon.idd;
 
-import com.healthmarketscience.rmiio.GZIPRemoteInputStream;
-import com.healthmarketscience.rmiio.RemoteInputStreamServer;
 import java.awt.event.ActionEvent;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.dgc.VMID;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.server.UnicastRemoteObject;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -54,23 +43,20 @@ import se.trixon.idl.shared.ImageServerEvent;
  *
  * @author Patrik Karlsson
  */
-class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
+class ImageServer implements ImageServerCommander {
 
     private final Config mConfig = Config.getInstance();
     private final Set<ImageClientCommander> mImageClientCommanders = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private String mRmiNameServer;
-    private VMID mServerVmid;
 
-    ImageServer() throws RemoteException, IOException {
-        super(0);
-
+    ImageServer() throws IOException {
         intiListeners();
         startServer();
         initTimer();
     }
 
     @Override
-    public void execute(String command, String... args) throws RemoteException {
+    public void execute(String command, String... args) {
         Executor executor = new Executor(command, args);
         if (command.equalsIgnoreCase(Commands.UPDATE)) {
             Thread t = new Thread(() -> {
@@ -86,23 +72,18 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
     }
 
     @Override
-    public String getStatus() throws RemoteException {
+    public String getStatus() {
         return "status";
     }
 
     @Override
-    public VMID getVMID() throws RemoteException {
-        return mServerVmid;
-    }
-
-    @Override
-    public void registerClientCommander(ImageClientCommander imageClientCommander, String hostname) throws RemoteException {
+    public void registerClientCommander(ImageClientCommander imageClientCommander, String hostname) {
         Xlog.timedOut("client connected: " + hostname);
         mImageClientCommanders.add(imageClientCommander);
     }
 
     @Override
-    public void removeClientCommander(ImageClientCommander imageClientCommander, String hostname) throws RemoteException {
+    public void removeClientCommander(ImageClientCommander imageClientCommander, String hostname) {
         if (mImageClientCommanders.contains(imageClientCommander)) {
             Xlog.timedOut("client disconnected: " + hostname);
             mImageClientCommanders.remove(imageClientCommander);
@@ -110,26 +91,26 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
     }
 
     @Override
-    public void shutdown() throws RemoteException {
+    public void shutdown() {
         Xlog.timedOut("shutdown");
 
         notifyClientsShutdown();
 
-        try {
-            Naming.unbind(mRmiNameServer);
-            System.exit(0);
-        } catch (NotBoundException | MalformedURLException ex) {
-            Logger.getLogger(ImageServer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            Naming.unbind(mRmiNameServer);
+        System.exit(0);
+//        } catch (NotBoundException | MalformedURLException ex) {
+//            Logger.getLogger(ImageServer.class.getName()).log(Level.SEVERE, null, ex);
+//        }
     }
 
     private void initTimer() {
         Timer timer = new Timer(2000, (ActionEvent e) -> {
-            try {
-                execute("random");
-            } catch (RemoteException ex) {
-                Logger.getLogger(ImageServer.class.getName()).log(Level.SEVERE, null, ex);
-            }
+//            try {
+            execute("random");
+//            } catch (RemoteException ex) {
+//                Logger.getLogger(ImageServer.class.getName()).log(Level.SEVERE, null, ex);
+//            }
         });
         timer.start();
     }
@@ -142,21 +123,13 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
 
     private void notifyClientsExecutor(String command, String... strings) {
         mImageClientCommanders.stream().forEach((imageClientCommander) -> {
-            try {
-                imageClientCommander.notifyExecutor(command, strings);
-            } catch (RemoteException ex) {
-                // nvm
-            }
+            imageClientCommander.notifyExecutor(command, strings);
         });
     }
 
     private void notifyClientsShutdown() {
         mImageClientCommanders.stream().forEach((imageClientCommander) -> {
-            try {
-                imageClientCommander.notifyServer(ImageServerEvent.SHUTDOWN);
-            } catch (RemoteException ex) {
-                // nvm
-            }
+            imageClientCommander.notifyServer(ImageServerEvent.SHUTDOWN);
         });
     }
 
@@ -169,13 +142,13 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
             result = "recievers connected - try sending file";
             for (ImageClientCommander clientCommander : mImageClientCommanders) {
                 Thread thread = new Thread(() -> {
-                    try (RemoteInputStreamServer remoteInputStreamServer = new GZIPRemoteInputStream(new BufferedInputStream(new FileInputStream(path)))) {
-                        clientCommander.sendFile(remoteInputStreamServer.export());
-                    } catch (RemoteException ex) {
-                        Xlog.timedErr(ex.getMessage());
-                    } catch (IOException ex) {
-                        Xlog.timedErr(ex.getMessage());
-                    }
+////                        clientCommander.sendFile(remoteInputStreamServer.export());
+//                    try (RemoteInputStreamServer remoteInputStreamServer = new GZIPRemoteInputStream(new BufferedInputStream(new FileInputStream(path)))) {
+//                    } catch (RemoteException ex) {
+//                        Xlog.timedErr(ex.getMessage());
+//                    } catch (IOException ex) {
+//                        Xlog.timedErr(ex.getMessage());
+//                    }
                 });
 
                 thread.start();
@@ -190,23 +163,23 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
     private void startServer() {
         mRmiNameServer = IddHelper.getRmiName(SystemHelper.getHostname(), mConfig.getPort(), IDServer.class);
 
-        try {
-            LocateRegistry.createRegistry(mConfig.getPort());
-            mServerVmid = new VMID();
-            Naming.rebind(mRmiNameServer, this);
-            String message = String.format("started: %s (%s)", mRmiNameServer, mServerVmid.toString());
-            Xlog.timedOut(message);
-        } catch (IllegalArgumentException e) {
-            Xlog.timedErr(e.getMessage());
-            IddHelper.exit();
-        } catch (RemoteException e) {
-            //nvm - server was running
-            Xlog.timedErr(e.getMessage());
-            IddHelper.exit();
-        } catch (MalformedURLException ex) {
-            Xlog.timedErr(ex.getMessage());
-            IddHelper.exit();
-        }
+//        try {
+//            LocateRegistry.createRegistry(mConfig.getPort());
+//            mServerVmid = new VMID();
+//            Naming.rebind(mRmiNameServer, this);
+//            String message = String.format("started: %s (%s)", mRmiNameServer, mServerVmid.toString());
+//            Xlog.timedOut(message);
+//        } catch (IllegalArgumentException e) {
+//            Xlog.timedErr(e.getMessage());
+//            IddHelper.exit();
+//        } catch (RemoteException e) {
+//            //nvm - server was running
+//            Xlog.timedErr(e.getMessage());
+//            IddHelper.exit();
+//        } catch (MalformedURLException ex) {
+//            Xlog.timedErr(ex.getMessage());
+//            IddHelper.exit();
+//        }
     }
 
     class Executor {
