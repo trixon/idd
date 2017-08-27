@@ -29,7 +29,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.idd.db.Db;
 import se.trixon.idl.shared.IddHelper;
@@ -78,13 +77,14 @@ public class Main {
                         public void run() {
                             try {
                                 Db.getInstance().getConnection().close();
-                            } catch (SQLException ex) {
+                            } catch (NullPointerException | SQLException ex) {
                                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                             }
                         }
                     });
 
                     ImageServer imageServer = new ImageServer();
+                    //Unreachable statement
                 }
             }
         } catch (ParseException ex) {
@@ -107,7 +107,7 @@ public class Main {
         formatter.printHelp("xxx", mOptions, false);
         System.out.flush();
         System.setOut(defaultStdOut);
-        sb.append(baos.toString().replace("usage: xxx" + SystemUtils.LINE_SEPARATOR, "")).append("\n")
+        sb.append(baos.toString().replace("usage: xxx" + System.lineSeparator(), "")).append("\n")
                 .append(IddHelper.getBundle().getString("help_footer"));
 
         System.out.println(sb.toString());

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.Dict;
+import se.trixon.idl.shared.IddHelper;
 
 /**
  *
@@ -104,7 +105,7 @@ public class Config {
             try {
                 Configurations configurations = new Configurations();
                 mConfiguration = configurations.properties(file);
-                mPort = mConfiguration.getInt("port", 1099);
+                mPort = mConfiguration.getInt("port", IddHelper.DEFAULT_PORT);
                 mDbFile = new File(mConfiguration.getString("db_file", "idd.db"));
                 mImageDirectory = new File(mConfiguration.getString("image_directory", SystemUtils.USER_HOME));
                 mImageDirectoryLevel = mImageDirectory.toPath().getNameCount();

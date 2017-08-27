@@ -16,12 +16,18 @@
 package se.trixon.idd;
 
 import java.awt.event.ActionEvent;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -33,7 +39,6 @@ import se.trixon.idd.db.Db;
 import se.trixon.idd.db.DbCreator;
 import se.trixon.idd.db.FileVisitor;
 import se.trixon.idl.shared.Commands;
-import se.trixon.idl.shared.IDServer;
 import se.trixon.idl.shared.IddHelper;
 import se.trixon.idl.shared.ImageClientCommander;
 import se.trixon.idl.shared.ImageServerCommander;
@@ -45,14 +50,31 @@ import se.trixon.idl.shared.ImageServerEvent;
  */
 class ImageServer implements ImageServerCommander {
 
+    private Set<ClientThread> mClientThreads = new HashSet<>();
     private final Config mConfig = Config.getInstance();
     private final Set<ImageClientCommander> mImageClientCommanders = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    private String mRmiNameServer;
+    private ServerSocket mServerSocket;
 
     ImageServer() throws IOException {
         intiListeners();
         startServer();
-        initTimer();
+        //initTimer();
+
+        while (true) {
+            try {
+                Socket socket = mServerSocket.accept();
+                ClientThread clientThread = new ClientThread(socket);
+                mClientThreads.add(clientThread);
+                clientThread.start();
+                Xlog.timedOut(String.format("Client connected: %s:%d (%d)",
+                        socket.getLocalAddress(),
+                        socket.getLocalPort(),
+                        socket.getPort()
+                ));
+            } catch (IOException e) {
+                Xlog.timedErr(e.getMessage());
+            }
+        }
     }
 
     @Override
@@ -96,12 +118,7 @@ class ImageServer implements ImageServerCommander {
 
         notifyClientsShutdown();
 
-//        try {
-//            Naming.unbind(mRmiNameServer);
         System.exit(0);
-//        } catch (NotBoundException | MalformedURLException ex) {
-//            Logger.getLogger(ImageServer.class.getName()).log(Level.SEVERE, null, ex);
-//        }
     }
 
     private void initTimer() {
@@ -143,12 +160,6 @@ class ImageServer implements ImageServerCommander {
             for (ImageClientCommander clientCommander : mImageClientCommanders) {
                 Thread thread = new Thread(() -> {
 ////                        clientCommander.sendFile(remoteInputStreamServer.export());
-//                    try (RemoteInputStreamServer remoteInputStreamServer = new GZIPRemoteInputStream(new BufferedInputStream(new FileInputStream(path)))) {
-//                    } catch (RemoteException ex) {
-//                        Xlog.timedErr(ex.getMessage());
-//                    } catch (IOException ex) {
-//                        Xlog.timedErr(ex.getMessage());
-//                    }
                 });
 
                 thread.start();
@@ -161,25 +172,100 @@ class ImageServer implements ImageServerCommander {
     }
 
     private void startServer() {
-        mRmiNameServer = IddHelper.getRmiName(SystemHelper.getHostname(), mConfig.getPort(), IDServer.class);
+        try {
+            final int port = mConfig.getPort();
+            String message = String.format("Starting server on port %d", port);
+            Xlog.timedOut(message);
 
-//        try {
-//            LocateRegistry.createRegistry(mConfig.getPort());
-//            mServerVmid = new VMID();
-//            Naming.rebind(mRmiNameServer, this);
-//            String message = String.format("started: %s (%s)", mRmiNameServer, mServerVmid.toString());
-//            Xlog.timedOut(message);
-//        } catch (IllegalArgumentException e) {
-//            Xlog.timedErr(e.getMessage());
-//            IddHelper.exit();
-//        } catch (RemoteException e) {
-//            //nvm - server was running
-//            Xlog.timedErr(e.getMessage());
-//            IddHelper.exit();
-//        } catch (MalformedURLException ex) {
-//            Xlog.timedErr(ex.getMessage());
-//            IddHelper.exit();
-//        }
+            mServerSocket = new ServerSocket(port);
+            message = String.format("Listening for connections on port %d", port);
+            Xlog.timedOut(message);
+        } catch (IOException e) {
+            Xlog.timedErr(e.getMessage());
+            IddHelper.exit();
+        }
+    }
+
+    class ClientThread extends Thread {
+
+        private String clientName = null;
+        private BufferedReader is = null;
+        private final Socket mSocket;
+        private PrintStream os = null;
+
+        public ClientThread(Socket clientSocket) {
+            mSocket = clientSocket;
+        }
+
+        @Override
+        public void run() {
+            try {
+                // Create input and output streams for this client.
+                is = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
+                os = new PrintStream(mSocket.getOutputStream());
+                String name;
+                name = "sd" + 2;
+                while (true) {
+                    os.println("Enter your name.");
+                    name = is.readLine().trim();
+                    if (name.indexOf('@') == -1) {
+                        break;
+                    } else {
+                        os.println("The name should not contain '@' character.");
+                    }
+                }
+
+                /* Welcome the new the client. */
+                os.println("Welcome " + name + " to our chat room.\nTo leave enter /quit in a new line.");
+                synchronized (this) {
+                    for (ClientThread clientThread : mClientThreads) {
+                        if (clientThread == this) {
+                            clientName = "@" + name;
+                        } else {
+                            clientThread.os.println("*** A new user " + name + " entered the chat room !!! ***");
+                        }
+                    }
+                }
+
+                /* Start the conversation. */
+                while (true) {
+                    String line = is.readLine();
+                    if (line != null) {
+                        if (line.startsWith("/quit")) {
+                            break;
+                        }
+
+                        synchronized (this) {
+                            for (ClientThread clientThread : mClientThreads) {
+                                if (clientThread.clientName != null) {
+                                    clientThread.os.println("<" + name + "> " + line);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                synchronized (this) {
+                    for (ClientThread clientThread : mClientThreads) {
+                        if (clientThread != this && clientThread.clientName != null) {
+                            clientThread.os.println("*** The user " + name + " is leaving the chat room !!! ***");
+                        }
+                    }
+                }
+                os.println("*** Bye " + name + " ***");
+
+                synchronized (this) {
+                    mClientThreads.remove(this);
+                }
+
+                // Close the output stream, close the input stream, close the socket.
+                is.close();
+                os.close();
+                mSocket.close();
+            } catch (IOException e) {
+                Xlog.timedErr(e.getMessage());
+            }
+        }
     }
 
     class Executor {
