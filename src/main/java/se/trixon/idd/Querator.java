@@ -23,8 +23,7 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import se.trixon.almond.util.Xlog;
 import se.trixon.idd.db.Db;
 import se.trixon.idd.db.manager.AlbumManager;
 import se.trixon.idd.db.manager.AlbumRootManager;
@@ -94,8 +93,9 @@ public class Querator {
                     rs.getString(2),
                     rs.getString(3)
             );
-        } catch (SQLException ex) {
-            Logger.getLogger(Querator.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NullPointerException | SQLException ex) {
+            //Logger.getLogger(Querator.class.getName()).log(Level.SEVERE, null, ex);
+            Xlog.timedErr("dbError: getRandomPath");
         }
 
         System.out.println(path);

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.SystemUtils;
-import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.idd.db.Db;
 import se.trixon.idl.shared.IddHelper;

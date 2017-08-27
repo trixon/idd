@@ -57,7 +57,7 @@ import se.trixon.idl.shared.ImageServerEvent;
 class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
 
     private final Config mConfig = Config.getInstance();
-    private final Set<ImageClientCommander> mImageClientCommanders = Collections.newSetFromMap(new ConcurrentHashMap<ImageClientCommander, Boolean>());
+    private final Set<ImageClientCommander> mImageClientCommanders = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private String mRmiNameServer;
     private VMID mServerVmid;
 
@@ -126,7 +126,7 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
     private void initTimer() {
         Timer timer = new Timer(2000, (ActionEvent e) -> {
             try {
-                execute("random", null);
+                execute("random");
             } catch (RemoteException ex) {
                 Logger.getLogger(ImageServer.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -161,11 +161,11 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
     }
 
     private String sendFile(String path) {
-        String result = null;
+        String result;
 
         if (mImageClientCommanders.isEmpty()) {
             result = "no recievers connected - not sending";
-        } else {
+        } else if (path != null) {
             result = "recievers connected - try sending file";
             for (ImageClientCommander clientCommander : mImageClientCommanders) {
                 Thread thread = new Thread(() -> {
@@ -180,6 +180,8 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
 
                 thread.start();
             }
+        } else {
+            result = "No file to send";
         }
 
         return result;
@@ -251,7 +253,12 @@ class ImageServer extends UnicastRemoteObject implements ImageServerCommander {
 
             switch (mCommand) {
                 case Commands.RANDOM:
-                    resultMessage = sendFile(Querator.getInstance().getRandomPath());
+                    String path = Querator.getInstance().getRandomPath();
+                    if (path != null) {
+                        resultMessage = sendFile(path);
+                    } else {
+                        resultMessage = "No file to send";
+                    }
                     break;
 
                 case Commands.STATS:

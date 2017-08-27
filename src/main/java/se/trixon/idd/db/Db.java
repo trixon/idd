@@ -36,13 +36,15 @@ import se.trixon.idd.Config;
  */
 public class Db {
 
+    private static final Logger LOGGER = Logger.getLogger(Db.class.getName());
+
     private Connection mAutoCommitConnection = null;
-//    private final String mConnString = String.format("jdbc:h2:%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
-    private final String mConnString = String.format("jdbc:h2:tcp://localhost/%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
+    private final String mConnString = String.format("jdbc:h2:%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
+//    private final String mConnString = String.format("jdbc:h2:tcp://localhost/%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
     private Connection mConnection = null;
+    private DbSchema mSchema;
     private final DbSpec mSpec;
     private boolean mUpdating;
-    private DbSchema mSchema;
 
     public static Db getInstance() {
         return Holder.INSTANCE;
@@ -74,9 +76,9 @@ public class Db {
     public boolean connectionRollback() {
         try {
             getConnection().rollback();
-            Xlog.d(this.getClass(), "JDBC Rollback");
+            LOGGER.fine("JDBC Rollback");
         } catch (SQLException ex) {
-            Xlog.d(this.getClass(), "JDBC Rollback failed: " + ex.getMessage());
+            LOGGER.log(Level.SEVERE, "JDBC Rollback failed: {0}", ex.getMessage());
             return false;
         }
 
@@ -129,7 +131,8 @@ public class Db {
                 mAutoCommitConnection = DriverManager.getConnection(mConnString);
             }
         } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(Db.class.getName()).log(Level.SEVERE, null, ex);
+            Xlog.timedErr("Database may be already in use: Possible solutions: close all other connection(s); use the server mode [90020-196]");
+            //Logger.getLogger(Db.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return mAutoCommitConnection;
