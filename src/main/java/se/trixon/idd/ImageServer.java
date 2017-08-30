@@ -21,11 +21,8 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
-import java.sql.SQLException;
-import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,9 +31,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Xlog;
 import se.trixon.idd.db.Db;
-import se.trixon.idd.db.DbCreator;
-import se.trixon.idd.db.FileVisitor;
-import se.trixon.idl.shared.Commands;
+import se.trixon.idl.shared.Command;
 import se.trixon.idl.shared.IddHelper;
 
 /**
@@ -53,6 +48,7 @@ class ImageServer {
     private boolean mKillInitiated;
     private ServerSocket mServerSocket;
     private boolean mSuccessfulStart;
+    private final Db mDb = Db.getInstance();
 
     ImageServer() throws IOException {
         intiListeners();
@@ -151,7 +147,10 @@ class ImageServer {
 
     class ClientThread extends Thread {
 
+        private static final String OK = "OK";
+
         private BufferedReader is = null;
+        private boolean mKeepReading = true;
         private final Socket mSocket;
         private PrintStream os = null;
 
@@ -168,13 +167,9 @@ class ImageServer {
 
                 os.printf("OK IDD %d\n", IddHelper.PROTOCOL_VERSION);
 
-                while (true) {
+                while (mKeepReading) {
                     String line = is.readLine();
                     if (line != null) {
-                        if (StringUtils.startsWith(line, "close")) {
-                            break;
-                        }
-
                         if (!StringUtils.isBlank(line)) {
                             parseCommand(line);
                         }
@@ -201,94 +196,67 @@ class ImageServer {
             }
         }
 
-        private void parseCommand(String command) {
-            Xlog.timedOut("parse: " + command);
-            String[] elements = StringUtils.split(command, " ");
+        private void parseCommand(String commandString) {
+            Xlog.timedOut("parse: " + commandString);
+            String[] elements = StringUtils.split(commandString, " ");
 
             String cmd = elements[0];
             String[] args = ArrayUtils.remove(elements, 0);
 
-            if (StringUtils.equals(cmd, "kill")) {
-                shutdown();
-            } else {
-                os.printf("ACK [5@0] {} unknown command \"%s\"\n", cmd);
+            try {
+                Command command = Command.valueOf(cmd.toUpperCase(Locale.ROOT));
+                System.out.println(command);
+
+                if (command.validateArgs(args)) {
+                    switch (command) {
+                        case CLOSE:
+                            mKeepReading = false;
+                            break;
+
+                        case KILL:
+                            shutdown();
+                            break;
+
+                        case PING:
+                            send(OK);
+                            break;
+
+                        case UPDATE:
+                            String path;
+
+                            if (args.length > 0) {
+                                path = args[0];
+                            } else {
+                                path = mConfig.getImageDirectory().getPath();
+                            }
+                            String response = mDb.update(path);
+                            send(response);
+                            break;
+
+                        case VERSION:
+                            send(String.format("idd version: %s\n%s", SystemHelper.getJarVersion(getClass()), OK));
+                            break;
+
+                        default:
+                            throw new AssertionError();
+                    }
+                } else {
+                    send(String.format("ACK [2@0] {%s} wrong number of arguments for \"%s\"", cmd, cmd));
+                }
+            } catch (IllegalArgumentException e) {
+                send(String.format("ACK [5@0] {} unknown command \"%s\"", cmd));
             }
+        }
+
+        private void send(String s) {
+            os.println(s);
         }
 
         void kill() throws IOException {
-            os.println("*** Bye");
+//            os.println("*** Bye");
             is.close();
             os.close();
             mSocket.close();
-        }
-    }
-
-    class Executor {
-
-        private final String[] mArgs;
-        private final String mCommand;
-        private final Config mConfig = Config.getInstance();
-        private final Db mDb = Db.getInstance();
-
-        public Executor(String command, String... args) {
-            mCommand = command;
-            mArgs = args;
-        }
-
-        private String update() {
-            String resultMessage = null;
-
-            if (mDb.isUpdating()) {
-                resultMessage = "Update already in progress";
-            } else {
-                try {
-                    mDb.setUpdating(true);
-                    mDb.connectionOpen();
-                    DbCreator.getInstance().initDb();
-                    EnumSet<FileVisitOption> fileVisitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-                    FileVisitor fileVisitor = new FileVisitor();
-                    Files.walkFileTree(mConfig.getImageDirectory().toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
-                    mDb.connectionCommit();
-                    resultMessage = "Update done";
-                } catch (ClassNotFoundException | SQLException | IOException ex) {
-                    Logger.getLogger(Executor.class.getName()).log(Level.SEVERE, null, ex);
-                    resultMessage = "Update failed";
-                } finally {
-                    mDb.setUpdating(false);
-                }
-            }
-
-            return resultMessage;
-        }
-
-        String execute() {
-            Xlog.timedOut(String.format("execute: %s", mCommand));
-            String resultMessage = null;
-
-            switch (mCommand) {
-                case Commands.RANDOM:
-                    String path = Querator.getInstance().getRandomPath();
-                    if (path != null) {
-                        resultMessage = sendFile(path);
-                    } else {
-                        resultMessage = "No file to send";
-                    }
-                    break;
-
-                case Commands.STATS:
-                    break;
-
-                case Commands.UPDATE:
-                    resultMessage = update();
-                    break;
-
-                case Commands.VERSION:
-                    resultMessage = String.format("idd version: %s", SystemHelper.getJarVersion(getClass()));
-                    break;
-            }
-
-            Xlog.timedOut(resultMessage);
-            return resultMessage;
         }
     }
 }

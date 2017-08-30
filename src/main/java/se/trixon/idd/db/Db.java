@@ -20,11 +20,16 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSchema;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSpec;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import se.trixon.almond.util.Xlog;
@@ -152,6 +157,32 @@ public class Db {
 
     public void setUpdating(boolean updating) {
         mUpdating = updating;
+    }
+
+    public String update(String path) {
+        String resultMessage = null;
+
+        if (isUpdating()) {
+            resultMessage = "Update already in progress";
+        } else {
+            try {
+                setUpdating(true);
+                connectionOpen();
+                DbCreator.getInstance().initDb();
+                EnumSet<FileVisitOption> fileVisitOptions = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+                FileVisitor fileVisitor = new FileVisitor();
+                Files.walkFileTree(new File(path).toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
+                connectionCommit();
+                resultMessage = "Update done";
+            } catch (ClassNotFoundException | SQLException | IOException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+                resultMessage = "Update failed";
+            } finally {
+                setUpdating(false);
+            }
+        }
+
+        return resultMessage;
     }
 
     private void init() {
