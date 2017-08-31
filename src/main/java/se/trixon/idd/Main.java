@@ -39,11 +39,8 @@ import se.trixon.idl.shared.IddHelper;
  */
 public class Main {
 
-    public static final String HELP = "help";
-    public static final String VERBOSE = "verbose";
-    public static final String VERSION = "version";
-
     private final ResourceBundle mBundle = SystemHelper.getBundle(Main.class, "Bundle");
+    private final ResourceBundle mBundleLib = IddHelper.getBundle();
     private final Config mConfig = Config.getInstance();
     private Options mOptions;
 
@@ -61,12 +58,12 @@ public class Main {
         try {
             CommandLineParser commandLineParser = new DefaultParser();
             CommandLine commandLine = commandLineParser.parse(mOptions, args);
-            mConfig.setVerbose(commandLine.hasOption(VERBOSE));
+            mConfig.setVerbose(commandLine.hasOption(IddHelper.OPT_VERBOSE));
 
-            if (commandLine.hasOption(HELP)) {
+            if (commandLine.hasOption(IddHelper.OPT_HELP)) {
                 displayHelp();
                 System.exit(0);
-            } else if (commandLine.hasOption(VERSION)) {
+            } else if (commandLine.hasOption(IddHelper.OPT_VERSION)) {
                 displayVersion();
                 System.exit(0);
             } else {
@@ -108,7 +105,7 @@ public class Main {
         System.out.flush();
         System.setOut(defaultStdOut);
         sb.append(baos.toString().replace("usage: xxx" + System.lineSeparator(), "")).append("\n")
-                .append(IddHelper.getBundle().getString("help_footer"));
+                .append(mBundleLib.getString("help_footer"));
 
         System.out.println(sb.toString());
     }
@@ -119,18 +116,18 @@ public class Main {
 
     private void initOptions() {
         Option help = Option.builder("h")
-                .longOpt(HELP)
-                .desc(mBundle.getString("opt_help_desc"))
+                .longOpt(IddHelper.OPT_HELP)
+                .desc(mBundleLib.getString("opt_help_desc"))
                 .build();
 
         Option version = Option.builder("v")
-                .longOpt(VERSION)
-                .desc(mBundle.getString("opt_version_desc"))
+                .longOpt(IddHelper.OPT_VERSION)
+                .desc(mBundleLib.getString("opt_version_desc"))
                 .build();
 
         Option verbose = Option.builder("v")
-                .longOpt(VERBOSE)
-                .desc(mBundle.getString("opt_verbose_desc"))
+                .longOpt(IddHelper.OPT_VERBOSE)
+                .desc(mBundleLib.getString("opt_verbose_desc"))
                 .build();
 
         mOptions = new Options();
