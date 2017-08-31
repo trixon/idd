@@ -33,6 +33,7 @@ import se.trixon.almond.util.Xlog;
 import se.trixon.idd.db.Db;
 import se.trixon.idl.shared.Command;
 import se.trixon.idl.shared.IddHelper;
+import se.trixon.idl.shared.ImageDescriptor;
 
 /**
  *
@@ -49,6 +50,7 @@ class ImageServer {
     private ServerSocket mServerSocket;
     private boolean mSuccessfulStart;
     private final Db mDb = Db.getInstance();
+    private final Querator mQuerator = Querator.getInstance();
 
     ImageServer() throws IOException {
         intiListeners();
@@ -208,6 +210,7 @@ class ImageServer {
                 System.out.println(command);
 
                 if (command.validateArgs(args)) {
+                    String path;
                     switch (command) {
                         case CLOSE:
                             mKeepReading = false;
@@ -221,9 +224,12 @@ class ImageServer {
                             send(OK);
                             break;
 
-                        case UPDATE:
-                            String path;
+                        case RANDOM:
+                            path = mQuerator.getRandomPath();
+                            sendImage(path);
+                            break;
 
+                        case UPDATE:
                             if (args.length > 0) {
                                 path = args[0];
                             } else {
@@ -250,6 +256,17 @@ class ImageServer {
 
         private void send(String s) {
             os.println(s);
+        }
+
+        private void sendImage(String path) {
+            ImageDescriptor imagePacket = new ImageDescriptor();
+            imagePacket.setPath(path);
+            imagePacket.setBase64FromPath(path);
+
+//            send("IMAGE PACKET");
+            send(imagePacket.toJson());
+            send(OK);
+
         }
 
         void kill() throws IOException {
