@@ -12,7 +12,7 @@
     <packaging>jar</packaging>
     <name>idl</name>
     <description>Image Displayer Library</description>
-    <url>https://github.com/trixon/java-idd/idd</url>
+    <url>https://github.com/trixon/java-idd/idl</url>
     <scm>
         <url>${project.parent.scm.url}/idl</url>
         <connection>${project.parent.scm.connection}/idl</connection>
@@ -24,7 +24,7 @@
         <dependency>
             <groupId>se.trixon.almond</groupId>
             <artifactId>almond-util</artifactId>
-            <version>1.2.1</version>
+            <version>${almond-util.version}</version>
         </dependency>
 
         <!--apache-->

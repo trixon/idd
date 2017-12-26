@@ -4,6 +4,7 @@
     <groupId>se.trixon.idd</groupId>
     <artifactId>parent</artifactId>
     <version>0.0.3-SNAPSHOT</version>
+    <name>parent</name>
     <packaging>pom</packaging>
     <url>https://github.com/trixon/java-idd</url>
     <licenses>
@@ -37,6 +38,6 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <netbeans.hint.license>apache20</netbeans.hint.license>
         <almond-util.version>1.2.2-SNAPSHOT</almond-util.version>
-        <idl.version>0.0.2-SNAPSHOT</idl.version>
+        <idl.version>0.0.3-SNAPSHOT</idl.version>
     </properties>
 </project>
