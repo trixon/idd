@@ -1,5 +1,5 @@
-# java-idxf
-Image Displayer eXternal Frame (idxf) is a idd client which call upon an external image viewer in order to display the images.
+# Image Displayer eXternal Frame (idxf)
+idxf is a idd client which call upon an external image viewer in order to display the images.
 
 ## idxf shell script
 ```
