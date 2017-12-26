@@ -1,22 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>se.trixon.idd</groupId>
+    <parent>
+        <groupId>se.trixon.idd</groupId>
+        <artifactId>parent</artifactId>
+        <version>0.0.3-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
     <artifactId>idf</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>idf</name>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mainClass>se.trixon.idf.MainApp</mainClass>
-        <netbeans.hint.license>apache20</netbeans.hint.license>
-    </properties>
 
     <organization>
         <!-- Used as the 'Vendor' for JNLP generation -->
         <name>Your Organisation</name>
     </organization>
 
+    <dependencies>
+        <!--idd-->
+        <dependency>
+            <groupId>se.trixon.idd</groupId>
+            <artifactId>idl</artifactId>
+            <version>${idl.version}</version>
+        </dependency>
+
+        <!--trixon-->
+        <dependency>
+            <groupId>se.trixon.almond</groupId>
+            <artifactId>almond-util</artifactId>
+            <version>${almond-util.version}</version>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>
@@ -102,19 +117,7 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>
-        <!--idd-->
-        <dependency>
-            <groupId>se.trixon.idd</groupId>
-            <artifactId>idl</artifactId>
-            <version>0.0.2-SNAPSHOT</version>
-        </dependency>
-
-        <!--trixon-->
-        <dependency>
-            <groupId>se.trixon.almond</groupId>
-            <artifactId>almond-util</artifactId>
-            <version>1.2.1</version>
-        </dependency>
-    </dependencies>
+    <properties>
+        <mainClass>se.trixon.idf.MainApp</mainClass>
+    </properties>
 </project>
