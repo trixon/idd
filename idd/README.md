@@ -6,3 +6,5 @@ If not given, IDD looks for `$HOME/.config/idd.conf` and after that, `/etc/idd.c
 ### Format
 - image_directory=/home/pata/idd-images/
 - db_file=/home/pata/idd
+- port=5705
+- cache_directory=/home/pata/.cache/idd/
