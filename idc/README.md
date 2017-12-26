@@ -1,2 +1,1 @@
-# java-idc
-Image Displayer Client (IDC)
+# Image Displayer Client (IDC)
