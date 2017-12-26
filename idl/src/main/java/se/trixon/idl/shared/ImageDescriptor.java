@@ -19,6 +19,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -33,7 +34,6 @@ import org.apache.commons.io.FileUtils;
  */
 public class ImageDescriptor {
 
-    private static final int FILE_FORMAT_VERSION = 1;
     private static final Gson GSON = new GsonBuilder()
             .setVersion(1.0)
             .serializeNulls()
@@ -49,10 +49,6 @@ public class ImageDescriptor {
 
     public static ImageDescriptor fromJson(String json) throws IOException, JsonSyntaxException {
         ImageDescriptor descriptor = GSON.fromJson(json, ImageDescriptor.class);
-
-        if (descriptor.mFileFormatVersion != FILE_FORMAT_VERSION) {
-            //TODO Handle file format version change
-        }
 
         return descriptor;
     }
@@ -70,6 +66,14 @@ public class ImageDescriptor {
 
     public int getFileFormatVersion() {
         return mFileFormatVersion;
+    }
+
+    public java.awt.Image getImage() {
+        return getImageIcon().getImage();
+    }
+
+    public javafx.scene.image.Image getImageFx() {
+        return new javafx.scene.image.Image(new ByteArrayInputStream(getByteArray()));
     }
 
     public ImageIcon getImageIcon() {
