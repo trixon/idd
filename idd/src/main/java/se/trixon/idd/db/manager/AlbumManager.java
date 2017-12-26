@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,13 +32,14 @@ import se.trixon.idl.shared.db.Album;
  */
 public class AlbumManager extends BaseManager {
 
-    public static final String COL_CAPTION = "caption";
-    public static final String COL_COLLECTION = "collection";
-    public static final String COL_DATE = "date";
-    public static final String COL_ICON = "icon";
     public static final String COL_ID = "album_id";
-    public static final String COL_RELATIVE_PATH = "relative_path";
     public static final String TABLE_NAME = "album";
+
+    private static final String COL_CAPTION = "caption";
+    private static final String COL_COLLECTION = "collection";
+    private static final String COL_DATE = "date";
+    private static final String COL_ICON = "icon";
+    private static final String COL_RELATIVE_PATH = "relative_path";
     private final DbColumn mAlbumRootId;
     private PlaceHolder mAlbumRootIdPlaceHolder;
     private final DbColumn mCaption;
@@ -59,13 +60,13 @@ public class AlbumManager extends BaseManager {
     private AlbumManager() {
         mTable = getSchema().addTable(TABLE_NAME);
 
-        mId = mTable.addColumn(COL_ID, "IDENTITY", null);
-        mAlbumRootId = mTable.addColumn(AlbumRootManager.COL_ID, "BIGINT", null);
-        mRelativePath = mTable.addColumn(COL_RELATIVE_PATH, "VARCHAR", Integer.MAX_VALUE);
-        mDate = mTable.addColumn(COL_DATE, "DATE", null);
-        mCaption = mTable.addColumn(COL_CAPTION, "VARCHAR", Integer.MAX_VALUE);
-        mCollection = mTable.addColumn(COL_COLLECTION, "VARCHAR", Integer.MAX_VALUE);
-        mIcon = mTable.addColumn(COL_ICON, "INT", null);
+        mId = mTable.addColumn(COL_ID, SQL_IDENTITY, null);
+        mAlbumRootId = mTable.addColumn(AlbumRootManager.COL_ID, SQL_BIGINT, null);
+        mRelativePath = mTable.addColumn(COL_RELATIVE_PATH, SQL_VARCHAR, Integer.MAX_VALUE);
+        mDate = mTable.addColumn(COL_DATE, SQL_DATE, null);
+        mCaption = mTable.addColumn(COL_CAPTION, SQL_VARCHAR, Integer.MAX_VALUE);
+        mCollection = mTable.addColumn(COL_COLLECTION, SQL_VARCHAR, Integer.MAX_VALUE);
+        mIcon = mTable.addColumn(COL_ICON, SQL_INT, null);
 
         addNotNullConstraint(mAlbumRootId);
         addNotNullConstraint(mRelativePath);

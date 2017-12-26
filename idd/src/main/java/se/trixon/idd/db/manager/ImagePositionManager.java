@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,17 +30,18 @@ import se.trixon.idl.shared.db.Image;
  */
 public class ImagePositionManager extends BaseManager {
 
-    public static final String COL_ACCURACY = "accuracy";
-    public static final String COL_ALTITUDE = "altitude";
-    public static final String COL_DESCRIPTION = "description";
-    public static final String COL_LATITUDE = "latitude";
-    public static final String COL_LATITUDE_NUMBER = "latitude_number";
-    public static final String COL_LONGITUDE = "longitude";
-    public static final String COL_LONGITUDE_NUMBER = "longitude_number";
-    public static final String COL_ORIENTATION = "orientation";
-    public static final String COL_ROLL = "roll";
-    public static final String COL_TILT = "tilt";
     public static final String TABLE_NAME = "image_position";
+
+    private static final String COL_ACCURACY = "accuracy";
+    private static final String COL_ALTITUDE = "altitude";
+    private static final String COL_DESCRIPTION = "description";
+    private static final String COL_LATITUDE = "latitude";
+    private static final String COL_LATITUDE_NUMBER = "latitude_number";
+    private static final String COL_LONGITUDE = "longitude";
+    private static final String COL_LONGITUDE_NUMBER = "longitude_number";
+    private static final String COL_ORIENTATION = "orientation";
+    private static final String COL_ROLL = "roll";
+    private static final String COL_TILT = "tilt";
     private final DbColumn mAccuracy;
     private PlaceHolder mAccuracyPlaceHolder;
     private final DbColumn mAltitude;
@@ -69,17 +70,17 @@ public class ImagePositionManager extends BaseManager {
     private ImagePositionManager() {
         mTable = getSchema().addTable(TABLE_NAME);
 
-        mId = mTable.addColumn(ImageManager.COL_ID, "BIGINT", null);
-        mLatitude = mTable.addColumn(COL_LATITUDE, "VARCHAR", Integer.MAX_VALUE);
-        mLatitudeNumber = mTable.addColumn(COL_LATITUDE_NUMBER, "DOUBLE", null);
-        mLongitude = mTable.addColumn(COL_LONGITUDE, "VARCHAR", Integer.MAX_VALUE);
-        mLongitudeNumber = mTable.addColumn(COL_LONGITUDE_NUMBER, "DOUBLE", null);
-        mAltitude = mTable.addColumn(COL_ALTITUDE, "DOUBLE", null);
-        mOrientation = mTable.addColumn(COL_ORIENTATION, "DOUBLE", null);
-        mTilt = mTable.addColumn(COL_TILT, "DOUBLE", null);
-        mRoll = mTable.addColumn(COL_ROLL, "DOUBLE", null);
-        mAccuracy = mTable.addColumn(COL_ACCURACY, "DOUBLE", null);
-        mDescription = mTable.addColumn(COL_DESCRIPTION, "VARCHAR", Integer.MAX_VALUE);
+        mId = mTable.addColumn(ImageManager.COL_ID, SQL_BIGINT, null);
+        mLatitude = mTable.addColumn(COL_LATITUDE, SQL_VARCHAR, Integer.MAX_VALUE);
+        mLatitudeNumber = mTable.addColumn(COL_LATITUDE_NUMBER, SQL_DOUBLE, null);
+        mLongitude = mTable.addColumn(COL_LONGITUDE, SQL_VARCHAR, Integer.MAX_VALUE);
+        mLongitudeNumber = mTable.addColumn(COL_LONGITUDE_NUMBER, SQL_DOUBLE, null);
+        mAltitude = mTable.addColumn(COL_ALTITUDE, SQL_DOUBLE, null);
+        mOrientation = mTable.addColumn(COL_ORIENTATION, SQL_DOUBLE, null);
+        mTilt = mTable.addColumn(COL_TILT, SQL_DOUBLE, null);
+        mRoll = mTable.addColumn(COL_ROLL, SQL_DOUBLE, null);
+        mAccuracy = mTable.addColumn(COL_ACCURACY, SQL_DOUBLE, null);
+        mDescription = mTable.addColumn(COL_DESCRIPTION, SQL_VARCHAR, Integer.MAX_VALUE);
 
         String indexName;
         BaseManager manager;

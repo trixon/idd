@@ -31,6 +31,15 @@ import se.trixon.idd.db.Db;
  */
 public abstract class BaseManager {
 
+    public static final String SQL_BIGINT = "BIGINT";
+    public static final String SQL_DATE = "DATE";
+    public static final String SQL_DOUBLE = "DOUBLE";
+    public static final String SQL_IDENTITY = "IDENTITY";
+    public static final String SQL_INT = "INT";
+    public static final String SQL_INTEGER = "INTEGER";
+    public static final String SQL_TIMESTAMP = "TIMESTAMP";
+    public static final String SQL_VARCHAR = "VARCHAR";
+
     protected final Db mDb;
     protected DbColumn mId;
     protected PlaceHolder mIdPlaceHolder;

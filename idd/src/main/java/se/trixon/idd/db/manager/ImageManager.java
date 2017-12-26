@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,14 +32,15 @@ import se.trixon.idl.shared.db.Image;
  */
 public class ImageManager extends BaseManager {
 
-    public static final String COL_CATEGORY = "category";
-    public static final String COL_FILE_SIZE = "file_size";
     public static final String COL_ID = "image_id";
-    public static final String COL_MODIFICATION_DATE = "modification_date";
-    public static final String COL_NAME = "name";
-    public static final String COL_STATUS = "status";
-    public static final String COL_UNIQUE_HASH = "unique_hash";
     public static final String TABLE_NAME = "image";
+
+    private static final String COL_CATEGORY = "category";
+    private static final String COL_FILE_SIZE = "file_size";
+    private static final String COL_MODIFICATION_DATE = "modification_date";
+    private static final String COL_NAME = "name";
+    private static final String COL_STATUS = "status";
+    private static final String COL_UNIQUE_HASH = "unique_hash";
     private final DbColumn mAlbumId;
     private PlaceHolder mAlbumIdPlaceHolder;
     private final DbColumn mCategory;
@@ -62,14 +63,14 @@ public class ImageManager extends BaseManager {
     private ImageManager() {
         mTable = getSchema().addTable(TABLE_NAME);
 
-        mId = mTable.addColumn(COL_ID, "IDENTITY", null);
-        mAlbumId = mTable.addColumn(AlbumManager.COL_ID, "BIGINT", null);
-        mName = mTable.addColumn(COL_NAME, "VARCHAR", Integer.MAX_VALUE);
-        mStatus = mTable.addColumn(COL_STATUS, "INT", null);
-        mCategory = mTable.addColumn(COL_CATEGORY, "INT", null);
-        mModificationDate = mTable.addColumn(COL_MODIFICATION_DATE, "TIMESTAMP", null);
-        mFileSize = mTable.addColumn(COL_FILE_SIZE, "BIGINT", null);
-        mUniqueHash = mTable.addColumn(COL_UNIQUE_HASH, "VARCHAR", 32);
+        mId = mTable.addColumn(COL_ID, SQL_IDENTITY, null);
+        mAlbumId = mTable.addColumn(AlbumManager.COL_ID, SQL_BIGINT, null);
+        mName = mTable.addColumn(COL_NAME, SQL_VARCHAR, Integer.MAX_VALUE);
+        mStatus = mTable.addColumn(COL_STATUS, SQL_INT, null);
+        mCategory = mTable.addColumn(COL_CATEGORY, SQL_INT, null);
+        mModificationDate = mTable.addColumn(COL_MODIFICATION_DATE, SQL_TIMESTAMP, null);
+        mFileSize = mTable.addColumn(COL_FILE_SIZE, SQL_BIGINT, null);
+        mUniqueHash = mTable.addColumn(COL_UNIQUE_HASH, SQL_VARCHAR, 32);
 
         addNotNullConstraint(mAlbumId);
         addNotNullConstraint(mName);

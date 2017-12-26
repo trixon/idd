@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,8 +35,9 @@ public class TemplateManager extends BaseManager {
     private TemplateManager() {
         mTable = getSchema().addTable(TABLE_NAME);
 
-        mId = mTable.addColumn(COL_ID, "IDENTITY", null);
+        mId = mTable.addColumn(COL_ID, SQL_IDENTITY, null);
     }
+
     @Override
     public void prepare() {
     }

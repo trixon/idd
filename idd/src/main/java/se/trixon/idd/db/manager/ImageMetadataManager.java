@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,23 +30,24 @@ import se.trixon.idl.shared.db.Image;
  */
 public class ImageMetadataManager extends BaseManager {
 
-    public static final String COL_APERTURE = "aperture";
-    public static final String COL_EXPOSURE_MODE = "exposure_mode";
-    public static final String COL_EXPOSURE_PROGRAM = "exposure_program";
-    public static final String COL_EXPOSURE_TIME = "exposure_time";
-    public static final String COL_FLASH = "flash";
-    public static final String COL_FOCAL_LENGTH = "focal_length";
-    public static final String COL_FOCAL_LENGTH35 = "focal_length35";
-    public static final String COL_LENS = "lens";
-    public static final String COL_MAKE = "make";
-    public static final String COL_METERING_MODE = "metering_mode";
-    public static final String COL_MODEL = "model";
-    public static final String COL_SENSITIVITY = "sensitivity";
-    public static final String COL_SUBJECT_DISTANCE = "subject_distance";
-    public static final String COL_SUBJECT_DISTANCE_CATEGORY = "subject_distance_category";
-    public static final String COL_WHITE_BALANCE = "white_balance";
-    public static final String COL_WHITE_BALANCE_COLOR_TEMPERATURE = "white_balance_color_temperature";
     public static final String TABLE_NAME = "image_metadata";
+
+    private static final String COL_APERTURE = "aperture";
+    private static final String COL_EXPOSURE_MODE = "exposure_mode";
+    private static final String COL_EXPOSURE_PROGRAM = "exposure_program";
+    private static final String COL_EXPOSURE_TIME = "exposure_time";
+    private static final String COL_FLASH = "flash";
+    private static final String COL_FOCAL_LENGTH = "focal_length";
+    private static final String COL_FOCAL_LENGTH35 = "focal_length35";
+    private static final String COL_LENS = "lens";
+    private static final String COL_MAKE = "make";
+    private static final String COL_METERING_MODE = "metering_mode";
+    private static final String COL_MODEL = "model";
+    private static final String COL_SENSITIVITY = "sensitivity";
+    private static final String COL_SUBJECT_DISTANCE = "subject_distance";
+    private static final String COL_SUBJECT_DISTANCE_CATEGORY = "subject_distance_category";
+    private static final String COL_WHITE_BALANCE = "white_balance";
+    private static final String COL_WHITE_BALANCE_COLOR_TEMPERATURE = "white_balance_color_temperature";
     private final DbColumn mAperture;
     private PlaceHolder mAperturePlaceHolder;
     private final DbColumn mExposureMode;
@@ -86,23 +87,23 @@ public class ImageMetadataManager extends BaseManager {
 
     private ImageMetadataManager() {
         mTable = getSchema().addTable(TABLE_NAME);
-        mId = mTable.addColumn(ImageManager.COL_ID, "BIGINT", null);
-        mMake = mTable.addColumn(COL_MAKE, "VARCHAR", Integer.MAX_VALUE);
-        mModel = mTable.addColumn(COL_MODEL, "VARCHAR", Integer.MAX_VALUE);
-        mLens = mTable.addColumn(COL_LENS, "VARCHAR", Integer.MAX_VALUE);
-        mAperture = mTable.addColumn(COL_APERTURE, "DOUBLE", null);
-        mFocalLength = mTable.addColumn(COL_FOCAL_LENGTH, "DOUBLE", null);
-        mFocalLength35 = mTable.addColumn(COL_FOCAL_LENGTH35, "DOUBLE", null);
-        mExposureTime = mTable.addColumn(COL_EXPOSURE_TIME, "DOUBLE", null);
-        mExposureProgram = mTable.addColumn(COL_EXPOSURE_PROGRAM, "INTEGER", null);
-        mExposureMode = mTable.addColumn(COL_EXPOSURE_MODE, "INTEGER", null);
-        mSensitivity = mTable.addColumn(COL_SENSITIVITY, "INTEGER", null);
-        mFlash = mTable.addColumn(COL_FLASH, "INTEGER", null);
-        mWhiteBalance = mTable.addColumn(COL_WHITE_BALANCE, "INTEGER", null);
-        mWhiteBalanceColorTemperature = mTable.addColumn(COL_WHITE_BALANCE_COLOR_TEMPERATURE, "INTEGER", null);
-        mMeteringMode = mTable.addColumn(COL_METERING_MODE, "INTEGER", null);
-        mSubjectDistance = mTable.addColumn(COL_SUBJECT_DISTANCE, "DOUBLE", null);
-        mSubjectDistanceCategory = mTable.addColumn(COL_SUBJECT_DISTANCE_CATEGORY, "INTEGER", null);
+        mId = mTable.addColumn(ImageManager.COL_ID, SQL_BIGINT, null);
+        mMake = mTable.addColumn(COL_MAKE, SQL_VARCHAR, Integer.MAX_VALUE);
+        mModel = mTable.addColumn(COL_MODEL, SQL_VARCHAR, Integer.MAX_VALUE);
+        mLens = mTable.addColumn(COL_LENS, SQL_VARCHAR, Integer.MAX_VALUE);
+        mAperture = mTable.addColumn(COL_APERTURE, SQL_DOUBLE, null);
+        mFocalLength = mTable.addColumn(COL_FOCAL_LENGTH, SQL_DOUBLE, null);
+        mFocalLength35 = mTable.addColumn(COL_FOCAL_LENGTH35, SQL_DOUBLE, null);
+        mExposureTime = mTable.addColumn(COL_EXPOSURE_TIME, SQL_DOUBLE, null);
+        mExposureProgram = mTable.addColumn(COL_EXPOSURE_PROGRAM, SQL_INTEGER, null);
+        mExposureMode = mTable.addColumn(COL_EXPOSURE_MODE, SQL_INTEGER, null);
+        mSensitivity = mTable.addColumn(COL_SENSITIVITY, SQL_INTEGER, null);
+        mFlash = mTable.addColumn(COL_FLASH, SQL_INTEGER, null);
+        mWhiteBalance = mTable.addColumn(COL_WHITE_BALANCE, SQL_INTEGER, null);
+        mWhiteBalanceColorTemperature = mTable.addColumn(COL_WHITE_BALANCE_COLOR_TEMPERATURE, SQL_INTEGER, null);
+        mMeteringMode = mTable.addColumn(COL_METERING_MODE, SQL_INTEGER, null);
+        mSubjectDistance = mTable.addColumn(COL_SUBJECT_DISTANCE, SQL_DOUBLE, null);
+        mSubjectDistanceCategory = mTable.addColumn(COL_SUBJECT_DISTANCE_CATEGORY, SQL_INTEGER, null);
 
         String indexName;
         BaseManager manager;

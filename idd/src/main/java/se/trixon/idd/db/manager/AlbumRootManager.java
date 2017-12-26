@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,8 +24,6 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import se.trixon.idl.shared.db.AlbumRoot;
 
 /**
@@ -35,12 +33,13 @@ import se.trixon.idl.shared.db.AlbumRoot;
 public class AlbumRootManager extends BaseManager {
 
     public static final String COL_ID = "album_root_id";
-    public static final String COL_IDENTIFIER = "identifier";
-    public static final String COL_LABEL = "label";
-    public static final String COL_SPECIFIC_PATH = "specific_path";
-    public static final String COL_STATUS = "status";
-    public static final String COL_TYPE = "type";
     public static final String TABLE_NAME = "album_root";
+
+    private static final String COL_IDENTIFIER = "identifier";
+    private static final String COL_LABEL = "label";
+    private static final String COL_SPECIFIC_PATH = "specific_path";
+    private static final String COL_STATUS = "status";
+    private static final String COL_TYPE = "type";
     private final DbColumn mIdentifier;
     private PlaceHolder mIdentifierPlaceHolder;
     private final DbColumn mLabel;
@@ -59,12 +58,12 @@ public class AlbumRootManager extends BaseManager {
     private AlbumRootManager() {
         mTable = getSchema().addTable(TABLE_NAME);
 
-        mId = mTable.addColumn(COL_ID, "IDENTITY", null);
-        mLabel = mTable.addColumn(COL_LABEL, "VARCHAR", Integer.MAX_VALUE);
-        mStatus = mTable.addColumn(COL_STATUS, "INT", null);
-        mType = mTable.addColumn(COL_TYPE, "INT", null);
-        mIdentifier = mTable.addColumn(COL_IDENTIFIER, "VARCHAR", Integer.MAX_VALUE);
-        mSpecificPath = mTable.addColumn(COL_SPECIFIC_PATH, "VARCHAR", Integer.MAX_VALUE);
+        mId = mTable.addColumn(COL_ID, SQL_IDENTITY, null);
+        mLabel = mTable.addColumn(COL_LABEL, SQL_VARCHAR, Integer.MAX_VALUE);
+        mStatus = mTable.addColumn(COL_STATUS, SQL_INT, null);
+        mType = mTable.addColumn(COL_TYPE, SQL_INT, null);
+        mIdentifier = mTable.addColumn(COL_IDENTIFIER, SQL_VARCHAR, Integer.MAX_VALUE);
+        mSpecificPath = mTable.addColumn(COL_SPECIFIC_PATH, SQL_VARCHAR, Integer.MAX_VALUE);
 
         addNotNullConstraint(mStatus);
         addNotNullConstraint(mType);
