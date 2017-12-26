@@ -5,6 +5,7 @@
     <artifactId>parent</artifactId>
     <version>0.0.3-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <url>https://github.com/trixon/java-idd</url>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -32,6 +33,9 @@
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <netbeans.hint.license>apache20</netbeans.hint.license>
         <almond-util.version>1.2.2-SNAPSHOT</almond-util.version>
         <idl.version>0.0.2-SNAPSHOT</idl.version>
     </properties>
