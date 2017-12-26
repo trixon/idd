@@ -16,8 +16,6 @@
 package se.trixon.idd.db.manager;
 
 import com.healthmarketscience.sqlbuilder.InsertQuery;
-import com.healthmarketscience.sqlbuilder.QueryPreparer;
-import com.healthmarketscience.sqlbuilder.QueryPreparer.PlaceHolder;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
@@ -33,49 +31,33 @@ import se.trixon.idl.shared.db.Image;
 public class ImageManager extends BaseManager {
 
     public static final String COL_ID = "image_id";
-    public static final String TABLE_NAME = "image";
 
-    private static final String COL_CATEGORY = "category";
-    private static final String COL_FILE_SIZE = "file_size";
-    private static final String COL_MODIFICATION_DATE = "modification_date";
-    private static final String COL_NAME = "name";
-    private static final String COL_STATUS = "status";
-    private static final String COL_UNIQUE_HASH = "unique_hash";
     private final DbColumn mAlbumId;
-    private PlaceHolder mAlbumIdPlaceHolder;
     private final DbColumn mCategory;
-    private PlaceHolder mCategoryPlaceHolder;
+    private final Columns mColumns = new Columns();
     private final DbColumn mFileSize;
-    private PlaceHolder mFileSizePlaceHolder;
     private final DbColumn mModificationDate;
-    private PlaceHolder mModificationDatePlaceHolder;
     private final DbColumn mName;
-    private PlaceHolder mNamePlaceHolder;
     private final DbColumn mStatus;
-    private PlaceHolder mStatusPlaceHolder;
     private final DbColumn mUniqueHash;
-    private PlaceHolder mUniqueHashPlaceHolder;
 
     public static ImageManager getInstance() {
         return Holder.INSTANCE;
     }
 
     private ImageManager() {
-        mTable = getSchema().addTable(TABLE_NAME);
+        mTable = getSchema().addTable("image");
 
         mId = mTable.addColumn(COL_ID, SQL_IDENTITY, null);
         mAlbumId = mTable.addColumn(AlbumManager.COL_ID, SQL_BIGINT, null);
-        mName = mTable.addColumn(COL_NAME, SQL_VARCHAR, Integer.MAX_VALUE);
-        mStatus = mTable.addColumn(COL_STATUS, SQL_INT, null);
-        mCategory = mTable.addColumn(COL_CATEGORY, SQL_INT, null);
-        mModificationDate = mTable.addColumn(COL_MODIFICATION_DATE, SQL_TIMESTAMP, null);
-        mFileSize = mTable.addColumn(COL_FILE_SIZE, SQL_BIGINT, null);
-        mUniqueHash = mTable.addColumn(COL_UNIQUE_HASH, SQL_VARCHAR, 32);
+        mName = mTable.addColumn("name", SQL_VARCHAR, Integer.MAX_VALUE);
+        mStatus = mTable.addColumn("status", SQL_INT, null);
+        mCategory = mTable.addColumn("category", SQL_INT, null);
+        mModificationDate = mTable.addColumn("modification_date", SQL_TIMESTAMP, null);
+        mFileSize = mTable.addColumn("file_size", SQL_BIGINT, null);
+        mUniqueHash = mTable.addColumn("unique_hash", SQL_VARCHAR, 32);
 
-        addNotNullConstraint(mAlbumId);
-        addNotNullConstraint(mName);
-        addNotNullConstraint(mStatus);
-        addNotNullConstraint(mCategory);
+        addNotNullConstraints(mAlbumId, mName, mStatus, mCategory);
 
         String indexName;
         BaseManager manager;
@@ -83,6 +65,10 @@ public class ImageManager extends BaseManager {
         manager = AlbumManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mAlbumId.references(indexName, manager.getTable(), manager.getId());
+    }
+
+    public Columns columns() {
+        return mColumns;
     }
 
     @Override
@@ -97,22 +83,18 @@ public class ImageManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }
 
-    public DbColumn getAlbumId() {
-        return mAlbumId;
-    }
-
-    public DbColumn getName() {
-        return mName;
-    }
-
     public long insert(Image image) throws ClassNotFoundException, SQLException {
-        mAlbumIdPlaceHolder.setLong(image.getAlbumId(), mInsertPreparedStatement);
-        mCategoryPlaceHolder.setInt(image.getCategory(), mInsertPreparedStatement);
-        mFileSizePlaceHolder.setLong(image.getFileSize(), mInsertPreparedStatement);
-        mModificationDatePlaceHolder.setObject(image.getModificationDate(), mInsertPreparedStatement);
-        mNamePlaceHolder.setString(image.getName(), mInsertPreparedStatement);
-        mStatusPlaceHolder.setInt(image.getStatus(), mInsertPreparedStatement);
-        mUniqueHashPlaceHolder.setString(image.getUniqueHash(), mInsertPreparedStatement);
+        if (mInsertPreparedStatement == null) {
+            prepareInsert();
+        }
+
+        mInsertPlaceHolders.get(mAlbumId).setLong(image.getAlbumId(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mCategory).setInt(image.getCategory(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mFileSize).setLong(image.getFileSize(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mModificationDate).setObject(image.getModificationDate(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mName).setString(image.getName(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mStatus).setInt(image.getStatus(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mUniqueHash).setString(image.getUniqueHash(), mInsertPreparedStatement);
 
         int affectedRows = mInsertPreparedStatement.executeUpdate();
         if (affectedRows == 0) {
@@ -144,32 +126,61 @@ public class ImageManager extends BaseManager {
         }
     }
 
-    @Override
-    public void prepare() throws SQLException {
-        QueryPreparer preparer = new QueryPreparer();
-
-        mIdPlaceHolder = preparer.getNewPlaceHolder();
-        mAlbumIdPlaceHolder = preparer.getNewPlaceHolder();
-        mNamePlaceHolder = preparer.getNewPlaceHolder();
-        mStatusPlaceHolder = preparer.getNewPlaceHolder();
-        mCategoryPlaceHolder = preparer.getNewPlaceHolder();
-        mModificationDatePlaceHolder = preparer.getNewPlaceHolder();
-        mFileSizePlaceHolder = preparer.getNewPlaceHolder();
-        mUniqueHashPlaceHolder = preparer.getNewPlaceHolder();
+    private void prepareInsert() throws SQLException {
+        mInsertPlaceHolders.init(
+                mAlbumId,
+                mCategory,
+                mFileSize,
+                mModificationDate,
+                mName,
+                mStatus,
+                mUniqueHash
+        );
 
         InsertQuery insertQuery = new InsertQuery(mTable)
-                .addColumn(mAlbumId, mAlbumIdPlaceHolder)
-                .addColumn(mCategory, mCategoryPlaceHolder)
-                .addColumn(mFileSize, mFileSizePlaceHolder)
-                .addColumn(mModificationDate, mModificationDatePlaceHolder)
-                .addColumn(mName, mNamePlaceHolder)
-                .addColumn(mStatus, mStatusPlaceHolder)
-                .addColumn(mUniqueHash, mUniqueHashPlaceHolder)
+                .addColumn(mAlbumId, mInsertPlaceHolders.get(mAlbumId))
+                .addColumn(mCategory, mInsertPlaceHolders.get(mCategory))
+                .addColumn(mFileSize, mInsertPlaceHolders.get(mFileSize))
+                .addColumn(mModificationDate, mInsertPlaceHolders.get(mModificationDate))
+                .addColumn(mName, mInsertPlaceHolders.get(mName))
+                .addColumn(mStatus, mInsertPlaceHolders.get(mStatus))
+                .addColumn(mUniqueHash, mInsertPlaceHolders.get(mUniqueHash))
                 .validate();
 
         String sql = insertQuery.toString();
         mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
         //System.out.println(mInsertPreparedStatement.toString());
+    }
+
+    public class Columns extends BaseManager.Columns {
+
+        public DbColumn getAlbumId() {
+            return mAlbumId;
+        }
+
+        public DbColumn getCategory() {
+            return mCategory;
+        }
+
+        public DbColumn getFileSize() {
+            return mFileSize;
+        }
+
+        public DbColumn getModificationDate() {
+            return mModificationDate;
+        }
+
+        public DbColumn getName() {
+            return mName;
+        }
+
+        public DbColumn getStatus() {
+            return mStatus;
+        }
+
+        public DbColumn getUniqueHash() {
+            return mUniqueHash;
+        }
     }
 
     private static class Holder {

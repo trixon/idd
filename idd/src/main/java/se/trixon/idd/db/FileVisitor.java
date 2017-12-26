@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -133,6 +133,7 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFileFailed(Path file, IOException exc) {
+        System.err.println(exc);
         return FileVisitResult.CONTINUE;
     }
 

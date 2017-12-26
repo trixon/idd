@@ -16,12 +16,11 @@
 package se.trixon.idd.db.manager;
 
 import com.healthmarketscience.sqlbuilder.InsertQuery;
-import com.healthmarketscience.sqlbuilder.QueryPreparer;
-import com.healthmarketscience.sqlbuilder.QueryPreparer.PlaceHolder;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import java.sql.SQLException;
+import java.sql.Statement;
 import se.trixon.idl.shared.db.Image;
 
 /**
@@ -30,80 +29,48 @@ import se.trixon.idl.shared.db.Image;
  */
 public class ImageMetadataManager extends BaseManager {
 
-    public static final String TABLE_NAME = "image_metadata";
-
-    private static final String COL_APERTURE = "aperture";
-    private static final String COL_EXPOSURE_MODE = "exposure_mode";
-    private static final String COL_EXPOSURE_PROGRAM = "exposure_program";
-    private static final String COL_EXPOSURE_TIME = "exposure_time";
-    private static final String COL_FLASH = "flash";
-    private static final String COL_FOCAL_LENGTH = "focal_length";
-    private static final String COL_FOCAL_LENGTH35 = "focal_length35";
-    private static final String COL_LENS = "lens";
-    private static final String COL_MAKE = "make";
-    private static final String COL_METERING_MODE = "metering_mode";
-    private static final String COL_MODEL = "model";
-    private static final String COL_SENSITIVITY = "sensitivity";
-    private static final String COL_SUBJECT_DISTANCE = "subject_distance";
-    private static final String COL_SUBJECT_DISTANCE_CATEGORY = "subject_distance_category";
-    private static final String COL_WHITE_BALANCE = "white_balance";
-    private static final String COL_WHITE_BALANCE_COLOR_TEMPERATURE = "white_balance_color_temperature";
     private final DbColumn mAperture;
-    private PlaceHolder mAperturePlaceHolder;
+    private final Columns mColumns = new Columns();
     private final DbColumn mExposureMode;
-    private PlaceHolder mExposureModePlaceHolder;
     private final DbColumn mExposureProgram;
-    private PlaceHolder mExposureProgramPlaceHolder;
     private final DbColumn mExposureTime;
-    private PlaceHolder mExposureTimePlaceHolder;
     private final DbColumn mFlash;
-    private PlaceHolder mFlashPlaceHolder;
     private final DbColumn mFocalLength;
     private final DbColumn mFocalLength35;
-    private PlaceHolder mFocalLength35PlaceHolder;
-    private PlaceHolder mFocalLengthPlaceHolder;
     private final DbColumn mLens;
-    private PlaceHolder mLensPlaceHolder;
     private final DbColumn mMake;
-    private PlaceHolder mMakePlaceHolder;
     private final DbColumn mMeteringMode;
-    private PlaceHolder mMeteringModePlaceHolder;
     private final DbColumn mModel;
-    private PlaceHolder mModelPlaceHolder;
     private final DbColumn mSensitivity;
-    private PlaceHolder mSensitivityPlaceHolder;
     private final DbColumn mSubjectDistance;
     private final DbColumn mSubjectDistanceCategory;
-    private PlaceHolder mSubjectDistanceCategoryPlaceHolder;
-    private PlaceHolder mSubjectDistancePlaceHolder;
     private final DbColumn mWhiteBalance;
     private final DbColumn mWhiteBalanceColorTemperature;
-    private PlaceHolder mWhiteBalanceColorTemperaturePlaceHolder;
-    private PlaceHolder mWhiteBalancePlaceHolder;
 
     public static ImageMetadataManager getInstance() {
         return Holder.INSTANCE;
     }
 
     private ImageMetadataManager() {
-        mTable = getSchema().addTable(TABLE_NAME);
+        mTable = getSchema().addTable("image_metadata");
+
         mId = mTable.addColumn(ImageManager.COL_ID, SQL_BIGINT, null);
-        mMake = mTable.addColumn(COL_MAKE, SQL_VARCHAR, Integer.MAX_VALUE);
-        mModel = mTable.addColumn(COL_MODEL, SQL_VARCHAR, Integer.MAX_VALUE);
-        mLens = mTable.addColumn(COL_LENS, SQL_VARCHAR, Integer.MAX_VALUE);
-        mAperture = mTable.addColumn(COL_APERTURE, SQL_DOUBLE, null);
-        mFocalLength = mTable.addColumn(COL_FOCAL_LENGTH, SQL_DOUBLE, null);
-        mFocalLength35 = mTable.addColumn(COL_FOCAL_LENGTH35, SQL_DOUBLE, null);
-        mExposureTime = mTable.addColumn(COL_EXPOSURE_TIME, SQL_DOUBLE, null);
-        mExposureProgram = mTable.addColumn(COL_EXPOSURE_PROGRAM, SQL_INTEGER, null);
-        mExposureMode = mTable.addColumn(COL_EXPOSURE_MODE, SQL_INTEGER, null);
-        mSensitivity = mTable.addColumn(COL_SENSITIVITY, SQL_INTEGER, null);
-        mFlash = mTable.addColumn(COL_FLASH, SQL_INTEGER, null);
-        mWhiteBalance = mTable.addColumn(COL_WHITE_BALANCE, SQL_INTEGER, null);
-        mWhiteBalanceColorTemperature = mTable.addColumn(COL_WHITE_BALANCE_COLOR_TEMPERATURE, SQL_INTEGER, null);
-        mMeteringMode = mTable.addColumn(COL_METERING_MODE, SQL_INTEGER, null);
-        mSubjectDistance = mTable.addColumn(COL_SUBJECT_DISTANCE, SQL_DOUBLE, null);
-        mSubjectDistanceCategory = mTable.addColumn(COL_SUBJECT_DISTANCE_CATEGORY, SQL_INTEGER, null);
+        mMake = mTable.addColumn("make", SQL_VARCHAR, Integer.MAX_VALUE);
+        mModel = mTable.addColumn("model", SQL_VARCHAR, Integer.MAX_VALUE);
+        mLens = mTable.addColumn("lens", SQL_VARCHAR, Integer.MAX_VALUE);
+        mAperture = mTable.addColumn("aperture", SQL_DOUBLE, null);
+        mFocalLength = mTable.addColumn("focal_length", SQL_DOUBLE, null);
+        mFocalLength35 = mTable.addColumn("focal_length35", SQL_DOUBLE, null);
+        mExposureTime = mTable.addColumn("exposure_time", SQL_DOUBLE, null);
+        mExposureProgram = mTable.addColumn("exposure_program", SQL_INTEGER, null);
+        mExposureMode = mTable.addColumn("exposure_mode", SQL_INTEGER, null);
+        mSensitivity = mTable.addColumn("sensitivity", SQL_INTEGER, null);
+        mFlash = mTable.addColumn("flash", SQL_INTEGER, null);
+        mWhiteBalance = mTable.addColumn("white_balance", SQL_INTEGER, null);
+        mWhiteBalanceColorTemperature = mTable.addColumn("white_balance_color_temperature", SQL_INTEGER, null);
+        mMeteringMode = mTable.addColumn("metering_mode", SQL_INTEGER, null);
+        mSubjectDistance = mTable.addColumn("subject_distance", SQL_DOUBLE, null);
+        mSubjectDistanceCategory = mTable.addColumn("subject_distance_category", SQL_INTEGER, null);
 
         String indexName;
         BaseManager manager;
@@ -111,6 +78,10 @@ public class ImageMetadataManager extends BaseManager {
         manager = ImageManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mId.references(indexName, manager.getTable().getName(), manager.getId().getName());
+    }
+
+    public Columns columns() {
+        return mColumns;
     }
 
     @Override
@@ -121,73 +92,143 @@ public class ImageMetadataManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint);
     }
 
-    @Override
-    public void prepare() throws SQLException {
-        QueryPreparer preparer = new QueryPreparer();
+    public void insert(Image.Metadata metadata) throws SQLException {
+        if (mInsertPreparedStatement == null) {
+            prepareInsert();
+        }
 
-        mIdPlaceHolder = preparer.getNewPlaceHolder();
-        mMakePlaceHolder = preparer.getNewPlaceHolder();
-        mModelPlaceHolder = preparer.getNewPlaceHolder();
-        mLensPlaceHolder = preparer.getNewPlaceHolder();
-        mAperturePlaceHolder = preparer.getNewPlaceHolder();
-        mFocalLengthPlaceHolder = preparer.getNewPlaceHolder();
-        mFocalLength35PlaceHolder = preparer.getNewPlaceHolder();
-        mExposureTimePlaceHolder = preparer.getNewPlaceHolder();
-        mExposureProgramPlaceHolder = preparer.getNewPlaceHolder();
-        mExposureModePlaceHolder = preparer.getNewPlaceHolder();
-        mSensitivityPlaceHolder = preparer.getNewPlaceHolder();
-        mFlashPlaceHolder = preparer.getNewPlaceHolder();
-        mWhiteBalancePlaceHolder = preparer.getNewPlaceHolder();
-        mWhiteBalanceColorTemperaturePlaceHolder = preparer.getNewPlaceHolder();
-        mMeteringModePlaceHolder = preparer.getNewPlaceHolder();
-        mSubjectDistancePlaceHolder = preparer.getNewPlaceHolder();
-        mSubjectDistanceCategoryPlaceHolder = preparer.getNewPlaceHolder();
+        mInsertPlaceHolders.get(mId).setLong(metadata.getId(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mMake).setString(metadata.getMake(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mModel).setString(metadata.getModel(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mLens).setString(metadata.getLens(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mAperture).setObject(metadata.getAperture(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mFocalLength).setObject(metadata.getFocalLength(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mFocalLength35).setObject(metadata.getFocalLength35(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mExposureTime).setObject(metadata.getExposureTime(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mExposureProgram).setInt(metadata.getExposureProgram(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mExposureMode).setInt(metadata.getExposureMode(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mSensitivity).setInt(metadata.getSensitivity(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mFlash).setInt(metadata.getFlash(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mWhiteBalance).setInt(metadata.getWhiteBalance(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mWhiteBalanceColorTemperature).setInt(metadata.getWhiteBalanceColorTemperature(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mMeteringMode).setInt(metadata.getMeteringMode(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mSubjectDistance).setString(metadata.getSubjectDistance(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mSubjectDistanceCategory).setInt(metadata.getSubjectDistanceCategory(), mInsertPreparedStatement);
+
+        mInsertPreparedStatement.executeUpdate();
+    }
+
+    private void prepareInsert() throws SQLException {
+        mInsertPlaceHolders.init(
+                mId,
+                mMake,
+                mModel,
+                mLens,
+                mAperture,
+                mFocalLength,
+                mFocalLength35,
+                mExposureTime,
+                mExposureProgram,
+                mExposureMode,
+                mSensitivity,
+                mFlash,
+                mWhiteBalance,
+                mWhiteBalanceColorTemperature,
+                mMeteringMode,
+                mSubjectDistance,
+                mSubjectDistanceCategory
+        );
 
         InsertQuery insertQuery = new InsertQuery(mTable)
-                .addColumn(mId, mIdPlaceHolder)
-                .addColumn(mMake, mMakePlaceHolder)
-                .addColumn(mModel, mModelPlaceHolder)
-                .addColumn(mLens, mLensPlaceHolder)
-                .addColumn(mAperture, mAperturePlaceHolder)
-                .addColumn(mFocalLength, mFocalLengthPlaceHolder)
-                .addColumn(mFocalLength35, mFocalLength35PlaceHolder)
-                .addColumn(mExposureTime, mExposureTimePlaceHolder)
-                .addColumn(mExposureProgram, mExposureProgramPlaceHolder)
-                .addColumn(mExposureMode, mExposureModePlaceHolder)
-                .addColumn(mSensitivity, mSensitivityPlaceHolder)
-                .addColumn(mFlash, mFlashPlaceHolder)
-                .addColumn(mWhiteBalance, mWhiteBalancePlaceHolder)
-                .addColumn(mWhiteBalanceColorTemperature, mWhiteBalanceColorTemperaturePlaceHolder)
-                .addColumn(mMeteringMode, mMeteringModePlaceHolder)
-                .addColumn(mSubjectDistance, mSubjectDistancePlaceHolder)
-                .addColumn(mSubjectDistanceCategory, mSubjectDistanceCategoryPlaceHolder)
+                .addColumn(mId, mInsertPlaceHolders.get(mId))
+                .addColumn(mMake, mInsertPlaceHolders.get(mMake))
+                .addColumn(mModel, mInsertPlaceHolders.get(mModel))
+                .addColumn(mLens, mInsertPlaceHolders.get(mLens))
+                .addColumn(mAperture, mInsertPlaceHolders.get(mAperture))
+                .addColumn(mFocalLength, mInsertPlaceHolders.get(mFocalLength))
+                .addColumn(mFocalLength35, mInsertPlaceHolders.get(mFocalLength35))
+                .addColumn(mExposureTime, mInsertPlaceHolders.get(mExposureTime))
+                .addColumn(mExposureProgram, mInsertPlaceHolders.get(mExposureProgram))
+                .addColumn(mExposureMode, mInsertPlaceHolders.get(mExposureMode))
+                .addColumn(mSensitivity, mInsertPlaceHolders.get(mSensitivity))
+                .addColumn(mFlash, mInsertPlaceHolders.get(mFlash))
+                .addColumn(mWhiteBalance, mInsertPlaceHolders.get(mWhiteBalance))
+                .addColumn(mWhiteBalanceColorTemperature, mInsertPlaceHolders.get(mWhiteBalanceColorTemperature))
+                .addColumn(mMeteringMode, mInsertPlaceHolders.get(mMeteringMode))
+                .addColumn(mSubjectDistance, mInsertPlaceHolders.get(mSubjectDistance))
+                .addColumn(mSubjectDistanceCategory, mInsertPlaceHolders.get(mSubjectDistanceCategory))
                 .validate();
 
         String sql = insertQuery.toString();
-        mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql);
+        mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
         //System.out.println(mInsertPreparedStatement.toString());
     }
 
-    void insert(Image.Metadata metadata) throws SQLException {
-        mIdPlaceHolder.setLong(metadata.getId(), mInsertPreparedStatement);
-        mMakePlaceHolder.setString(metadata.getMake(), mInsertPreparedStatement);
-        mModelPlaceHolder.setString(metadata.getModel(), mInsertPreparedStatement);
-        mLensPlaceHolder.setString(metadata.getLens(), mInsertPreparedStatement);
-        mAperturePlaceHolder.setObject(metadata.getAperture(), mInsertPreparedStatement);
-        mFocalLengthPlaceHolder.setObject(metadata.getFocalLength(), mInsertPreparedStatement);
-        mFocalLength35PlaceHolder.setObject(metadata.getFocalLength35(), mInsertPreparedStatement);
-        mExposureTimePlaceHolder.setObject(metadata.getExposureTime(), mInsertPreparedStatement);
-        mExposureProgramPlaceHolder.setInt(metadata.getExposureProgram(), mInsertPreparedStatement);
-        mExposureModePlaceHolder.setInt(metadata.getExposureMode(), mInsertPreparedStatement);
-        mSensitivityPlaceHolder.setInt(metadata.getSensitivity(), mInsertPreparedStatement);
-        mFlashPlaceHolder.setInt(metadata.getFlash(), mInsertPreparedStatement);
-        mWhiteBalancePlaceHolder.setInt(metadata.getWhiteBalance(), mInsertPreparedStatement);
-        mWhiteBalanceColorTemperaturePlaceHolder.setInt(metadata.getWhiteBalanceColorTemperature(), mInsertPreparedStatement);
-        mMeteringModePlaceHolder.setInt(metadata.getMeteringMode(), mInsertPreparedStatement);
-        mSubjectDistancePlaceHolder.setString(metadata.getSubjectDistance(), mInsertPreparedStatement);
-        mSubjectDistanceCategoryPlaceHolder.setInt(metadata.getSubjectDistanceCategory(), mInsertPreparedStatement);
+    public class Columns extends BaseManager.Columns {
 
-        mInsertPreparedStatement.executeUpdate();
+        public DbColumn getAperture() {
+            return mAperture;
+        }
+
+        public DbColumn getExposureMode() {
+            return mExposureMode;
+        }
+
+        public DbColumn getExposureProgram() {
+            return mExposureProgram;
+        }
+
+        public DbColumn getExposureTime() {
+            return mExposureTime;
+        }
+
+        public DbColumn getFlash() {
+            return mFlash;
+        }
+
+        public DbColumn getFocalLength() {
+            return mFocalLength;
+        }
+
+        public DbColumn getFocalLength35() {
+            return mFocalLength35;
+        }
+
+        public DbColumn getLens() {
+            return mLens;
+        }
+
+        public DbColumn getMake() {
+            return mMake;
+        }
+
+        public DbColumn getMeteringMode() {
+            return mMeteringMode;
+        }
+
+        public DbColumn getModel() {
+            return mModel;
+        }
+
+        public DbColumn getSensitivity() {
+            return mSensitivity;
+        }
+
+        public DbColumn getSubjectDistance() {
+            return mSubjectDistance;
+        }
+
+        public DbColumn getSubjectDistanceCategory() {
+            return mSubjectDistanceCategory;
+        }
+
+        public DbColumn getWhiteBalance() {
+            return mWhiteBalance;
+        }
+
+        public DbColumn getWhiteBalanceColorTemperature() {
+            return mWhiteBalanceColorTemperature;
+        }
     }
 
     private static class Holder {

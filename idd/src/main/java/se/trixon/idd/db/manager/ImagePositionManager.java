@@ -16,12 +16,11 @@
 package se.trixon.idd.db.manager;
 
 import com.healthmarketscience.sqlbuilder.InsertQuery;
-import com.healthmarketscience.sqlbuilder.QueryPreparer;
-import com.healthmarketscience.sqlbuilder.QueryPreparer.PlaceHolder;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import java.sql.SQLException;
+import java.sql.Statement;
 import se.trixon.idl.shared.db.Image;
 
 /**
@@ -30,57 +29,36 @@ import se.trixon.idl.shared.db.Image;
  */
 public class ImagePositionManager extends BaseManager {
 
-    public static final String TABLE_NAME = "image_position";
-
-    private static final String COL_ACCURACY = "accuracy";
-    private static final String COL_ALTITUDE = "altitude";
-    private static final String COL_DESCRIPTION = "description";
-    private static final String COL_LATITUDE = "latitude";
-    private static final String COL_LATITUDE_NUMBER = "latitude_number";
-    private static final String COL_LONGITUDE = "longitude";
-    private static final String COL_LONGITUDE_NUMBER = "longitude_number";
-    private static final String COL_ORIENTATION = "orientation";
-    private static final String COL_ROLL = "roll";
-    private static final String COL_TILT = "tilt";
     private final DbColumn mAccuracy;
-    private PlaceHolder mAccuracyPlaceHolder;
     private final DbColumn mAltitude;
-    private PlaceHolder mAltitudePlaceHolder;
+    private final Columns mColumns = new Columns();
     private final DbColumn mDescription;
-    private PlaceHolder mDescriptionPlaceHolder;
     private final DbColumn mLatitude;
     private final DbColumn mLatitudeNumber;
-    private PlaceHolder mLatitudeNumberPlaceHolder;
-    private PlaceHolder mLatitudePlaceHolder;
     private final DbColumn mLongitude;
     private final DbColumn mLongitudeNumber;
-    private PlaceHolder mLongitudeNumberPlaceHolder;
-    private PlaceHolder mLongitudePlaceHolder;
     private final DbColumn mOrientation;
-    private PlaceHolder mOrientationPlaceHolder;
     private final DbColumn mRoll;
-    private PlaceHolder mRollPlaceHolder;
     private final DbColumn mTilt;
-    private PlaceHolder mTiltPlaceHolder;
 
     public static ImagePositionManager getInstance() {
         return Holder.INSTANCE;
     }
 
     private ImagePositionManager() {
-        mTable = getSchema().addTable(TABLE_NAME);
+        mTable = getSchema().addTable("image_position");
 
         mId = mTable.addColumn(ImageManager.COL_ID, SQL_BIGINT, null);
-        mLatitude = mTable.addColumn(COL_LATITUDE, SQL_VARCHAR, Integer.MAX_VALUE);
-        mLatitudeNumber = mTable.addColumn(COL_LATITUDE_NUMBER, SQL_DOUBLE, null);
-        mLongitude = mTable.addColumn(COL_LONGITUDE, SQL_VARCHAR, Integer.MAX_VALUE);
-        mLongitudeNumber = mTable.addColumn(COL_LONGITUDE_NUMBER, SQL_DOUBLE, null);
-        mAltitude = mTable.addColumn(COL_ALTITUDE, SQL_DOUBLE, null);
-        mOrientation = mTable.addColumn(COL_ORIENTATION, SQL_DOUBLE, null);
-        mTilt = mTable.addColumn(COL_TILT, SQL_DOUBLE, null);
-        mRoll = mTable.addColumn(COL_ROLL, SQL_DOUBLE, null);
-        mAccuracy = mTable.addColumn(COL_ACCURACY, SQL_DOUBLE, null);
-        mDescription = mTable.addColumn(COL_DESCRIPTION, SQL_VARCHAR, Integer.MAX_VALUE);
+        mLatitude = mTable.addColumn("latitude", SQL_VARCHAR, Integer.MAX_VALUE);
+        mLatitudeNumber = mTable.addColumn("latitude_number", SQL_DOUBLE, null);
+        mLongitude = mTable.addColumn("longitude", SQL_VARCHAR, Integer.MAX_VALUE);
+        mLongitudeNumber = mTable.addColumn("longitude_number", SQL_DOUBLE, null);
+        mAltitude = mTable.addColumn("altitude", SQL_DOUBLE, null);
+        mOrientation = mTable.addColumn("orientation", SQL_DOUBLE, null);
+        mTilt = mTable.addColumn("tilt", SQL_DOUBLE, null);
+        mRoll = mTable.addColumn("roll", SQL_DOUBLE, null);
+        mAccuracy = mTable.addColumn("accuracy", SQL_DOUBLE, null);
+        mDescription = mTable.addColumn("description", SQL_VARCHAR, Integer.MAX_VALUE);
 
         String indexName;
         BaseManager manager;
@@ -88,6 +66,10 @@ public class ImagePositionManager extends BaseManager {
         manager = ImageManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mId.references(indexName, manager.getTable().getName(), manager.getId().getName());
+    }
+
+    public Columns columns() {
+        return mColumns;
     }
 
     @Override
@@ -98,55 +80,101 @@ public class ImagePositionManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint);
     }
 
-    @Override
-    public void prepare() throws SQLException {
-        QueryPreparer preparer = new QueryPreparer();
+    public void insert(Image.Position position) throws SQLException {
+        if (mInsertPreparedStatement == null) {
+            prepareInsert();
+        }
 
-        mAccuracyPlaceHolder = preparer.getNewPlaceHolder();
-        mAltitudePlaceHolder = preparer.getNewPlaceHolder();
-        mDescriptionPlaceHolder = preparer.getNewPlaceHolder();
-        mIdPlaceHolder = preparer.getNewPlaceHolder();
-        mLatitudeNumberPlaceHolder = preparer.getNewPlaceHolder();
-        mLatitudePlaceHolder = preparer.getNewPlaceHolder();
-        mLongitudeNumberPlaceHolder = preparer.getNewPlaceHolder();
-        mLongitudePlaceHolder = preparer.getNewPlaceHolder();
-        mOrientationPlaceHolder = preparer.getNewPlaceHolder();
-        mRollPlaceHolder = preparer.getNewPlaceHolder();
-        mTiltPlaceHolder = preparer.getNewPlaceHolder();
+        mInsertPlaceHolders.get(mId).setLong(position.getId(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mAccuracy).setObject(position.getAccuracy(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mAltitude).setObject(position.getAltitude(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mDescription).setString(position.getDescription(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mLatitude).setString(position.getLatitude(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mLatitudeNumber).setObject(position.getLatitudeNumber(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mLongitude).setString(position.getLongitude(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mLongitudeNumber).setObject(position.getLongitudeNumber(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mOrientation).setObject(position.getOrientation(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mRoll).setObject(position.getRoll(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mTilt).setObject(position.getTilt(), mInsertPreparedStatement);
+
+        mInsertPreparedStatement.executeUpdate();
+    }
+
+    private void prepareInsert() throws SQLException {
+        mInsertPlaceHolders.init(
+                mId,
+                mAccuracy,
+                mAltitude,
+                mDescription,
+                mLatitude,
+                mLatitudeNumber,
+                mLongitude,
+                mLongitudeNumber,
+                mOrientation,
+                mRoll,
+                mTilt
+        );
 
         InsertQuery insertQuery = new InsertQuery(mTable)
-                .addColumn(mId, mIdPlaceHolder)
-                .addColumn(mAccuracy, mAccuracyPlaceHolder)
-                .addColumn(mAltitude, mAltitudePlaceHolder)
-                .addColumn(mDescription, mDescriptionPlaceHolder)
-                .addColumn(mLatitude, mLatitudePlaceHolder)
-                .addColumn(mLatitudeNumber, mLatitudeNumberPlaceHolder)
-                .addColumn(mLongitude, mLongitudePlaceHolder)
-                .addColumn(mLongitudeNumber, mLongitudeNumberPlaceHolder)
-                .addColumn(mOrientation, mOrientationPlaceHolder)
-                .addColumn(mRoll, mRollPlaceHolder)
-                .addColumn(mTilt, mTiltPlaceHolder)
+                .addColumn(mId, mInsertPlaceHolders.get(mId))
+                .addColumn(mAccuracy, mInsertPlaceHolders.get(mAccuracy))
+                .addColumn(mAltitude, mInsertPlaceHolders.get(mAltitude))
+                .addColumn(mDescription, mInsertPlaceHolders.get(mDescription))
+                .addColumn(mLatitude, mInsertPlaceHolders.get(mLatitude))
+                .addColumn(mLatitudeNumber, mInsertPlaceHolders.get(mLatitudeNumber))
+                .addColumn(mLongitude, mInsertPlaceHolders.get(mLongitude))
+                .addColumn(mLongitudeNumber, mInsertPlaceHolders.get(mLongitudeNumber))
+                .addColumn(mOrientation, mInsertPlaceHolders.get(mOrientation))
+                .addColumn(mRoll, mInsertPlaceHolders.get(mRoll))
+                .addColumn(mTilt, mInsertPlaceHolders.get(mTilt))
                 .validate();
 
         String sql = insertQuery.toString();
-        mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql);
+        mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
         //System.out.println(mInsertPreparedStatement.toString());
     }
 
-    void insert(Image.Position position) throws SQLException {
-        mIdPlaceHolder.setLong(position.getId(), mInsertPreparedStatement);
-        mAccuracyPlaceHolder.setObject(position.getAccuracy(), mInsertPreparedStatement);
-        mAltitudePlaceHolder.setObject(position.getAltitude(), mInsertPreparedStatement);
-        mDescriptionPlaceHolder.setString(position.getDescription(), mInsertPreparedStatement);
-        mLatitudePlaceHolder.setString(position.getLatitude(), mInsertPreparedStatement);
-        mLatitudeNumberPlaceHolder.setObject(position.getLatitudeNumber(), mInsertPreparedStatement);
-        mLongitudePlaceHolder.setString(position.getLongitude(), mInsertPreparedStatement);
-        mLongitudeNumberPlaceHolder.setObject(position.getLongitudeNumber(), mInsertPreparedStatement);
-        mOrientationPlaceHolder.setObject(position.getOrientation(), mInsertPreparedStatement);
-        mRollPlaceHolder.setObject(position.getRoll(), mInsertPreparedStatement);
-        mTiltPlaceHolder.setObject(position.getTilt(), mInsertPreparedStatement);
+    public class Columns extends BaseManager.Columns {
 
-        mInsertPreparedStatement.executeUpdate();
+        public DbColumn getAccuracy() {
+            return mAccuracy;
+        }
+
+        public DbColumn getAltitude() {
+            return mAltitude;
+        }
+
+        public DbColumn getDescription() {
+            return mDescription;
+        }
+
+        public DbColumn getLatitude() {
+            return mLatitude;
+        }
+
+        public DbColumn getLatitudeNumber() {
+            return mLatitudeNumber;
+        }
+
+        public DbColumn getLongitude() {
+            return mLongitude;
+        }
+
+        public DbColumn getLongitudeNumber() {
+            return mLongitudeNumber;
+        }
+
+        public DbColumn getOrientation() {
+            return mOrientation;
+        }
+
+        public DbColumn getRoll() {
+            return mRoll;
+        }
+
+        public DbColumn getTilt() {
+            return mTilt;
+        }
     }
 
     private static class Holder {

@@ -16,8 +16,6 @@
 package se.trixon.idd.db.manager;
 
 import com.healthmarketscience.sqlbuilder.InsertQuery;
-import com.healthmarketscience.sqlbuilder.QueryPreparer;
-import com.healthmarketscience.sqlbuilder.QueryPreparer.PlaceHolder;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
@@ -33,43 +31,31 @@ import se.trixon.idl.shared.db.Album;
 public class AlbumManager extends BaseManager {
 
     public static final String COL_ID = "album_id";
-    public static final String TABLE_NAME = "album";
 
-    private static final String COL_CAPTION = "caption";
-    private static final String COL_COLLECTION = "collection";
-    private static final String COL_DATE = "date";
-    private static final String COL_ICON = "icon";
-    private static final String COL_RELATIVE_PATH = "relative_path";
     private final DbColumn mAlbumRootId;
-    private PlaceHolder mAlbumRootIdPlaceHolder;
     private final DbColumn mCaption;
-    private PlaceHolder mCaptionPlaceHolder;
     private final DbColumn mCollection;
-    private PlaceHolder mCollectionPlaceHolder;
+    private final Columns mColumns = new Columns();
     private final DbColumn mDate;
-    private PlaceHolder mDatePlaceHolder;
     private final DbColumn mIcon;
-    private PlaceHolder mIconPlaceHolder;
     private final DbColumn mRelativePath;
-    private PlaceHolder mRelativePathPlaceHolder;
 
     public static AlbumManager getInstance() {
         return Holder.INSTANCE;
     }
 
     private AlbumManager() {
-        mTable = getSchema().addTable(TABLE_NAME);
+        mTable = getSchema().addTable("album");
 
         mId = mTable.addColumn(COL_ID, SQL_IDENTITY, null);
         mAlbumRootId = mTable.addColumn(AlbumRootManager.COL_ID, SQL_BIGINT, null);
-        mRelativePath = mTable.addColumn(COL_RELATIVE_PATH, SQL_VARCHAR, Integer.MAX_VALUE);
-        mDate = mTable.addColumn(COL_DATE, SQL_DATE, null);
-        mCaption = mTable.addColumn(COL_CAPTION, SQL_VARCHAR, Integer.MAX_VALUE);
-        mCollection = mTable.addColumn(COL_COLLECTION, SQL_VARCHAR, Integer.MAX_VALUE);
-        mIcon = mTable.addColumn(COL_ICON, SQL_INT, null);
+        mRelativePath = mTable.addColumn("relative_path", SQL_VARCHAR, Integer.MAX_VALUE);
+        mDate = mTable.addColumn("date", SQL_DATE, null);
+        mCaption = mTable.addColumn("caption", SQL_VARCHAR, Integer.MAX_VALUE);
+        mCollection = mTable.addColumn("collection", SQL_VARCHAR, Integer.MAX_VALUE);
+        mIcon = mTable.addColumn("icon", SQL_INT, null);
 
-        addNotNullConstraint(mAlbumRootId);
-        addNotNullConstraint(mRelativePath);
+        addNotNullConstraints(mAlbumRootId, mRelativePath);
 
         String indexName;
         BaseManager manager;
@@ -77,6 +63,10 @@ public class AlbumManager extends BaseManager {
         manager = AlbumRootManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mAlbumRootId.references(indexName, manager.getTable(), manager.getId());
+    }
+
+    public Columns columns() {
+        return mColumns;
     }
 
     @Override
@@ -89,21 +79,17 @@ public class AlbumManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }
 
-    public DbColumn getAlbumRootId() {
-        return mAlbumRootId;
-    }
-
-    public DbColumn getRelativePath() {
-        return mRelativePath;
-    }
-
     public long insert(Album album) throws ClassNotFoundException, SQLException {
-        mAlbumRootIdPlaceHolder.setLong(album.getAlbumRootId(), mInsertPreparedStatement);
-        mCaptionPlaceHolder.setString(album.getCaption(), mInsertPreparedStatement);
-        mCollectionPlaceHolder.setString(album.getCollection(), mInsertPreparedStatement);
-        mDatePlaceHolder.setObject(album.getDate(), mInsertPreparedStatement);
-        mIconPlaceHolder.setInt(album.getIcon(), mInsertPreparedStatement);
-        mRelativePathPlaceHolder.setString(album.getRelativePath(), mInsertPreparedStatement);
+        if (mInsertPreparedStatement == null) {
+            prepareInsert();
+        }
+
+        mInsertPlaceHolders.get(mAlbumRootId).setLong(album.getAlbumRootId(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mCaption).setString(album.getCaption(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mCollection).setString(album.getCollection(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mDate).setObject(album.getDate(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mIcon).setInt(album.getIcon(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mRelativePath).setString(album.getRelativePath(), mInsertPreparedStatement);
 
         int affectedRows = mInsertPreparedStatement.executeUpdate();
         if (affectedRows == 0) {
@@ -119,30 +105,55 @@ public class AlbumManager extends BaseManager {
         }
     }
 
-    @Override
-    public void prepare() throws SQLException {
-        QueryPreparer preparer = new QueryPreparer();
-
-        mIdPlaceHolder = preparer.getNewPlaceHolder();
-        mAlbumRootIdPlaceHolder = preparer.getNewPlaceHolder();
-        mRelativePathPlaceHolder = preparer.getNewPlaceHolder();
-        mDatePlaceHolder = preparer.getNewPlaceHolder();
-        mCaptionPlaceHolder = preparer.getNewPlaceHolder();
-        mCollectionPlaceHolder = preparer.getNewPlaceHolder();
-        mIconPlaceHolder = preparer.getNewPlaceHolder();
+    private void prepareInsert() throws SQLException {
+        mInsertPlaceHolders.init(
+                mAlbumRootId,
+                mCaption,
+                mCollection,
+                mDate,
+                mIcon,
+                mRelativePath
+        );
 
         InsertQuery insertQuery = new InsertQuery(mTable)
-                .addColumn(mAlbumRootId, mAlbumRootIdPlaceHolder)
-                .addColumn(mCaption, mCaptionPlaceHolder)
-                .addColumn(mCollection, mCollectionPlaceHolder)
-                .addColumn(mDate, mDatePlaceHolder)
-                .addColumn(mIcon, mIconPlaceHolder)
-                .addColumn(mRelativePath, mRelativePathPlaceHolder)
+                .addColumn(mAlbumRootId, mInsertPlaceHolders.get(mAlbumRootId))
+                .addColumn(mCaption, mInsertPlaceHolders.get(mCaption))
+                .addColumn(mCollection, mInsertPlaceHolders.get(mCollection))
+                .addColumn(mDate, mInsertPlaceHolders.get(mDate))
+                .addColumn(mIcon, mInsertPlaceHolders.get(mIcon))
+                .addColumn(mRelativePath, mInsertPlaceHolders.get(mRelativePath))
                 .validate();
 
         String sql = insertQuery.toString();
         mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
         //System.out.println(mInsertPreparedStatement.toString());
+    }
+
+    public class Columns extends BaseManager.Columns {
+
+        public DbColumn getAlbumRootId() {
+            return mAlbumRootId;
+        }
+
+        public DbColumn getCaption() {
+            return mCaption;
+        }
+
+        public DbColumn getCollection() {
+            return mCollection;
+        }
+
+        public DbColumn getDate() {
+            return mDate;
+        }
+
+        public DbColumn getIcon() {
+            return mIcon;
+        }
+
+        public DbColumn getRelativePath() {
+            return mRelativePath;
+        }
     }
 
     private static class Holder {

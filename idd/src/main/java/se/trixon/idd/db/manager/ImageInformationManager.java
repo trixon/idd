@@ -16,12 +16,11 @@
 package se.trixon.idd.db.manager;
 
 import com.healthmarketscience.sqlbuilder.InsertQuery;
-import com.healthmarketscience.sqlbuilder.QueryPreparer;
-import com.healthmarketscience.sqlbuilder.QueryPreparer.PlaceHolder;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import java.sql.SQLException;
+import java.sql.Statement;
 import se.trixon.idl.shared.db.Image;
 
 /**
@@ -30,53 +29,34 @@ import se.trixon.idl.shared.db.Image;
  */
 public class ImageInformationManager extends BaseManager {
 
-    public static final String TABLE_NAME = "image_information";
-
-    private static final String COL_COLOR_DEPTH = "color_depth";
-    private static final String COL_COLOR_MODEL = "color_model";
-    private static final String COL_CREATION_DATE = "creation_date";
-    private static final String COL_DIGITIZATION_DATE = "digitization_date";
-    private static final String COL_FORMAT = "format";
-    private static final String COL_HEIGHT = "height";
-    private static final String COL_ORIENTATION = "orientation";
-    private static final String COL_RATING = "rating";
-    private static final String COL_WIDTH = "width";
     private final DbColumn mColorDepth;
-    private PlaceHolder mColorDepthPlaceHolder;
-    private PlaceHolder mColorModePlaceHolder;
     private final DbColumn mColorModel;
+    private final Columns mColumns = new Columns();
     private final DbColumn mCreationDate;
-    private PlaceHolder mCreationDatePlaceHolder;
     private final DbColumn mDigitizationDate;
-    private PlaceHolder mDigitizationDatePlaceHolder;
     private final DbColumn mFormat;
-    private PlaceHolder mFormatPlaceHolder;
     private final DbColumn mHeight;
-    private PlaceHolder mHeightPlaceHolder;
     private final DbColumn mOrientation;
-    private PlaceHolder mOrientationPlaceHolder;
     private final DbColumn mRating;
-    private PlaceHolder mRatingPlaceHolder;
     private final DbColumn mWidth;
-    private PlaceHolder mWidthPlaceHolder;
 
     public static ImageInformationManager getInstance() {
         return Holder.INSTANCE;
     }
 
     private ImageInformationManager() {
-        mTable = getSchema().addTable(TABLE_NAME);
+        mTable = getSchema().addTable("image_information");
 
         mId = mTable.addColumn(ImageManager.COL_ID, SQL_BIGINT, null);
-        mRating = mTable.addColumn(COL_RATING, SQL_INT, null);
-        mCreationDate = mTable.addColumn(COL_CREATION_DATE, SQL_TIMESTAMP, null);
-        mDigitizationDate = mTable.addColumn(COL_DIGITIZATION_DATE, SQL_TIMESTAMP, null);
-        mOrientation = mTable.addColumn(COL_ORIENTATION, SQL_INT, null);
-        mWidth = mTable.addColumn(COL_WIDTH, SQL_INT, null);
-        mHeight = mTable.addColumn(COL_HEIGHT, SQL_INT, null);
-        mFormat = mTable.addColumn(COL_FORMAT, SQL_VARCHAR, Integer.MAX_VALUE);
-        mColorDepth = mTable.addColumn(COL_COLOR_DEPTH, SQL_INT, null);
-        mColorModel = mTable.addColumn(COL_COLOR_MODEL, SQL_INT, null);
+        mRating = mTable.addColumn("rating", SQL_INT, null);
+        mCreationDate = mTable.addColumn("creation_date", SQL_TIMESTAMP, null);
+        mDigitizationDate = mTable.addColumn("digitization_date", SQL_TIMESTAMP, null);
+        mOrientation = mTable.addColumn("orientation", SQL_INT, null);
+        mWidth = mTable.addColumn("width", SQL_INT, null);
+        mHeight = mTable.addColumn("height", SQL_INT, null);
+        mFormat = mTable.addColumn("format", SQL_VARCHAR, Integer.MAX_VALUE);
+        mColorDepth = mTable.addColumn("color_depth", SQL_INT, null);
+        mColorModel = mTable.addColumn("color_model", SQL_INT, null);
 
         String indexName;
         BaseManager manager;
@@ -84,6 +64,10 @@ public class ImageInformationManager extends BaseManager {
         manager = ImageManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mId.references(indexName, manager.getTable().getName(), manager.getId().getName());
+    }
+
+    public Columns columns() {
+        return mColumns;
     }
 
     @Override
@@ -94,52 +78,95 @@ public class ImageInformationManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint);
     }
 
-    @Override
-    public void prepare() throws SQLException {
-        QueryPreparer preparer = new QueryPreparer();
+    public void insert(Image.Information information) throws SQLException {
+        if (mInsertPreparedStatement == null) {
+            prepareInsert();
+        }
 
-        mIdPlaceHolder = preparer.getNewPlaceHolder();
-        mRatingPlaceHolder = preparer.getNewPlaceHolder();
-        mCreationDatePlaceHolder = preparer.getNewPlaceHolder();
-        mDigitizationDatePlaceHolder = preparer.getNewPlaceHolder();
-        mOrientationPlaceHolder = preparer.getNewPlaceHolder();
-        mWidthPlaceHolder = preparer.getNewPlaceHolder();
-        mHeightPlaceHolder = preparer.getNewPlaceHolder();
-        mFormatPlaceHolder = preparer.getNewPlaceHolder();
-        mColorDepthPlaceHolder = preparer.getNewPlaceHolder();
-        mColorModePlaceHolder = preparer.getNewPlaceHolder();
+        mInsertPlaceHolders.get(mId).setLong(information.getId(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mRating).setInt(information.getRating(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mCreationDate).setObject(information.getCreationDate(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mDigitizationDate).setObject(information.getDigitizationDate(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mOrientation).setInt(information.getOrientation(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mWidth).setInt(information.getWidth(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mHeight).setInt(information.getHeigth(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mFormat).setString(information.getFormat(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mColorDepth).setInt(information.getColorDepth(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mColorModel).setInt(information.getColorModel(), mInsertPreparedStatement);
+
+        mInsertPreparedStatement.executeUpdate();
+    }
+
+    private void prepareInsert() throws SQLException {
+        mInsertPlaceHolders.init(
+                mId,
+                mRating,
+                mCreationDate,
+                mDigitizationDate,
+                mOrientation,
+                mWidth,
+                mHeight,
+                mFormat,
+                mColorDepth,
+                mColorModel
+        );
 
         InsertQuery insertQuery = new InsertQuery(mTable)
-                .addColumn(mId, mIdPlaceHolder)
-                .addColumn(mRating, mRatingPlaceHolder)
-                .addColumn(mCreationDate, mCreationDatePlaceHolder)
-                .addColumn(mDigitizationDate, mDigitizationDatePlaceHolder)
-                .addColumn(mOrientation, mOrientationPlaceHolder)
-                .addColumn(mWidth, mWidthPlaceHolder)
-                .addColumn(mHeight, mHeightPlaceHolder)
-                .addColumn(mFormat, mFormatPlaceHolder)
-                .addColumn(mColorDepth, mColorDepthPlaceHolder)
-                .addColumn(mColorModel, mColorModePlaceHolder)
+                .addColumn(mId, mInsertPlaceHolders.get(mId))
+                .addColumn(mRating, mInsertPlaceHolders.get(mRating))
+                .addColumn(mCreationDate, mInsertPlaceHolders.get(mCreationDate))
+                .addColumn(mDigitizationDate, mInsertPlaceHolders.get(mDigitizationDate))
+                .addColumn(mOrientation, mInsertPlaceHolders.get(mOrientation))
+                .addColumn(mWidth, mInsertPlaceHolders.get(mWidth))
+                .addColumn(mHeight, mInsertPlaceHolders.get(mHeight))
+                .addColumn(mFormat, mInsertPlaceHolders.get(mFormat))
+                .addColumn(mColorDepth, mInsertPlaceHolders.get(mColorDepth))
+                .addColumn(mColorModel, mInsertPlaceHolders.get(mColorModel))
                 .validate();
 
         String sql = insertQuery.toString();
-        mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql);
+        mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
         //System.out.println(mInsertPreparedStatement.toString());
     }
 
-    void insert(Image.Information information) throws SQLException {
-        mIdPlaceHolder.setLong(information.getId(), mInsertPreparedStatement);
-        mRatingPlaceHolder.setInt(information.getRating(), mInsertPreparedStatement);
-        mCreationDatePlaceHolder.setObject(information.getCreationDate(), mInsertPreparedStatement);
-        mDigitizationDatePlaceHolder.setObject(information.getDigitizationDate(), mInsertPreparedStatement);
-        mOrientationPlaceHolder.setInt(information.getOrientation(), mInsertPreparedStatement);
-        mWidthPlaceHolder.setInt(information.getWidth(), mInsertPreparedStatement);
-        mHeightPlaceHolder.setInt(information.getHeigth(), mInsertPreparedStatement);
-        mFormatPlaceHolder.setString(information.getFormat(), mInsertPreparedStatement);
-        mColorDepthPlaceHolder.setInt(information.getColorDepth(), mInsertPreparedStatement);
-        mColorModePlaceHolder.setInt(information.getColorModel(), mInsertPreparedStatement);
+    public class Columns extends BaseManager.Columns {
 
-        mInsertPreparedStatement.executeUpdate();
+        public DbColumn getColorDepth() {
+            return mColorDepth;
+        }
+
+        public DbColumn getColorModel() {
+            return mColorModel;
+        }
+
+        public DbColumn getCreationDate() {
+            return mCreationDate;
+        }
+
+        public DbColumn getDigitizationDate() {
+            return mDigitizationDate;
+        }
+
+        public DbColumn getFormat() {
+            return mFormat;
+        }
+
+        public DbColumn getHeight() {
+            return mHeight;
+        }
+
+        public DbColumn getOrientation() {
+            return mOrientation;
+        }
+
+        public DbColumn getRating() {
+            return mRating;
+        }
+
+        public DbColumn getWidth() {
+            return mWidth;
+        }
+
     }
 
     private static class Holder {

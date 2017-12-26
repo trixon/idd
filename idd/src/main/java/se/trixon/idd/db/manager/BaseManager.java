@@ -15,15 +15,14 @@
  */
 package se.trixon.idd.db.manager;
 
-import com.healthmarketscience.sqlbuilder.QueryPreparer.PlaceHolder;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSchema;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import se.trixon.idd.db.Db;
+import se.trixon.idd.db.PlaceHolderController;
 
 /**
  *
@@ -31,18 +30,18 @@ import se.trixon.idd.db.Db;
  */
 public abstract class BaseManager {
 
-    public static final String SQL_BIGINT = "BIGINT";
-    public static final String SQL_DATE = "DATE";
-    public static final String SQL_DOUBLE = "DOUBLE";
-    public static final String SQL_IDENTITY = "IDENTITY";
-    public static final String SQL_INT = "INT";
-    public static final String SQL_INTEGER = "INTEGER";
-    public static final String SQL_TIMESTAMP = "TIMESTAMP";
-    public static final String SQL_VARCHAR = "VARCHAR";
+    protected static final String SQL_BIGINT = "BIGINT";
+    protected static final String SQL_DATE = "DATE";
+    protected static final String SQL_DOUBLE = "DOUBLE";
+    protected static final String SQL_IDENTITY = "IDENTITY";
+    protected static final String SQL_INT = "INT";
+    protected static final String SQL_INTEGER = "INTEGER";
+    protected static final String SQL_TIMESTAMP = "TIMESTAMP";
+    protected static final String SQL_VARCHAR = "VARCHAR";
 
     protected final Db mDb;
     protected DbColumn mId;
-    protected PlaceHolder mIdPlaceHolder;
+    protected PlaceHolderController mInsertPlaceHolders = new PlaceHolderController();
     protected PreparedStatement mInsertPreparedStatement;
     protected DbTable mTable;
 
@@ -50,9 +49,10 @@ public abstract class BaseManager {
         mDb = Db.getInstance();
     }
 
-    public void addNotNullConstraint(DbColumn column) {
-        DbConstraint statusNotNullConstraint = new DbConstraint(column, null, Constraint.Type.NOT_NULL);
-        column.addConstraint(statusNotNullConstraint);
+    public void addNotNullConstraints(DbColumn... columns) {
+        for (DbColumn column : columns) {
+            column.addConstraint(new DbConstraint(column, null, Constraint.Type.NOT_NULL));
+        }
     }
 
     public abstract void create();
@@ -88,6 +88,10 @@ public abstract class BaseManager {
         return mTable;
     }
 
-    public abstract void prepare() throws SQLException;
+    public class Columns {
 
+        public DbColumn getId() {
+            return mId;
+        }
+    }
 }

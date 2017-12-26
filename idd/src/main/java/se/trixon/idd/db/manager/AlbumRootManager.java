@@ -16,8 +16,6 @@
 package se.trixon.idd.db.manager;
 
 import com.healthmarketscience.sqlbuilder.InsertQuery;
-import com.healthmarketscience.sqlbuilder.QueryPreparer;
-import com.healthmarketscience.sqlbuilder.QueryPreparer.PlaceHolder;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
@@ -33,40 +31,33 @@ import se.trixon.idl.shared.db.AlbumRoot;
 public class AlbumRootManager extends BaseManager {
 
     public static final String COL_ID = "album_root_id";
-    public static final String TABLE_NAME = "album_root";
 
-    private static final String COL_IDENTIFIER = "identifier";
-    private static final String COL_LABEL = "label";
-    private static final String COL_SPECIFIC_PATH = "specific_path";
-    private static final String COL_STATUS = "status";
-    private static final String COL_TYPE = "type";
+    private final Columns mColumns = new Columns();
     private final DbColumn mIdentifier;
-    private PlaceHolder mIdentifierPlaceHolder;
     private final DbColumn mLabel;
-    private PlaceHolder mLabelPlaceHolder;
     private final DbColumn mSpecificPath;
-    private PlaceHolder mSpecificPathPlaceHolder;
     private final DbColumn mStatus;
-    private PlaceHolder mStatusPlaceHolder;
     private final DbColumn mType;
-    private PlaceHolder mTypePlaceHolder;
 
     public static AlbumRootManager getInstance() {
         return Holder.INSTANCE;
     }
 
     private AlbumRootManager() {
-        mTable = getSchema().addTable(TABLE_NAME);
+        mTable = getSchema().addTable("album_root");
 
         mId = mTable.addColumn(COL_ID, SQL_IDENTITY, null);
-        mLabel = mTable.addColumn(COL_LABEL, SQL_VARCHAR, Integer.MAX_VALUE);
-        mStatus = mTable.addColumn(COL_STATUS, SQL_INT, null);
-        mType = mTable.addColumn(COL_TYPE, SQL_INT, null);
-        mIdentifier = mTable.addColumn(COL_IDENTIFIER, SQL_VARCHAR, Integer.MAX_VALUE);
-        mSpecificPath = mTable.addColumn(COL_SPECIFIC_PATH, SQL_VARCHAR, Integer.MAX_VALUE);
+        mLabel = mTable.addColumn("label", SQL_VARCHAR, Integer.MAX_VALUE);
+        mStatus = mTable.addColumn("status", SQL_INT, null);
+        mType = mTable.addColumn("type", SQL_INT, null);
+        mIdentifier = mTable.addColumn("identifier", SQL_VARCHAR, Integer.MAX_VALUE);
+        mSpecificPath = mTable.addColumn("specific_path", SQL_VARCHAR, Integer.MAX_VALUE);
 
-        addNotNullConstraint(mStatus);
-        addNotNullConstraint(mType);
+        addNotNullConstraints(mStatus, mType);
+    }
+
+    public Columns columns() {
+        return mColumns;
     }
 
     @Override
@@ -81,17 +72,17 @@ public class AlbumRootManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }
 
-    public DbColumn getSpecificPath() {
-        return mSpecificPath;
-    }
-
     public long insert(AlbumRoot albumRoot) throws SQLException, ClassNotFoundException {
-        mIdPlaceHolder.setLong(albumRoot.getId(), mInsertPreparedStatement);
-        mLabelPlaceHolder.setString(albumRoot.getLabel(), mInsertPreparedStatement);
-        mStatusPlaceHolder.setInt(albumRoot.getStatus(), mInsertPreparedStatement);
-        mTypePlaceHolder.setInt(albumRoot.getType(), mInsertPreparedStatement);
-        mSpecificPathPlaceHolder.setString(albumRoot.getSpecificPath(), mInsertPreparedStatement);
-        mIdentifierPlaceHolder.setString(albumRoot.getIdentifier(), mInsertPreparedStatement);
+        if (mInsertPreparedStatement == null) {
+            prepareInsert();
+        }
+
+        mInsertPlaceHolders.get(mId).setLong(albumRoot.getId(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mLabel).setString(albumRoot.getLabel(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mStatus).setInt(albumRoot.getStatus(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mType).setInt(albumRoot.getType(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mSpecificPath).setString(albumRoot.getSpecificPath(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mIdentifier).setString(albumRoot.getIdentifier(), mInsertPreparedStatement);
 
         int affectedRows = mInsertPreparedStatement.executeUpdate();
         if (affectedRows == 0) {
@@ -107,30 +98,51 @@ public class AlbumRootManager extends BaseManager {
         }
     }
 
-    @Override
-    public void prepare() throws SQLException {
-        QueryPreparer preparer = new QueryPreparer();
-
-        mIdPlaceHolder = preparer.getNewPlaceHolder();
-        mLabelPlaceHolder = preparer.getNewPlaceHolder();
-        mStatusPlaceHolder = preparer.getNewPlaceHolder();
-        mTypePlaceHolder = preparer.getNewPlaceHolder();
-        mIdentifierPlaceHolder = preparer.getNewPlaceHolder();
-        mSpecificPathPlaceHolder = preparer.getNewPlaceHolder();
+    private void prepareInsert() throws SQLException {
+        mInsertPlaceHolders.init(
+                mId,
+                mIdentifier,
+                mLabel,
+                mSpecificPath,
+                mStatus,
+                mType
+        );
 
         InsertQuery insertQuery = new InsertQuery(mTable)
-                .addColumn(mId, mIdPlaceHolder)
-                .addColumn(mLabel, mLabelPlaceHolder)
-                .addColumn(mStatus, mStatusPlaceHolder)
-                .addColumn(mType, mTypePlaceHolder)
-                .addColumn(mIdentifier, mIdentifierPlaceHolder)
-                .addColumn(mSpecificPath, mSpecificPathPlaceHolder)
+                .addColumn(mId, mInsertPlaceHolders.get(mId))
+                .addColumn(mIdentifier, mInsertPlaceHolders.get(mIdentifier))
+                .addColumn(mLabel, mInsertPlaceHolders.get(mLabel))
+                .addColumn(mSpecificPath, mInsertPlaceHolders.get(mSpecificPath))
+                .addColumn(mStatus, mInsertPlaceHolders.get(mStatus))
+                .addColumn(mType, mInsertPlaceHolders.get(mType))
                 .validate();
 
         String sql = insertQuery.toString();
-
         mInsertPreparedStatement = mDb.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
         //System.out.println(mInsertPreparedStatement.toString());
+    }
+
+    public class Columns extends BaseManager.Columns {
+
+        public DbColumn getIdentifier() {
+            return mIdentifier;
+        }
+
+        public DbColumn getLabel() {
+            return mLabel;
+        }
+
+        public DbColumn getSpecificPath() {
+            return mSpecificPath;
+        }
+
+        public DbColumn getStatus() {
+            return mStatus;
+        }
+
+        public DbColumn getType() {
+            return mType;
+        }
     }
 
     private static class Holder {

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,12 +47,8 @@ public class DbCreator {
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(DbCreator.class.getName()).log(Level.SEVERE, null, ex);
         }
+
         manager.create();
-        try {
-            manager.prepare();
-        } catch (SQLException ex) {
-            Logger.getLogger(DbCreator.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
     public void initDb() {
