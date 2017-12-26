@@ -1,2 +1,1 @@
-# java-idd
-Image Displayer Daemon (IDD)
+# Image Displayer Daemon (IDD)
