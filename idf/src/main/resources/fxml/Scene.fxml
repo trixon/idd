@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright 2017 Patrik Karlsson.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<?import javafx.scene.control.CheckMenuItem?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane fx:id="borderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" styleClass="borderPane" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="se.trixon.idf.FXMLController">
+    <top>
+        <MenuBar fx:id="menuBar" BorderPane.alignment="CENTER">
+            <menus>
+                <Menu fx:id="menuFile" mnemonicParsing="false">
+                    <items>
+                        <MenuItem fx:id="menuItemQuit" accelerator="ctrl+q" mnemonicParsing="false" onAction="#onActionQuit" />
+                    </items>
+                </Menu>
+                <Menu fx:id="menuView" mnemonicParsing="false">
+                    <items>
+                        <CheckMenuItem fx:id="checkMenuItemFullScreen" accelerator="F11" mnemonicParsing="false" onAction="#onActionFullscreen" />
+                        <CheckMenuItem fx:id="checkMenuItemMenubar" accelerator="ctrl+m" mnemonicParsing="false" onAction="#onActionMenubar" selected="true" />
+                    </items>
+                </Menu>
+                <Menu fx:id="menuHelp" mnemonicParsing="false">
+                    <items>
+                        <MenuItem fx:id="menuItemAbout" mnemonicParsing="false" onAction="#onActionAbout" text="About" />
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+    </top>
+    <center>
+        <ImageView fx:id="imageView" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="TOP_CENTER">
+        </ImageView>
+    </center>
+</BorderPane>
