@@ -1,2 +1,1 @@
-# java-idl
-Image Displayer Library (IDL)
+# Image Displayer Library (IDL)
