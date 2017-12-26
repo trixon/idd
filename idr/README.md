@@ -1,2 +1,1 @@
-# java-idr
-Image Displayer Remote (IDR)
+# Image Displayer Remote (IDR)
