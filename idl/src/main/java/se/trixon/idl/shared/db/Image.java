@@ -15,6 +15,7 @@
  */
 package se.trixon.idl.shared.db;
 
+import com.google.gson.annotations.SerializedName;
 import java.sql.Timestamp;
 
 /**
@@ -23,17 +24,29 @@ import java.sql.Timestamp;
  */
 public class Image {
 
+    @SerializedName("album_id")
     private Long mAlbumId;
+    @SerializedName("category")
     private Integer mCategory;
+    @SerializedName("file_size")
     private Long mFileSize;
+    @SerializedName("image_id")
     private Long mId;
+    @SerializedName("information")
     private Information mInformation;
+    @SerializedName("metadata")
     private Metadata mMetadata;
+    @SerializedName("modification_date")
     private Timestamp mModificationDate;
+    @SerializedName("name")
     private String mName;
+    @SerializedName("path")
     private String mPath;
+    @SerializedName("posititon")
     private Position mPosition;
+    @SerializedName("status")
     private Integer mStatus;
+    @SerializedName("unique_hash")
     private String mUniqueHash;
 
     public Image() {
@@ -145,15 +158,25 @@ public class Image {
 
     public static class Information {
 
+        @SerializedName("color_depth")
         private Integer mColorDepth;
+        @SerializedName("color_model")
         private Integer mColorModel;
+        @SerializedName("creation_date")
         private Timestamp mCreationDate;
+        @SerializedName("digitization_date")
         private Timestamp mDigitizationDate;
+        @SerializedName("format")
         private String mFormat;
+        @SerializedName("height")
         private Integer mHeigth;
+        @SerializedName("image_id")
         private Long mImageId;
+        @SerializedName("orientation")
         private Integer mOrientation;
+        @SerializedName("rating")
         private Integer mRating;
+        @SerializedName("width")
         private Integer mWidth;
 
         public Information() {
@@ -276,22 +299,39 @@ public class Image {
 
     public static class Metadata {
 
+        @SerializedName("aperture")
         private Double mAperture;
+        @SerializedName("exposure_mode")
         private Integer mExposureMode;
+        @SerializedName("exposure_program")
         private Integer mExposureProgram;
+        @SerializedName("exposure_time")
         private Double mExposureTime;
+        @SerializedName("flash")
         private Integer mFlash;
+        @SerializedName("focal_length")
         private Double mFocalLength;
+        @SerializedName("focal_length35")
         private Double mFocalLength35;
+        @SerializedName("image_id")
         private Long mImageId;
+        @SerializedName("lens")
         private String mLens;
+        @SerializedName("make")
         private String mMake;
+        @SerializedName("metering_mode")
         private Integer mMeteringMode;
+        @SerializedName("model")
         private String mModel;
+        @SerializedName("sensitivity")
         private Integer mSensitivity;
+        @SerializedName("subject_distance")
         private String mSubjectDistance;
+        @SerializedName("subject_distance_category")
         private Integer mSubjectDistanceCategory;
+        @SerializedName("white_balance")
         private Integer mWhiteBalance;
+        @SerializedName("white_balance_color_temperature")
         private Integer mWhiteBalanceColorTemperature;
 
         public Metadata() {
@@ -461,16 +501,27 @@ public class Image {
 
     public static class Position {
 
+        @SerializedName("accuracy")
         private Double mAccuracy;
+        @SerializedName("altitude")
         private Double mAltitude;
+        @SerializedName("description")
         private String mDescription;
+        @SerializedName("image_id")
         private Long mImageId;
+        @SerializedName("latitude")
         private String mLatitude;
+        @SerializedName("latitude_number")
         private Double mLatitudeNumber;
+        @SerializedName("longitude")
         private String mLongitude;
+        @SerializedName("longitude_number")
         private Double mLongitudeNumber;
+        @SerializedName("orientation")
         private Double mOrientation;
+        @SerializedName("roll")
         private Double mRoll;
+        @SerializedName("tilt")
         private Double mTilt;
 
         public Position() {
