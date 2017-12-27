@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2017 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +31,7 @@ public class Image {
     private Metadata mMetadata;
     private Timestamp mModificationDate;
     private String mName;
+    private String mPath;
     private Position mPosition;
     private Integer mStatus;
     private String mUniqueHash;
@@ -71,6 +72,10 @@ public class Image {
 
     public String getName() {
         return mName;
+    }
+
+    public String getPath() {
+        return mPath;
     }
 
     public Position getPosition() {
@@ -117,6 +122,10 @@ public class Image {
         mName = name;
     }
 
+    public void setPath(String path) {
+        mPath = path;
+    }
+
     public void setPosition(Position position) {
         mPosition = position;
     }
@@ -129,6 +138,11 @@ public class Image {
         mUniqueHash = uniqueHash;
     }
 
+    @Override
+    public String toString() {
+        return "Image{" + "mAlbumId=" + mAlbumId + ", mCategory=" + mCategory + ", mFileSize=" + mFileSize + ", mId=" + mId + ", \nmInformation=" + mInformation + ", \nmMetadata=" + mMetadata + ", \nmModificationDate=" + mModificationDate + ", mName=" + mName + ", \nmPosition=" + mPosition + ", \nmStatus=" + mStatus + ", mUniqueHash=" + mUniqueHash + '}';
+    }
+
     public static class Information {
 
         private Integer mColorDepth;
@@ -137,7 +151,7 @@ public class Image {
         private Timestamp mDigitizationDate;
         private String mFormat;
         private Integer mHeigth;
-        private Long mId;
+        private Long mImageId;
         private Integer mOrientation;
         private Integer mRating;
         private Integer mWidth;
@@ -169,8 +183,8 @@ public class Image {
             return mHeigth;
         }
 
-        public Long getId() {
-            return mId;
+        public Long getImageId() {
+            return mImageId;
         }
 
         public Integer getOrientation() {
@@ -237,8 +251,8 @@ public class Image {
             mHeigth = heigth;
         }
 
-        public void setId(Long id) {
-            mId = id;
+        public void setImageId(Long imageId) {
+            mImageId = imageId;
         }
 
         public void setOrientation(Integer orientation) {
@@ -253,6 +267,11 @@ public class Image {
             mWidth = width;
         }
 
+        @Override
+        public String toString() {
+            return "Information{" + "mColorDepth=" + mColorDepth + ", mColorModel=" + mColorModel + ", mCreationDate=" + mCreationDate + ", mDigitizationDate=" + mDigitizationDate + ", mFormat=" + mFormat + ", mHeigth=" + mHeigth + ", mImageId=" + mImageId + ", mOrientation=" + mOrientation + ", mRating=" + mRating + ", mWidth=" + mWidth + '}';
+        }
+
     }
 
     public static class Metadata {
@@ -264,7 +283,7 @@ public class Image {
         private Integer mFlash;
         private Double mFocalLength;
         private Double mFocalLength35;
-        private Long mId;
+        private Long mImageId;
         private String mLens;
         private String mMake;
         private Integer mMeteringMode;
@@ -306,8 +325,8 @@ public class Image {
             return mFocalLength35;
         }
 
-        public Long getId() {
-            return mId;
+        public Long getImageId() {
+            return mImageId;
         }
 
         public String getLens() {
@@ -393,8 +412,8 @@ public class Image {
             mFocalLength35 = focalLength35;
         }
 
-        public void setId(Long id) {
-            mId = id;
+        public void setImageId(Long imageId) {
+            mImageId = imageId;
         }
 
         public void setLens(String lens) {
@@ -433,6 +452,11 @@ public class Image {
             mWhiteBalanceColorTemperature = whiteBalanceColorTemperature;
         }
 
+        @Override
+        public String toString() {
+            return "Metadata{" + "mAperture=" + mAperture + ", mExposureMode=" + mExposureMode + ", mExposureProgram=" + mExposureProgram + ", mExposureTime=" + mExposureTime + ", mFlash=" + mFlash + ", mFocalLength=" + mFocalLength + ", mFocalLength35=" + mFocalLength35 + ", mImageId=" + mImageId + ", mLens=" + mLens + ", mMake=" + mMake + ", mMeteringMode=" + mMeteringMode + ", mModel=" + mModel + ", mSensitivity=" + mSensitivity + ", mSubjectDistance=" + mSubjectDistance + ", mSubjectDistanceCategory=" + mSubjectDistanceCategory + ", mWhiteBalance=" + mWhiteBalance + ", mWhiteBalanceColorTemperature=" + mWhiteBalanceColorTemperature + '}';
+        }
+
     }
 
     public static class Position {
@@ -440,7 +464,7 @@ public class Image {
         private Double mAccuracy;
         private Double mAltitude;
         private String mDescription;
-        private Long mId;
+        private Long mImageId;
         private String mLatitude;
         private Double mLatitudeNumber;
         private String mLongitude;
@@ -464,8 +488,8 @@ public class Image {
             return mDescription;
         }
 
-        public Long getId() {
-            return mId;
+        public Long getImageId() {
+            return mImageId;
         }
 
         public String getLatitude() {
@@ -521,8 +545,8 @@ public class Image {
             mDescription = description;
         }
 
-        public void setId(Long id) {
-            mId = id;
+        public void setImageId(Long imageId) {
+            mImageId = imageId;
         }
 
         public void setLatitude(String latitude) {
@@ -553,5 +577,9 @@ public class Image {
             mTilt = tilt;
         }
 
+        @Override
+        public String toString() {
+            return "Position{" + "mAccuracy=" + mAccuracy + ", mAltitude=" + mAltitude + ", mDescription=" + mDescription + ", mImageId=" + mImageId + ", mLatitude=" + mLatitude + ", mLatitudeNumber=" + mLatitudeNumber + ", mLongitude=" + mLongitude + ", mLongitudeNumber=" + mLongitudeNumber + ", mOrientation=" + mOrientation + ", mRoll=" + mRoll + ", mTilt=" + mTilt + '}';
+        }
     }
 }

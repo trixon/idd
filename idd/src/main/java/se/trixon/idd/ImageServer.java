@@ -31,9 +31,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Xlog;
 import se.trixon.idd.db.Db;
+import se.trixon.idd.db.manager.ImageManager;
 import se.trixon.idl.shared.Command;
 import se.trixon.idl.shared.IddHelper;
 import se.trixon.idl.shared.ImageDescriptor;
+import se.trixon.idl.shared.db.Image;
 
 /**
  *
@@ -51,6 +53,7 @@ class ImageServer {
     private boolean mSuccessfulStart;
     private final Db mDb = Db.getInstance();
     private final Querator mQuerator = Querator.getInstance();
+    private final ImageManager mImageManager = ImageManager.getInstance();
 
     ImageServer() throws IOException {
         intiListeners();
@@ -225,8 +228,7 @@ class ImageServer {
                             break;
 
                         case RANDOM:
-                            path = mQuerator.getRandomPath();
-                            sendImage(path);
+                            sendImage(mImageManager.getRandomImage());
                             break;
 
                         case UPDATE:
@@ -237,6 +239,7 @@ class ImageServer {
                             }
                             String response = mDb.update(path);
                             send(response);
+                            System.out.println(response);
                             break;
 
                         case VERSION:
@@ -258,13 +261,25 @@ class ImageServer {
             os.println(s);
         }
 
-        private void sendImage(String path) {
-            ImageDescriptor imagePacket = new ImageDescriptor();
-            imagePacket.setPath(path);
-            imagePacket.setBase64FromPath(path);
+        private void sendImage(Image image) {
+            ImageDescriptor imageDescriptor = new ImageDescriptor();
+            imageDescriptor.setImage(image);
+            imageDescriptor.setPath(image.getPath());
+            //imageDescriptor.setBase64FromPath(image.getPath());
 
 //            send("IMAGE PACKET");
-            send(imagePacket.toJson());
+            send(imageDescriptor.toJson());
+            send(OK);
+
+        }
+
+        private void sendImage(String path) {
+            ImageDescriptor imageDescriptor = new ImageDescriptor();
+            imageDescriptor.setPath(path);
+            imageDescriptor.setBase64FromPath(path);
+
+//            send("IMAGE PACKET");
+            send(imageDescriptor.toJson());
             send(OK);
 
         }

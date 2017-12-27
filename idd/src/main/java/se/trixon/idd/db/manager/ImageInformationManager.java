@@ -15,12 +15,16 @@
  */
 package se.trixon.idd.db.manager;
 
+import com.healthmarketscience.sqlbuilder.BinaryCondition;
 import com.healthmarketscience.sqlbuilder.InsertQuery;
+import com.healthmarketscience.sqlbuilder.SelectQuery;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import se.trixon.almond.util.Xlog;
 import se.trixon.idl.shared.db.Image;
 
 /**
@@ -63,7 +67,7 @@ public class ImageInformationManager extends BaseManager {
 
         manager = ImageManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
-        mId.references(indexName, manager.getTable().getName(), manager.getId().getName());
+        mId.references(indexName, manager.getTable(), manager.getId());
     }
 
     public Columns columns() {
@@ -78,12 +82,43 @@ public class ImageInformationManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint);
     }
 
+    public Image.Information getImageInformation(final Long imageId) {
+        Image.Information information = null;
+
+        SelectQuery query = new SelectQuery()
+                .addAllTableColumns(mTable)
+                .addCondition(BinaryCondition.equalTo(mId, imageId))
+                .validate();
+
+        String sql = query.toString();
+        try (Statement statement = mDb.getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            ResultSet rs = statement.executeQuery(sql);
+            rs.first();
+            information = new Image.Information();
+            information.setColorDepth(getInteger(rs, mColorDepth));
+            information.setColorModel(getInteger(rs, mColorModel));
+            information.setCreationDate(rs.getTimestamp(mCreationDate.getName()));
+            information.setDigitizationDate(rs.getTimestamp(mDigitizationDate.getName()));
+            information.setFormat(getString(rs, mFormat));
+            information.setHeigth(getInteger(rs, mHeight));
+            information.setWidth(getInteger(rs, mWidth));
+            information.setImageId(getLong(rs, mId));
+            information.setOrientation(getInteger(rs, mOrientation));
+            information.setRating(getInteger(rs, mRating));
+        } catch (NullPointerException | SQLException ex) {
+            Xlog.timedErr("dbError: getImageInformation" + ex);
+            information = null;
+        }
+
+        return information;
+    }
+
     public void insert(Image.Information information) throws SQLException {
         if (mInsertPreparedStatement == null) {
             prepareInsert();
         }
 
-        mInsertPlaceHolders.get(mId).setLong(information.getId(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mId).setLong(information.getImageId(), mInsertPreparedStatement);
         mInsertPlaceHolders.get(mRating).setInt(information.getRating(), mInsertPreparedStatement);
         mInsertPlaceHolders.get(mCreationDate).setObject(information.getCreationDate(), mInsertPreparedStatement);
         mInsertPlaceHolders.get(mDigitizationDate).setObject(information.getDigitizationDate(), mInsertPreparedStatement);

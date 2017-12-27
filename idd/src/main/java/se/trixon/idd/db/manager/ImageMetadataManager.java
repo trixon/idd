@@ -15,12 +15,16 @@
  */
 package se.trixon.idd.db.manager;
 
+import com.healthmarketscience.sqlbuilder.BinaryCondition;
 import com.healthmarketscience.sqlbuilder.InsertQuery;
+import com.healthmarketscience.sqlbuilder.SelectQuery;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import se.trixon.almond.util.Xlog;
 import se.trixon.idl.shared.db.Image;
 
 /**
@@ -77,7 +81,7 @@ public class ImageMetadataManager extends BaseManager {
 
         manager = ImageManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
-        mId.references(indexName, manager.getTable().getName(), manager.getId().getName());
+        mId.references(indexName, manager.getTable(), manager.getId());
     }
 
     public Columns columns() {
@@ -92,12 +96,50 @@ public class ImageMetadataManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint);
     }
 
+    public Image.Metadata getImageMetadata(final Long imageId) {
+        Image.Metadata metadata;
+
+        SelectQuery query = new SelectQuery()
+                .addAllTableColumns(mTable)
+                .addCondition(BinaryCondition.equalTo(mId, imageId))
+                .validate();
+
+        String sql = query.toString();
+        try (Statement statement = mDb.getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            ResultSet rs = statement.executeQuery(sql);
+            rs.first();
+            metadata = new Image.Metadata();
+            metadata.setAperture(getDouble(rs, mAperture));
+            metadata.setExposureMode(getInteger(rs, mExposureMode));
+            metadata.setExposureProgram(getInteger(rs, mExposureProgram));
+            metadata.setExposureTime(getDouble(rs, mExposureTime));
+            metadata.setFlash(getInteger(rs, mFlash));
+            metadata.setFocalLength(getDouble(rs, mFocalLength));
+            metadata.setFocalLength35(getDouble(rs, mFocalLength35));
+            metadata.setImageId(getLong(rs, mId));
+            metadata.setLens(getString(rs, mLens));
+            metadata.setMake(getString(rs, mMake));
+            metadata.setMeteringMode(getInteger(rs, mMeteringMode));
+            metadata.setModel(getString(rs, mModel));
+            metadata.setSensitivity(getInteger(rs, mSensitivity));
+            metadata.setSubjectDistance(getString(rs, mSubjectDistance));
+            metadata.setSubjectDistanceCategory(getInteger(rs, mSubjectDistanceCategory));
+            metadata.setWhiteBalance(getInteger(rs, mWhiteBalance));
+            metadata.setWhiteBalanceColorTemperature(getInteger(rs, mWhiteBalanceColorTemperature));
+        } catch (NullPointerException | SQLException ex) {
+            Xlog.timedErr("dbError: getImageMetadata" + ex);
+            metadata = null;
+        }
+
+        return metadata;
+    }
+
     public void insert(Image.Metadata metadata) throws SQLException {
         if (mInsertPreparedStatement == null) {
             prepareInsert();
         }
 
-        mInsertPlaceHolders.get(mId).setLong(metadata.getId(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mId).setLong(metadata.getImageId(), mInsertPreparedStatement);
         mInsertPlaceHolders.get(mMake).setString(metadata.getMake(), mInsertPreparedStatement);
         mInsertPlaceHolders.get(mModel).setString(metadata.getModel(), mInsertPreparedStatement);
         mInsertPlaceHolders.get(mLens).setString(metadata.getLens(), mInsertPreparedStatement);

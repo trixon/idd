@@ -55,8 +55,6 @@ public class AlbumManager extends BaseManager {
         mCollection = mTable.addColumn("collection", SQL_VARCHAR, Integer.MAX_VALUE);
         mIcon = mTable.addColumn("icon", SQL_INT, null);
 
-        addNotNullConstraints(mAlbumRootId, mRelativePath);
-
         String indexName;
         BaseManager manager;
 
@@ -76,10 +74,13 @@ public class AlbumManager extends BaseManager {
 
         indexName = getIndexName(new DbColumn[]{mAlbumRootId, mRelativePath}, "key");
         DbConstraint uniqueKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.UNIQUE, mAlbumRootId, mRelativePath);
+
+        addNotNullConstraints(mAlbumRootId, mRelativePath);
+
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }
 
-    public long insert(Album album) throws ClassNotFoundException, SQLException {
+    public Long insert(Album album) throws ClassNotFoundException, SQLException {
         if (mInsertPreparedStatement == null) {
             prepareInsert();
         }

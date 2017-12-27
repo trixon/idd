@@ -15,13 +15,18 @@
  */
 package se.trixon.idd.db.manager;
 
+import com.healthmarketscience.sqlbuilder.BinaryCondition;
+import com.healthmarketscience.sqlbuilder.CustomSql;
 import com.healthmarketscience.sqlbuilder.InsertQuery;
+import com.healthmarketscience.sqlbuilder.SelectQuery;
+import com.healthmarketscience.sqlbuilder.custom.postgresql.PgLimitClause;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import se.trixon.almond.util.Xlog;
 import se.trixon.idl.shared.db.Image;
 
 /**
@@ -33,6 +38,8 @@ public class ImageManager extends BaseManager {
     public static final String COL_ID = "image_id";
 
     private final DbColumn mAlbumId;
+    private final AlbumManager mAlbumManager = AlbumManager.getInstance();
+    private final AlbumRootManager mAlbumRootManager = AlbumRootManager.getInstance();
     private final DbColumn mCategory;
     private final Columns mColumns = new Columns();
     private final DbColumn mFileSize;
@@ -57,8 +64,6 @@ public class ImageManager extends BaseManager {
         mFileSize = mTable.addColumn("file_size", SQL_BIGINT, null);
         mUniqueHash = mTable.addColumn("unique_hash", SQL_VARCHAR, 32);
 
-        addNotNullConstraints(mAlbumId, mName, mStatus, mCategory);
-
         String indexName;
         BaseManager manager;
 
@@ -80,10 +85,94 @@ public class ImageManager extends BaseManager {
         indexName = getIndexName(new DbColumn[]{mAlbumId, mName}, "key");
         DbConstraint uniqueKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.UNIQUE, mAlbumId, mName);
 
+        addNotNullConstraints(mAlbumId, mName, mStatus, mCategory);
+
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }
 
-    public long insert(Image image) throws ClassNotFoundException, SQLException {
+    public Image getImage(final Long imageId) {
+        SelectQuery query = new SelectQuery()
+                .addAllTableColumns(mTable)
+                .addColumns(
+                        mAlbumRootManager.columns().getSpecificPath(),
+                        mAlbumManager.columns().getRelativePath()
+                )
+                .addJoin(SelectQuery.JoinType.INNER,
+                        mTable,
+                        mAlbumManager.mTable,
+                        mAlbumId,
+                        mAlbumManager.getId()
+                )
+                .addJoin(SelectQuery.JoinType.INNER,
+                        mAlbumManager.mTable,
+                        mAlbumRootManager.getTable(),
+                        mAlbumManager.columns().getAlbumRootId(),
+                        mAlbumRootManager.getId()
+                )
+                .addCondition(BinaryCondition.equalTo(mId, imageId))
+                .validate();
+
+        String sql = query.toString();
+
+        Image image;
+        try (Statement statement = mDb.getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            ResultSet rs = statement.executeQuery(sql);
+            rs.first();
+            image = new Image();
+            image.setAlbumId(getLong(rs, mAlbumId));
+            image.setCategory(getInteger(rs, mCategory));
+            image.setFileSize(getLong(rs, mFileSize));
+            image.setId(getLong(rs, mId));
+            image.setModificationDate(rs.getTimestamp(mModificationDate.getName()));
+            image.setName(getString(rs, mName));
+            image.setStatus(getInteger(rs, mStatus));
+            image.setUniqueHash(getString(rs, mUniqueHash));
+
+            image.setInformation(ImageInformationManager.getInstance().getImageInformation(imageId));
+            image.setMetadata(ImageMetadataManager.getInstance().getImageMetadata(imageId));
+            image.setPosition(ImagePositionManager.getInstance().getImagePosition(imageId));
+
+            String path = String.format("%s%s/%s",
+                    getString(rs, mAlbumRootManager.columns().getSpecificPath()),
+                    getString(rs, mAlbumManager.columns().getRelativePath()),
+                    getString(rs, mName));
+            image.setPath(path);
+        } catch (NullPointerException | SQLException ex) {
+            Xlog.timedErr("dbError: getImage" + ex);
+            image = null;
+        }
+
+        System.out.println(image);
+
+        return image;
+    }
+
+    public Image getRandomImage() {
+        return getImage(getRandomImageId());
+    }
+
+    public Long getRandomImageId() {
+        SelectQuery selectQuery = new SelectQuery()
+                .addColumns(mId)
+                .addCustomOrderings(new CustomSql("random()"))
+                .addCustomization(new PgLimitClause(1))
+                .validate();
+
+        String sql = selectQuery.toString();
+        System.out.println(sql);
+
+        try (Statement statement = mDb.getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            ResultSet rs = statement.executeQuery(sql);
+            rs.first();
+            return rs.getLong(mId.getName());
+        } catch (NullPointerException | SQLException ex) {
+            Xlog.timedErr("dbError: getRandomImageId");
+        }
+
+        return null;
+    }
+
+    public Long insert(Image image) throws ClassNotFoundException, SQLException {
         if (mInsertPreparedStatement == null) {
             prepareInsert();
         }
@@ -103,20 +192,20 @@ public class ImageManager extends BaseManager {
 
         try (ResultSet generatedKeys = mInsertPreparedStatement.getGeneratedKeys()) {
             if (generatedKeys.next()) {
-                long imageId = generatedKeys.getLong(1);
+                Long imageId = generatedKeys.getLong(1);
 
                 if (image.getPosition().hasData()) {
-                    image.getPosition().setId(imageId);
+                    image.getPosition().setImageId(imageId);
                     ImagePositionManager.getInstance().insert(image.getPosition());
                 }
 
                 if (image.getInformation().hasData()) {
-                    image.getInformation().setId(imageId);
+                    image.getInformation().setImageId(imageId);
                     ImageInformationManager.getInstance().insert(image.getInformation());
                 }
 
                 if (image.getMetadata().hasData()) {
-                    image.getMetadata().setId(imageId);
+                    image.getMetadata().setImageId(imageId);
                     ImageMetadataManager.getInstance().insert(image.getMetadata());
                 }
                 return imageId;

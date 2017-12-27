@@ -21,6 +21,8 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbSchema;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbTable;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import se.trixon.idd.db.Db;
 import se.trixon.idd.db.PlaceHolderController;
 
@@ -47,12 +49,6 @@ public abstract class BaseManager {
 
     public BaseManager() {
         mDb = Db.getInstance();
-    }
-
-    public void addNotNullConstraints(DbColumn... columns) {
-        for (DbColumn column : columns) {
-            column.addConstraint(new DbConstraint(column, null, Constraint.Type.NOT_NULL));
-        }
     }
 
     public abstract void create();
@@ -86,6 +82,44 @@ public abstract class BaseManager {
 
     public DbTable getTable() {
         return mTable;
+    }
+
+    protected void addNotNullConstraints(DbColumn... columns) {
+        for (DbColumn column : columns) {
+            column.addConstraint(new DbConstraint(column, null, Constraint.Type.NOT_NULL));
+        }
+    }
+
+    protected Double getDouble(ResultSet rs, DbColumn column) throws SQLException {
+        return getDouble(rs, column.getName());
+    }
+
+    protected Double getDouble(ResultSet rs, String columnName) throws SQLException {
+        return rs.getObject(columnName, Double.class);
+    }
+
+    protected Integer getInteger(ResultSet rs, DbColumn column) throws SQLException {
+        return getInteger(rs, column.getName());
+    }
+
+    protected Integer getInteger(ResultSet rs, String columnName) throws SQLException {
+        return rs.getObject(columnName, Integer.class);
+    }
+
+    protected Long getLong(ResultSet rs, DbColumn column) throws SQLException {
+        return getLong(rs, column.getName());
+    }
+
+    protected Long getLong(ResultSet rs, String columnName) throws SQLException {
+        return rs.getObject(columnName, Long.class);
+    }
+
+    protected String getString(ResultSet rs, DbColumn column) throws SQLException {
+        return getString(rs, column.getName());
+    }
+
+    protected String getString(ResultSet rs, String columnName) throws SQLException {
+        return rs.getString(columnName);
     }
 
     public class Columns {

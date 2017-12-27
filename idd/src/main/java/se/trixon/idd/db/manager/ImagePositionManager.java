@@ -15,12 +15,16 @@
  */
 package se.trixon.idd.db.manager;
 
+import com.healthmarketscience.sqlbuilder.BinaryCondition;
 import com.healthmarketscience.sqlbuilder.InsertQuery;
+import com.healthmarketscience.sqlbuilder.SelectQuery;
 import com.healthmarketscience.sqlbuilder.dbspec.Constraint;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbColumn;
 import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import se.trixon.almond.util.Xlog;
 import se.trixon.idl.shared.db.Image;
 
 /**
@@ -65,7 +69,7 @@ public class ImagePositionManager extends BaseManager {
 
         manager = ImageManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
-        mId.references(indexName, manager.getTable().getName(), manager.getId().getName());
+        mId.references(indexName, manager.getTable(), manager.getId());
     }
 
     public Columns columns() {
@@ -80,12 +84,44 @@ public class ImagePositionManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint);
     }
 
+    public Image.Position getImagePosition(final Long imageId) {
+        Image.Position position;
+
+        SelectQuery query = new SelectQuery()
+                .addAllTableColumns(mTable)
+                .addCondition(BinaryCondition.equalTo(mId, imageId))
+                .validate();
+
+        String sql = query.toString();
+        try (Statement statement = mDb.getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            ResultSet rs = statement.executeQuery(sql);
+            rs.first();
+            position = new Image.Position();
+            position.setAccuracy(getDouble(rs, mAccuracy));
+            position.setAltitude(getDouble(rs, mAltitude));
+            position.setDescription(getString(rs, mDescription));
+            position.setImageId(getLong(rs, mId));
+            position.setLatitude(getString(rs, mLatitude));
+            position.setLatitudeNumber(getDouble(rs, mLatitudeNumber));
+            position.setLongitude(getString(rs, mLongitude));
+            position.setLongitudeNumber(getDouble(rs, mLongitudeNumber));
+            position.setOrientation(getDouble(rs, mOrientation));
+            position.setRoll(getDouble(rs, mRoll));
+            position.setTilt(getDouble(rs, mTilt));
+        } catch (NullPointerException | SQLException ex) {
+            Xlog.timedErr("dbError: getImagePosition" + ex);
+            position = null;
+        }
+
+        return position;
+    }
+
     public void insert(Image.Position position) throws SQLException {
         if (mInsertPreparedStatement == null) {
             prepareInsert();
         }
 
-        mInsertPlaceHolders.get(mId).setLong(position.getId(), mInsertPreparedStatement);
+        mInsertPlaceHolders.get(mId).setLong(position.getImageId(), mInsertPreparedStatement);
         mInsertPlaceHolders.get(mAccuracy).setObject(position.getAccuracy(), mInsertPreparedStatement);
         mInsertPlaceHolders.get(mAltitude).setObject(position.getAltitude(), mInsertPreparedStatement);
         mInsertPlaceHolders.get(mDescription).setString(position.getDescription(), mInsertPreparedStatement);

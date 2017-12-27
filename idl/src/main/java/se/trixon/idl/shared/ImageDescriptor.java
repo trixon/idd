@@ -42,8 +42,8 @@ public class ImageDescriptor {
     private static final Logger LOGGER = Logger.getLogger(ImageDescriptor.class.getName());
     @SerializedName("base64")
     private String mBase64;
-    @SerializedName("format_version")
-    private int mFileFormatVersion;
+    @SerializedName("image")
+    private se.trixon.idl.shared.db.Image mImage;
     @SerializedName("path")
     private String mPath;
 
@@ -64,11 +64,11 @@ public class ImageDescriptor {
         return Base64.decodeBase64(mBase64);
     }
 
-    public int getFileFormatVersion() {
-        return mFileFormatVersion;
+    public se.trixon.idl.shared.db.Image getImage() {
+        return mImage;
     }
 
-    public java.awt.Image getImage() {
+    public java.awt.Image getImageAwt() {
         return getImageIcon().getImage();
     }
 
@@ -96,8 +96,8 @@ public class ImageDescriptor {
         }
     }
 
-    public void setFileFormatVersion(int fileFormatVersion) {
-        mFileFormatVersion = fileFormatVersion;
+    public void setImage(se.trixon.idl.shared.db.Image image) {
+        mImage = image;
     }
 
     public void setPath(String path) {

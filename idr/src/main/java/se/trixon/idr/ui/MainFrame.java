@@ -187,14 +187,16 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_connectButtonActionPerformed
 
     private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed
-        try {
-            LinkedList<String> lines = mClient.send(sendTextField.getText());
-            lines.forEach((line) -> {
-                System.out.println(line);
-            });
-        } catch (IOException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        new Thread(() -> {
+            try {
+                LinkedList<String> lines = mClient.send(sendTextField.getText());
+                lines.forEach((line) -> {
+                    System.out.println(line);
+                });
+            } catch (IOException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }).start();
     }//GEN-LAST:event_sendButtonActionPerformed
 
     private void pingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pingButtonActionPerformed
@@ -216,9 +218,10 @@ public class MainFrame extends javax.swing.JFrame {
             String json = String.join(" ", lines);
             System.out.println(json);
             ImageDescriptor imageDescriptor = ImageDescriptor.fromJson(json);
+            System.out.println(json);
 //            imageLabel.setIcon(imagePacket.getImageIcon());
             //imagePanel.getImageView().setImage(imageDescriptor.getImageFx());
-            imagePanel.setImage(imageDescriptor.getImage());
+            imagePanel.setImage(imageDescriptor.getImageAwt());
 
         } catch (IOException ex) {
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);

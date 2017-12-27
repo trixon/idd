@@ -71,23 +71,38 @@ public class Querator {
     public String getRandomPath() {
         FunctionCall randomFunctionCall = new FunctionCall("random");
         SelectQuery selectQuery = new SelectQuery()
-                .addJoin(SelectQuery.JoinType.INNER, mImageTable, mAlbumTable, mImageManager.getAlbumId(), mAlbumManager.getId())
-                .addJoin(SelectQuery.JoinType.INNER, mAlbumTable, mAlbumRootTable, mAlbumManager.getAlbumRootId(), mAlbumRootManager.getId())
-                .addColumns(mAlbumRootManager.getSpecificPath())
-                .addColumns(mAlbumManager.getRelativePath())
-                .addColumns(mImageManager.getName())
+                .addColumns(
+                        mAlbumRootManager.columns().getSpecificPath(),
+                        mAlbumManager.columns().getRelativePath(),
+                        mImageManager.columns().getName(),
+                        mImageManager.columns().getId()
+                )
                 .addCustomColumns(randomFunctionCall)
+                .addJoin(SelectQuery.JoinType.INNER,
+                        mImageTable,
+                        mAlbumTable,
+                        mImageManager.columns().getAlbumId(),
+                        mAlbumManager.getId()
+                )
+                .addJoin(SelectQuery.JoinType.INNER,
+                        mAlbumTable,
+                        mAlbumRootTable,
+                        mAlbumManager.columns().getAlbumRootId(),
+                        mAlbumRootManager.getId()
+                )
                 .addCustomOrderings(new CustomSql("random()"))
                 .addCustomization(new PgLimitClause(1))
                 .validate();
 
         String sql = selectQuery.toString();
-        //System.out.println(sql);
+//        System.out.println(sql);
 
         String path = null;
         try (Statement statement = mDb.getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             ResultSet rs = statement.executeQuery(sql);
             rs.first();
+            long id = rs.getLong(4);
+            mImageManager.getImage(id);
             path = String.format("%s%s/%s",
                     rs.getString(1),
                     rs.getString(2),

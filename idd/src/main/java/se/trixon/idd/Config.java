@@ -34,6 +34,7 @@ public class Config {
     private Configuration mConfiguration;
     private File mDbFile;
     private File mImageDirectory;
+    private File mCacheDirectory;
     private int mImageDirectoryLevel;
     private String[] mImageFormats;
     private int mPort;
@@ -44,6 +45,10 @@ public class Config {
     }
 
     private Config() {
+    }
+
+    public File getCacheDirectory() {
+        return mCacheDirectory;
     }
 
     public Configuration getConfiguration() {
@@ -110,6 +115,10 @@ public class Config {
                 mImageDirectory = new File(mConfiguration.getString("image_directory", SystemUtils.USER_HOME));
                 mImageDirectoryLevel = mImageDirectory.toPath().getNameCount();
                 mImageFormats = StringUtils.split(mConfiguration.getString("image_format", "jpeg").toLowerCase(), " ");
+                String cachePath = mConfiguration.getString("cache_directory");
+                if (cachePath != null) {
+                    mCacheDirectory = new File(cachePath);
+                }
                 mConfigLoaded = true;
             } catch (ConfigurationException ex) {
                 System.err.println(ex.getMessage());
