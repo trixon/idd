@@ -97,6 +97,12 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
+        sendTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sendTextFieldActionPerformed(evt);
+            }
+        });
+
         sendButton.setText(bundle.getString("MainFrame.sendButton.text")); // NOI18N
         sendButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -216,17 +222,18 @@ public class MainFrame extends javax.swing.JFrame {
             lines.removeLast();
 
             String json = String.join(" ", lines);
-            System.out.println(json);
             ImageDescriptor imageDescriptor = ImageDescriptor.fromJson(json);
-            System.out.println(json);
-//            imageLabel.setIcon(imagePacket.getImageIcon());
-            //imagePanel.getImageView().setImage(imageDescriptor.getImageFx());
-            imagePanel.setImage(imageDescriptor.getImageAwt());
-
+//            System.out.println(json);
+//            System.out.println(imageDescriptor.getImage());
+            imagePanel.setImage(imageDescriptor.getRotatedBufferedImage());
         } catch (IOException ex) {
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_randomButtonActionPerformed
+
+    private void sendTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendTextFieldActionPerformed
+        sendButtonActionPerformed(evt);
+    }//GEN-LAST:event_sendTextFieldActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton connectButton;

@@ -19,14 +19,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import se.trixon.almond.util.GraphicsHelper;
 
 /**
  *
@@ -60,6 +63,15 @@ public class ImageDescriptor {
         return mBase64;
     }
 
+    public BufferedImage getBufferedImage() {
+        try {
+            return ImageIO.read(getInputStream());
+        } catch (IOException ex) {
+            Logger.getLogger(ImageDescriptor.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
+
     public byte[] getByteArray() {
         return Base64.decodeBase64(mBase64);
     }
@@ -73,15 +85,23 @@ public class ImageDescriptor {
     }
 
     public javafx.scene.image.Image getImageFx() {
-        return new javafx.scene.image.Image(new ByteArrayInputStream(getByteArray()));
+        return new javafx.scene.image.Image(getInputStream());
     }
 
     public ImageIcon getImageIcon() {
         return new ImageIcon(getByteArray());
     }
 
+    public ByteArrayInputStream getInputStream() {
+        return new ByteArrayInputStream(getByteArray());
+    }
+
     public String getPath() {
         return mPath;
+    }
+
+    public BufferedImage getRotatedBufferedImage() {
+        return GraphicsHelper.rotate(getBufferedImage(), getImage().getInformation().getOrientation());
     }
 
     public void setBase64(String base64) {

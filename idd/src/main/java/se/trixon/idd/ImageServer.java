@@ -265,7 +265,7 @@ class ImageServer {
             ImageDescriptor imageDescriptor = new ImageDescriptor();
             imageDescriptor.setImage(image);
             imageDescriptor.setPath(image.getPath());
-            //imageDescriptor.setBase64FromPath(image.getPath());
+            imageDescriptor.setBase64FromPath(image.getPath());
 
 //            send("IMAGE PACKET");
             send(imageDescriptor.toJson());

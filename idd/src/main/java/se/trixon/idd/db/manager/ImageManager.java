@@ -142,8 +142,6 @@ public class ImageManager extends BaseManager {
             image = null;
         }
 
-        System.out.println(image);
-
         return image;
     }
 
@@ -159,7 +157,6 @@ public class ImageManager extends BaseManager {
                 .validate();
 
         String sql = selectQuery.toString();
-        System.out.println(sql);
 
         try (Statement statement = mDb.getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             ResultSet rs = statement.executeQuery(sql);
