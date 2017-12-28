@@ -95,19 +95,22 @@ public class ImagePositionManager extends BaseManager {
         String sql = query.toString();
         try (Statement statement = mDb.getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             ResultSet rs = statement.executeQuery(sql);
-            rs.first();
-            position = new Image.Position();
-            position.setAccuracy(getDouble(rs, mAccuracy));
-            position.setAltitude(getDouble(rs, mAltitude));
-            position.setDescription(getString(rs, mDescription));
-            position.setImageId(getLong(rs, mId));
-            position.setLatitude(getString(rs, mLatitude));
-            position.setLatitudeNumber(getDouble(rs, mLatitudeNumber));
-            position.setLongitude(getString(rs, mLongitude));
-            position.setLongitudeNumber(getDouble(rs, mLongitudeNumber));
-            position.setOrientation(getDouble(rs, mOrientation));
-            position.setRoll(getDouble(rs, mRoll));
-            position.setTilt(getDouble(rs, mTilt));
+            if (rs.first()) {
+                position = new Image.Position();
+                position.setAccuracy(getDouble(rs, mAccuracy));
+                position.setAltitude(getDouble(rs, mAltitude));
+                position.setDescription(getString(rs, mDescription));
+                position.setImageId(getLong(rs, mId));
+                position.setLatitude(getString(rs, mLatitude));
+                position.setLatitudeNumber(getDouble(rs, mLatitudeNumber));
+                position.setLongitude(getString(rs, mLongitude));
+                position.setLongitudeNumber(getDouble(rs, mLongitudeNumber));
+                position.setOrientation(getDouble(rs, mOrientation));
+                position.setRoll(getDouble(rs, mRoll));
+                position.setTilt(getDouble(rs, mTilt));
+            } else {
+                position = null;
+            }
         } catch (NullPointerException | SQLException ex) {
             Xlog.timedErr("dbError: getImagePosition" + ex);
             position = null;
