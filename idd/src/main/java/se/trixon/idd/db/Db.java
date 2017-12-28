@@ -44,8 +44,8 @@ public class Db {
     private static final Logger LOGGER = Logger.getLogger(Db.class.getName());
 
     private Connection mAutoCommitConnection = null;
-    //private final String mConnString = String.format("jdbc:h2:%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
-    private final String mConnString = String.format("jdbc:h2:tcp://localhost/%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
+    private final String mConnString = String.format("jdbc:h2:%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
+    //private final String mConnString = String.format("jdbc:h2:tcp://localhost/%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
     private Connection mConnection = null;
     private DbSchema mSchema;
     private final DbSpec mSpec;

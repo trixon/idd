@@ -15,7 +15,10 @@
  */
 package se.trixon.idd;
 
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
@@ -26,8 +29,10 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import se.trixon.almond.util.ImageScaler;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.almond.util.Xlog;
 import se.trixon.idd.db.Db;
@@ -47,13 +52,14 @@ class ImageServer {
 
     private Set<ClientThread> mClientThreads = new HashSet<>();
     private final Config mConfig = Config.getInstance();
+    private final Db mDb = Db.getInstance();
     private boolean mDirectKill;
+    private final ImageManager mImageManager = ImageManager.getInstance();
+    private final ImageScaler mImageScaler = ImageScaler.getInstance();
     private boolean mKillInitiated;
+    private final Querator mQuerator = Querator.getInstance();
     private ServerSocket mServerSocket;
     private boolean mSuccessfulStart;
-    private final Db mDb = Db.getInstance();
-    private final Querator mQuerator = Querator.getInstance();
-    private final ImageManager mImageManager = ImageManager.getInstance();
 
     ImageServer() throws IOException {
         intiListeners();
@@ -86,6 +92,27 @@ class ImageServer {
                 socket.getLocalPort(),
                 socket.getPort()
         ));
+    }
+
+    private String getImagePath(Image image) {
+        String path = image.getPath();
+
+        if (mConfig.getCacheDirectory() != null) {
+            File cacheFile = new File(mConfig.getCacheDirectory(), image.getUniqueHash());
+            if (!cacheFile.exists()) {
+                try {
+                    final File originalFile = new File(image.getPath());
+                    BufferedImage scaledImage = mImageScaler.getScaledImage(originalFile, new Dimension(2048, 2048));
+                    ImageIO.write(scaledImage, "jpeg", cacheFile);
+                    path = cacheFile.getAbsolutePath();
+                } catch (IOException ex) {
+                    LOGGER.log(Level.SEVERE, null, ex);
+                }
+            }
+
+        }
+
+        return path;
     }
 
     private void intiListeners() {
@@ -264,8 +291,9 @@ class ImageServer {
         private void sendImage(Image image) {
             ImageDescriptor imageDescriptor = new ImageDescriptor();
             imageDescriptor.setImage(image);
-            imageDescriptor.setPath(image.getPath());
-            imageDescriptor.setBase64FromPath(image.getPath());
+            final String imagePath = getImagePath(image);
+            imageDescriptor.setPath(imagePath);
+            imageDescriptor.setBase64FromPath(imagePath);
 
 //            send("IMAGE PACKET");
             send(imageDescriptor.toJson());
