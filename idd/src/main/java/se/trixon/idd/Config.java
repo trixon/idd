@@ -30,11 +30,13 @@ import se.trixon.idl.shared.IddHelper;
  */
 public class Config {
 
+    private File mCacheDirectory;
+    private int mCacheHeight;
+    private int mCacheWidth;
     private boolean mConfigLoaded;
     private Configuration mConfiguration;
     private File mDbFile;
     private File mImageDirectory;
-    private File mCacheDirectory;
     private int mImageDirectoryLevel;
     private String[] mImageFormats;
     private int mPort;
@@ -49,6 +51,14 @@ public class Config {
 
     public File getCacheDirectory() {
         return mCacheDirectory;
+    }
+
+    public int getCacheHeight() {
+        return mCacheHeight;
+    }
+
+    public int getCacheWidth() {
+        return mCacheWidth;
     }
 
     public Configuration getConfiguration() {
@@ -111,6 +121,8 @@ public class Config {
                 Configurations configurations = new Configurations();
                 mConfiguration = configurations.properties(file);
                 mPort = mConfiguration.getInt("port", IddHelper.DEFAULT_PORT);
+                mCacheWidth = mConfiguration.getInt("cache_width", 2048);
+                mCacheHeight = mConfiguration.getInt("cache_height", 2048);
                 mDbFile = new File(mConfiguration.getString("db_file", "idd.db"));
                 mImageDirectory = new File(mConfiguration.getString("image_directory", SystemUtils.USER_HOME));
                 mImageDirectoryLevel = mImageDirectory.toPath().getNameCount();

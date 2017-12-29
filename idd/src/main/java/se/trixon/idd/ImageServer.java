@@ -64,7 +64,8 @@ class ImageServer {
     ImageServer() throws IOException {
         intiListeners();
         startServer();
-
+//        mDb.update(mConfig.getImageDirectory().getPath());
+//        System.exit(0);
         while (true) {
             try {
                 Socket socket = mServerSocket.accept();
@@ -99,12 +100,15 @@ class ImageServer {
 
         if (mConfig.getCacheDirectory() != null) {
             File cacheFile = new File(mConfig.getCacheDirectory(), image.getUniqueHash());
-            if (!cacheFile.exists()) {
+            if (cacheFile.exists()) {
+                LOGGER.log(Level.INFO, String.format("File exists in cache: %s", cacheFile.getAbsolutePath()));
+            } else {
                 try {
                     final File originalFile = new File(image.getPath());
-                    BufferedImage scaledImage = mImageScaler.getScaledImage(originalFile, new Dimension(2048, 2048));
+                    BufferedImage scaledImage = mImageScaler.getScaledImage(originalFile, new Dimension(mConfig.getCacheWidth(), mConfig.getCacheHeight()));
                     ImageIO.write(scaledImage, "jpeg", cacheFile);
                     path = cacheFile.getAbsolutePath();
+                    LOGGER.log(Level.INFO, String.format("File cache generated: %s", cacheFile.getAbsolutePath()));
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, null, ex);
                 }
