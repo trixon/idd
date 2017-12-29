@@ -48,7 +48,7 @@ public class AlbumManager extends BaseManager {
         mTable = getSchema().addTable("album");
 
         mId = mTable.addColumn(COL_ID, SQL_IDENTITY, null);
-        mAlbumRootId = mTable.addColumn(AlbumRootManager.COL_ID, SQL_BIGINT, null);
+        mAlbumRootId = mTable.addColumn(AlbumRootManager.COL_ID, SQL_BIGINT_NOT_NULL, null);
         mRelativePath = mTable.addColumn("relative_path", SQL_VARCHAR, Integer.MAX_VALUE);
         mDate = mTable.addColumn("date", SQL_DATE, null);
         mCaption = mTable.addColumn("caption", SQL_VARCHAR, Integer.MAX_VALUE);
@@ -75,7 +75,7 @@ public class AlbumManager extends BaseManager {
         indexName = getIndexName(new DbColumn[]{mAlbumRootId, mRelativePath}, "key");
         DbConstraint uniqueKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.UNIQUE, mAlbumRootId, mRelativePath);
 
-        addNotNullConstraints(mAlbumRootId, mRelativePath);
+        addNotNullConstraints(mRelativePath);
 
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }

@@ -56,7 +56,7 @@ public class ImageManager extends BaseManager {
         mTable = getSchema().addTable("image");
 
         mId = mTable.addColumn(COL_ID, SQL_IDENTITY, null);
-        mAlbumId = mTable.addColumn(AlbumManager.COL_ID, SQL_BIGINT, null);
+        mAlbumId = mTable.addColumn(AlbumManager.COL_ID, SQL_BIGINT_NOT_NULL, null);
         mName = mTable.addColumn("name", SQL_VARCHAR, Integer.MAX_VALUE);
         mStatus = mTable.addColumn("status", SQL_INT, null);
         mCategory = mTable.addColumn("category", SQL_INT, null);
@@ -85,7 +85,7 @@ public class ImageManager extends BaseManager {
         indexName = getIndexName(new DbColumn[]{mAlbumId, mName}, "key");
         DbConstraint uniqueKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.UNIQUE, mAlbumId, mName);
 
-        addNotNullConstraints(mAlbumId, mName, mStatus, mCategory);
+        addNotNullConstraints(mName, mStatus, mCategory);
 
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }

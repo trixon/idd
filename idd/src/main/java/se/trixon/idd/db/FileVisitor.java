@@ -114,7 +114,8 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
             image.setFileSize(attrs.size());
             image.setModificationDate(new Timestamp(attrs.lastModifiedTime().toMillis()));
             image.setName(file.getFileName().toString());
-            //image.setUniqueHash(getMd5(file));
+            image.setUniqueHash(getMd5(file));
+
             try {
                 MetadataLoader metadataLoader = new MetadataLoader(image, file.toFile(), mFileType);
             } catch (ImageProcessingException ex) {

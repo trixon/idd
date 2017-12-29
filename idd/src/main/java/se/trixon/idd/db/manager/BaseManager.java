@@ -33,6 +33,7 @@ import se.trixon.idd.db.PlaceHolderController;
 public abstract class BaseManager {
 
     protected static final String SQL_BIGINT = "BIGINT";
+    protected static final String SQL_BIGINT_NOT_NULL = "BIGINT not null";
     protected static final String SQL_DATE = "DATE";
     protected static final String SQL_DOUBLE = "DOUBLE";
     protected static final String SQL_IDENTITY = "IDENTITY";
@@ -86,7 +87,7 @@ public abstract class BaseManager {
 
     protected void addNotNullConstraints(DbColumn... columns) {
         for (DbColumn column : columns) {
-            column.addConstraint(new DbConstraint(column, null, Constraint.Type.NOT_NULL));
+            column.addConstraint(new DbConstraint(column, "nnc_" + column.getName(), Constraint.Type.NOT_NULL));
         }
     }
 
