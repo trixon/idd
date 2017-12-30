@@ -62,7 +62,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>se.trixon.idr.Main</mainClass>
+                            <mainClass>se.trixon.idr.Idr</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
