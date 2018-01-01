@@ -15,12 +15,14 @@
  */
 package se.trixon.idr.ui;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.Dict;
@@ -222,8 +224,10 @@ public class MainFrame extends javax.swing.JFrame {
             lines.removeLast();
 
             String json = String.join(" ", lines);
+            System.out.println("RANDOM RESPONSE");
+            System.out.println(json);
             ImageDescriptor imageDescriptor = ImageDescriptor.fromJson(json);
-//            System.out.println(json);
+            FileUtils.write(new File("/home/pata/base64.txt"), imageDescriptor.getBase64(), "utf-8");
 //            System.out.println(imageDescriptor.getImage());
             imagePanel.setImage(imageDescriptor.getRotatedBufferedImage());
         } catch (IOException ex) {
