@@ -61,6 +61,8 @@ public class AlbumManager extends BaseManager {
         manager = AlbumRootManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mAlbumRootId.references(indexName, manager.getTable(), manager.getId());
+
+        addNotNullConstraints(mRelativePath);
     }
 
     public Columns columns() {
@@ -74,8 +76,6 @@ public class AlbumManager extends BaseManager {
 
         indexName = getIndexName(new DbColumn[]{mAlbumRootId, mRelativePath}, "key");
         DbConstraint uniqueKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.UNIQUE, mAlbumRootId, mRelativePath);
-
-        addNotNullConstraints(mRelativePath);
 
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }

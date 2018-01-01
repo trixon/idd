@@ -70,6 +70,8 @@ public class ImageManager extends BaseManager {
         manager = AlbumManager.getInstance();
         indexName = getIndexName(new DbColumn[]{manager.getId()}, "fkey");
         mAlbumId.references(indexName, manager.getTable(), manager.getId());
+
+        addNotNullConstraints(mName, mStatus, mCategory);
     }
 
     public Columns columns() {
@@ -84,8 +86,6 @@ public class ImageManager extends BaseManager {
 
         indexName = getIndexName(new DbColumn[]{mAlbumId, mName}, "key");
         DbConstraint uniqueKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.UNIQUE, mAlbumId, mName);
-
-        addNotNullConstraints(mName, mStatus, mCategory);
 
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }

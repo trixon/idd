@@ -52,6 +52,8 @@ public class AlbumRootManager extends BaseManager {
         mType = mTable.addColumn("type", SQL_INT, null);
         mIdentifier = mTable.addColumn("identifier", SQL_VARCHAR, Integer.MAX_VALUE);
         mSpecificPath = mTable.addColumn("specific_path", SQL_VARCHAR, Integer.MAX_VALUE);
+
+        addNotNullConstraints(mStatus, mType);
     }
 
     public Columns columns() {
@@ -66,8 +68,6 @@ public class AlbumRootManager extends BaseManager {
 
         indexName = getIndexName(new DbColumn[]{mIdentifier, mSpecificPath}, "key");
         DbConstraint uniqueKeyConstraint = new DbConstraint(mTable, indexName, Constraint.Type.UNIQUE, mIdentifier, mSpecificPath);
-
-        addNotNullConstraints(mStatus, mType);
 
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }
