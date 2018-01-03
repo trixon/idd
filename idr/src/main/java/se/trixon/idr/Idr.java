@@ -16,10 +16,10 @@
 package se.trixon.idr;
 
 import java.awt.GraphicsEnvironment;
+import java.util.logging.Logger;
 import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.SystemHelper;
-import se.trixon.almond.util.Xlog;
 import se.trixon.idr.ui.MainFrame;
 
 /**
@@ -27,6 +27,8 @@ import se.trixon.idr.ui.MainFrame;
  * @author Patrik Karlsson
  */
 public class Idr {
+
+    private static final Logger LOGGER = Logger.getLogger(Idr.class.getName());
 
     private final AlmondUI mAlmondUI = AlmondUI.getInstance();
     private MainFrame mMainFrame = null;
@@ -44,7 +46,7 @@ public class Idr {
 
     private void displayGui() {
         if (GraphicsEnvironment.isHeadless()) {
-            Xlog.timedErr(Dict.Dialog.ERROR_NO_GUI_IN_HEADLESS.toString());
+            LOGGER.severe(Dict.Dialog.ERROR_NO_GUI_IN_HEADLESS.toString());
             System.exit(1);
 
             return;

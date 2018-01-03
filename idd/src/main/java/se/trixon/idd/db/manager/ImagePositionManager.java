@@ -24,7 +24,8 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import se.trixon.almond.util.Xlog;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import se.trixon.idl.shared.db.Image;
 
 /**
@@ -32,6 +33,8 @@ import se.trixon.idl.shared.db.Image;
  * @author Patrik Karlsson
  */
 public class ImagePositionManager extends BaseManager {
+
+    private static final Logger LOGGER = Logger.getLogger(ImagePositionManager.class.getName());
 
     private final DbColumn mAccuracy;
     private final DbColumn mAltitude;
@@ -112,7 +115,7 @@ public class ImagePositionManager extends BaseManager {
                 position = null;
             }
         } catch (NullPointerException | SQLException ex) {
-            Xlog.timedErr("dbError: getImagePosition" + ex);
+            LOGGER.log(Level.SEVERE, "dbError: getImagePosition{0}", ex);
             position = null;
         }
 

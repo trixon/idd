@@ -29,7 +29,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import se.trixon.almond.util.SystemHelper;
-import se.trixon.almond.util.Xlog;
 import se.trixon.idl.shared.Command;
 import se.trixon.idl.shared.IddHelper;
 import se.trixon.idl.shared.ImageServerEventRelay;
@@ -185,7 +184,7 @@ public final class Client {
             port = Integer.valueOf(portString);
         } catch (NumberFormatException e) {
             port = IddHelper.DEFAULT_PORT;
-            Xlog.timedErr(String.format(IddHelper.getBundle().getString("invalid_port"), portString, IddHelper.DEFAULT_PORT));
+            LOGGER.severe(String.format(IddHelper.getBundle().getString("invalid_port"), portString, IddHelper.DEFAULT_PORT));
         }
 
         mPort = port;

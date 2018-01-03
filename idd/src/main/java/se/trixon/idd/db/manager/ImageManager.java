@@ -26,7 +26,8 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import se.trixon.almond.util.Xlog;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import se.trixon.idl.shared.db.Image;
 
 /**
@@ -36,6 +37,7 @@ import se.trixon.idl.shared.db.Image;
 public class ImageManager extends BaseManager {
 
     public static final String COL_ID = "image_id";
+    private static final Logger LOGGER = Logger.getLogger(ImageManager.class.getName());
 
     private final DbColumn mAlbumId;
     private final AlbumManager mAlbumManager = AlbumManager.getInstance();
@@ -138,7 +140,7 @@ public class ImageManager extends BaseManager {
                     getString(rs, mName));
             image.setPath(path);
         } catch (NullPointerException | SQLException ex) {
-            Xlog.timedErr("dbError: getImage" + ex);
+            LOGGER.log(Level.SEVERE, "dbError: getImage{0}", ex);
             image = null;
         }
 
@@ -163,7 +165,7 @@ public class ImageManager extends BaseManager {
             rs.first();
             return rs.getLong(mId.getName());
         } catch (NullPointerException | SQLException ex) {
-            Xlog.timedErr("dbError: getRandomImageId");
+            LOGGER.severe("dbError: getRandomImageId");
         }
 
         return null;

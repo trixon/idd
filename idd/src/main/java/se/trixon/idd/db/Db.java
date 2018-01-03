@@ -32,7 +32,6 @@ import java.sql.Statement;
 import java.util.EnumSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import se.trixon.almond.util.Xlog;
 import se.trixon.idd.Config;
 
 /**
@@ -45,7 +44,7 @@ public class Db {
 
     private Connection mAutoCommitConnection = null;
     private final String mConnString = String.format("jdbc:h2:%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
-    //private final String mConnString = String.format("jdbc:h2:tcp://localhost/%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
+//    private final String mConnString = String.format("jdbc:h2:tcp://localhost/%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
     private Connection mConnection = null;
     private DbSchema mSchema;
     private final DbSpec mSpec;
@@ -62,20 +61,18 @@ public class Db {
 
     public void connectionCommit() throws ClassNotFoundException, SQLException {
         getConnection().commit();
-        //getConnection().close();
-        //Xlog.d(this.getClass(), "JDBC Commit");
     }
 
     public void connectionOpen() throws ClassNotFoundException, SQLException {
         if (mConnection != null && !mConnection.isClosed()) {
             connectionCommit();
-            mConnection.close();
+            //mConnection.close();
         }
 
         Class.forName("org.h2.Driver");
         mConnection = DriverManager.getConnection(mConnString);
         mConnection.setAutoCommit(false);
-        //Xlog.d(getClass(), "JDBC Connect: " + mConnString);
+        //LOGGER.log(Level.INFO, "JDBC Connect: {0}", mConnString);
     }
 
     public boolean connectionRollback() {
@@ -136,8 +133,7 @@ public class Db {
                 mAutoCommitConnection = DriverManager.getConnection(mConnString);
             }
         } catch (ClassNotFoundException | SQLException ex) {
-            Xlog.timedErr("Database may be already in use: Possible solutions: close all other connection(s); use the server mode [90020-196]");
-            //Logger.getLogger(Db.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.severe("Database may be already in use: Possible solutions: close all other connection(s); use the server mode [90020-196]");
         }
 
         return mAutoCommitConnection;
@@ -163,7 +159,7 @@ public class Db {
         String resultMessage = null;
 
         if (isUpdating()) {
-            resultMessage = "Update already in progress";
+            resultMessage = "ACK Update already in progress";
         } else {
             try {
                 setUpdating(true);
@@ -173,10 +169,10 @@ public class Db {
                 FileVisitor fileVisitor = new FileVisitor();
                 Files.walkFileTree(new File(path).toPath(), fileVisitOptions, Integer.MAX_VALUE, fileVisitor);
                 connectionCommit();
-                resultMessage = "Update done";
+                resultMessage = "ACK Update done";
             } catch (ClassNotFoundException | SQLException | IOException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
-                resultMessage = "Update failed";
+                resultMessage = "ACK Update failed";
             } finally {
                 setUpdating(false);
             }

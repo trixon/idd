@@ -26,6 +26,7 @@ import se.trixon.almond.util.SystemHelper;
  */
 public class IddHelper {
 
+    public static final int DEFAULT_PORT = 5705;
     public static final String OPT_COMMAND = "command";
     public static final String OPT_COMMAND_ONCE = "start-once";
     public static final String OPT_HELP = "help";
@@ -34,9 +35,16 @@ public class IddHelper {
     public static final String OPT_VERBOSE = "verbose";
     public static final String OPT_VERSION = "version";
     public static final String OPT_WAIT = "wait";
-    public static final int DEFAULT_PORT = 5705;
-    public static final int PROTOCOL_VERSION = 1;
+    public static final String PROTOCOL_VERSION = "0.0.1";
     private static final ResourceBundle sBundle = SystemHelper.getBundle(IddHelper.class, "Bundle");
+
+    static {
+        if (!System.getProperties().containsKey("java.util.logging.SimpleFormatter.format")) {
+            System.getProperties().setProperty("java.util.logging.SimpleFormatter.format", "%1$tY-%1$tm-%1$td %1$tH.%1$tM.%1$tS.%1$tL: %5$s%n"
+                    + "                         "
+                    + "[%4$s] %2$s%n");
+        }
+    }
 
     public static void exit() {
         exit(0);
@@ -48,10 +56,6 @@ public class IddHelper {
 
     public static ResourceBundle getBundle() {
         return sBundle;
-    }
-
-    public static String getRmiName(String host, int port, Class c) {
-        return String.format("//%s:%d/%s", host, port, c.getCanonicalName());
     }
 
     public static String millisToDateTime(long timestamp) {

@@ -16,68 +16,43 @@
 package se.trixon.idc;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.SocketException;
+import java.util.LinkedList;
 import java.util.Locale;
+import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import se.trixon.idl.client.Client;
 import se.trixon.idl.shared.Command;
 import se.trixon.idl.shared.IddHelper;
-import se.trixon.idl.shared.ImageServerEvent;
-import se.trixon.idl.shared.ImageServerEventRelay;
-import se.trixon.idl.shared.ProcessEvent;
 
 /**
  *
  * @author Patrik Karlsson
  */
-public class Idc implements ImageServerEventRelay {
+public class Idc {
 
-    private final Client mClient;
+    private static final Logger LOGGER = Logger.getLogger(Idc.class.getName());
+    private Client mClient;
 
     public Idc(CommandLine cmd) throws MalformedURLException, SocketException, IOException {
         String command = parseCommand(cmd);
-        mClient = new Client(cmd.getOptionValue(IddHelper.OPT_HOST), cmd.getOptionValue(IddHelper.OPT_PORT));
-        mClient.connect();
+
         if (command != null) {
-//            mManager.connect(cmd.getOptionValue(Main.OPT_HOST), cmd.getOptionValue(Main.OPT_PORT));
-//            mManager.addImageServerEventRelay(this);
-//            mManager.getImageServerCommander().execute(command, null);
-//            mManager.disconnect();
-        }
-    }
+            mClient = new Client(cmd.getOptionValue(IddHelper.OPT_HOST), cmd.getOptionValue(IddHelper.OPT_PORT));
+            mClient.connect();
 
-    @Override
-    public void onExecutorEvent(String command, String... strings) {
-        System.out.println(strings.length > 0 ? strings[0] : "");
-        IddHelper.exit(0);
-    }
-
-    @Override
-    public void onProcessEvent(ProcessEvent processEvent, Object object) {
-        System.out.println("onProcessEvent");
-        System.out.println(processEvent);
-        System.out.println(object);
-    }
-
-    @Override
-    public void onReceiveStreamEvent(InputStream inputStream) {
-        // nvm
-    }
-
-    @Override
-    public void onServerEvent(ImageServerEvent imageServerEvent) {
-        System.out.println("onServerEvent");
-        System.out.println(imageServerEvent);
-
-        if (imageServerEvent == ImageServerEvent.SHUTDOWN) {
-            IddHelper.exit(1);
+            LinkedList<String> lines = mClient.send(command);
+            lines.forEach((line) -> {
+                System.out.println(line);
+            });
+            mClient.disconnect();
         }
     }
 
     private String parseCommand(CommandLine cmd) {
         String result = null;
+
         if (cmd.getArgList().isEmpty()) {
             System.err.println("no command given");
             IddHelper.exit();

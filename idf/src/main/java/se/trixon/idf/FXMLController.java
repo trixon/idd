@@ -106,7 +106,7 @@ public class FXMLController implements Initializable {
         alert.setContentText("A basic implementation of an\n"
                 + "image displayer daemon frame.\n\n"
                 + "Licensed under the Apache License, Version 2.0\n"
-                + "Copyright 2017 Patrik Karlsson");
+                + "Copyright 2018 Patrik Karlsson");
 
         alert.showAndWait();
     }

@@ -34,7 +34,6 @@ import java.util.logging.Logger;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import se.trixon.almond.util.Xlog;
 import se.trixon.idd.Config;
 import se.trixon.idd.db.manager.AlbumManager;
 import se.trixon.idd.db.manager.AlbumRootManager;
@@ -48,6 +47,8 @@ import se.trixon.idl.shared.db.Image;
  * @author Patrik Karlsson
  */
 public class FileVisitor extends SimpleFileVisitor<Path> {
+
+    private static final Logger LOGGER = Logger.getLogger(FileVisitor.class.getName());
 
     private Long mAlbumId;
     private Long mAlbumRootId;
@@ -85,7 +86,7 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
                 Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
             }
             mSpecificPath = dir;
-            Xlog.timedOut("Adding album root: " + dir.toString());
+            LOGGER.log(Level.INFO, "Adding album root: {0}", dir.toString());
         } else if (mCurrentDirLevel > 1) {
             Album album = new Album();
             album.setAlbumRootId(mAlbumRootId);

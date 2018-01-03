@@ -27,14 +27,12 @@ import java.net.Socket;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import se.trixon.almond.util.ImageScaler;
 import se.trixon.almond.util.SystemHelper;
-import se.trixon.almond.util.Xlog;
 import se.trixon.idd.db.Db;
 import se.trixon.idd.db.manager.ImageManager;
 import se.trixon.idl.shared.Command;
@@ -74,13 +72,13 @@ class ImageServer {
                 clientThread.start();
                 clientConnected(socket);
             } catch (IOException e) {
-                Xlog.timedErr(e.getMessage());
+                LOGGER.severe(e.getMessage());
             }
         }
     }
 
     private void clientConnected(Socket socket) {
-        Xlog.timedOut(String.format("Client connected: %s:%d (%d)",
+        LOGGER.info(String.format("Client connected: %s:%d (%d)",
                 socket.getLocalAddress(),
                 socket.getLocalPort(),
                 socket.getPort()
@@ -88,7 +86,7 @@ class ImageServer {
     }
 
     private void clientDisconnected(Socket socket) {
-        Xlog.timedOut(String.format("Client disconnected: %s:%d (%d)",
+        LOGGER.info(String.format("Client disconnected: %s:%d (%d)",
                 socket.getLocalAddress(),
                 socket.getLocalPort(),
                 socket.getPort()
@@ -101,16 +99,16 @@ class ImageServer {
         if (mConfig.getCacheDirectory() != null) {
             File cacheFile = new File(mConfig.getCacheDirectory(), image.getUniqueHash());
             if (cacheFile.exists()) {
-                LOGGER.log(Level.INFO, String.format("File exists in cache: %s", cacheFile.getAbsolutePath()));
+                LOGGER.info(String.format("File exists in cache: %s", cacheFile.getAbsolutePath()));
             } else {
                 try {
                     final File originalFile = new File(image.getPath());
                     BufferedImage scaledImage = mImageScaler.getScaledImage(originalFile, new Dimension(mConfig.getCacheWidth(), mConfig.getCacheHeight()));
                     ImageIO.write(scaledImage, "jpeg", cacheFile);
                     path = cacheFile.getAbsolutePath();
-                    LOGGER.log(Level.INFO, String.format("File cache generated: %s", cacheFile.getAbsolutePath()));
+                    LOGGER.info(String.format("File cache generated: %s", cacheFile.getAbsolutePath()));
                 } catch (IOException ex) {
-                    LOGGER.log(Level.SEVERE, null, ex);
+                    LOGGER.severe(ex.getMessage());
                 }
             }
 
@@ -125,7 +123,7 @@ class ImageServer {
                 mDirectKill = true;
                 shutdown();
             }
-            Xlog.timedOut("shut down!");
+            LOGGER.info("shut down!");
         }));
     }
 
@@ -150,13 +148,13 @@ class ImageServer {
     }
 
     private synchronized void shutdown() {
-        Xlog.timedOut("shutting down...");
+        LOGGER.info("shutting down...");
         mKillInitiated = true;
         mClientThreads.forEach((clientThread) -> {
             try {
                 clientThread.kill();
             } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
+                LOGGER.severe(ex.getMessage());
             }
         });
 
@@ -169,14 +167,14 @@ class ImageServer {
         try {
             final int port = mConfig.getPort();
             String message = String.format("Starting server on port %d", port);
-            Xlog.timedOut(message);
+            LOGGER.info(message);
 
             mServerSocket = new ServerSocket(port);
             message = String.format("Listening for connections on port %d", port);
-            Xlog.timedOut(message);
+            LOGGER.info(message);
             mSuccessfulStart = true;
         } catch (IOException e) {
-            Xlog.timedErr(e.getMessage());
+            LOGGER.severe(e.getMessage());
             IddHelper.exit();
         }
     }
@@ -201,7 +199,7 @@ class ImageServer {
                 is = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
                 os = new PrintStream(mSocket.getOutputStream());
 
-                os.printf("OK IDD %d\n", IddHelper.PROTOCOL_VERSION);
+                os.printf("OK IDD %s\n", IddHelper.PROTOCOL_VERSION);
 
                 while (mKeepReading) {
                     String line = is.readLine();
@@ -228,12 +226,12 @@ class ImageServer {
 
                 kill();
             } catch (IOException e) {
-                Xlog.timedErr(e.getMessage());
+                LOGGER.severe(e.getMessage());
             }
         }
 
         private void parseCommand(String commandString) {
-            Xlog.timedOut("parse: " + commandString);
+            LOGGER.info("parse: " + commandString);
             String[] elements = StringUtils.split(commandString, " ");
 
             String cmd = elements[0];
