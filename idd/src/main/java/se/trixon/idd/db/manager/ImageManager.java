@@ -147,11 +147,11 @@ public class ImageManager extends BaseManager {
         return image;
     }
 
-    public Image getRandomImage() {
+    public Image getRandomImage() throws NullPointerException, SQLException {
         return getImage(getRandomImageId());
     }
 
-    public Long getRandomImageId() {
+    public Long getRandomImageId() throws NullPointerException, SQLException {
         SelectQuery selectQuery = new SelectQuery()
                 .addColumns(mId)
                 .addCustomOrderings(new CustomSql("random()"))
@@ -166,9 +166,8 @@ public class ImageManager extends BaseManager {
             return rs.getLong(mId.getName());
         } catch (NullPointerException | SQLException ex) {
             LOGGER.severe("dbError: getRandomImageId");
+            throw ex;
         }
-
-        return null;
     }
 
     public Long insert(Image image) throws ClassNotFoundException, SQLException {

@@ -83,7 +83,7 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
             try {
                 mAlbumRootId = AlbumRootManager.getInstance().insert(albumRoot);
             } catch (SQLException | ClassNotFoundException ex) {
-                Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
             mSpecificPath = dir;
             LOGGER.log(Level.INFO, "Adding album root: {0}", dir.toString());
@@ -98,7 +98,7 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
             try {
                 mAlbumId = AlbumManager.getInstance().insert(album);
             } catch (ClassNotFoundException | SQLException ex) {
-                Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         }
 
@@ -120,13 +120,13 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
             try {
                 MetadataLoader metadataLoader = new MetadataLoader(image, file.toFile(), mFileType);
             } catch (ImageProcessingException ex) {
-                Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
 
             try {
                 ImageManager.getInstance().insert(image);
             } catch (ClassNotFoundException | SQLException ex) {
-                Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         }
 
@@ -134,8 +134,9 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
     }
 
     @Override
-    public FileVisitResult visitFileFailed(Path file, IOException exc) {
-        System.err.println(exc);
+    public FileVisitResult visitFileFailed(Path file, IOException ex) {
+        LOGGER.log(Level.SEVERE, null, ex);
+
         return FileVisitResult.CONTINUE;
     }
 
@@ -147,9 +148,9 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
             md5 = DigestUtils.md5Hex(fileInputStream);
             fileInputStream.close();
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(FileVisitor.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
 
         return md5;

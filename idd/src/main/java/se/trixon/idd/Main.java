@@ -39,6 +39,8 @@ import se.trixon.idl.shared.IddHelper;
  */
 public class Main {
 
+    private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
+
     private final ResourceBundle mBundle = SystemHelper.getBundle(Main.class, "Bundle");
     private final ResourceBundle mBundleLib = IddHelper.getBundle();
     private final Config mConfig = Config.getInstance();
@@ -69,19 +71,24 @@ public class Main {
             } else {
                 String filename = commandLine.getArgs().length > 0 ? commandLine.getArgs()[0] : null;
                 if (mConfig.load(filename)) {
-                    Runtime.getRuntime().addShutdownHook(new Thread() {
-                        @Override
-                        public void run() {
-                            try {
-                                Db.getInstance().getConnection().close();
-                            } catch (NullPointerException | SQLException ex) {
-                                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                    if (Db.getInstance().getAutoCommitConnection() == null) {
+                        LOGGER.info("Shutting down");
+                        System.exit(1);
+                    } else {
+                        Runtime.getRuntime().addShutdownHook(new Thread() {
+                            @Override
+                            public void run() {
+                                try {
+                                    Db.getInstance().getConnection().close();
+                                } catch (NullPointerException | SQLException ex) {
+                                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                                }
                             }
-                        }
-                    });
+                        });
 
-                    ImageServer imageServer = new ImageServer();
-                    //Unreachable statement
+                        ImageServer imageServer = new ImageServer();
+                        //Unreachable statement
+                    }
                 }
             }
         } catch (ParseException ex) {

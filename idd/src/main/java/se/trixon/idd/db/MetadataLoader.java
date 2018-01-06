@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2018 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,11 +90,11 @@ public class MetadataLoader {
             //TODO setColorModel
             //TODO setColorDepth
         }
-        
+
         if (mExifIFD0Directory != null) {
             information.setOrientation(mExifIFD0Directory.getInteger(ExifIFD0Directory.TAG_ORIENTATION));
         }
-        
+
         if (mJpegDirectory != null) {
         }
     }

@@ -41,10 +41,10 @@ import se.trixon.idd.Config;
 public class Db {
 
     private static final Logger LOGGER = Logger.getLogger(Db.class.getName());
+    private static final Config mConfig = Config.getInstance();
 
     private Connection mAutoCommitConnection = null;
-    private final String mConnString = String.format("jdbc:h2:%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
-//    private final String mConnString = String.format("jdbc:h2:tcp://localhost/%s;DEFRAG_ALWAYS=true", Config.getInstance().getDbFile().getAbsolutePath());
+    private final String mConnString = String.format("jdbc:h2:%s%s;DEFRAG_ALWAYS=true", mConfig.getDbMode(), mConfig.getDbFile().getAbsolutePath());
     private Connection mConnection = null;
     private DbSchema mSchema;
     private final DbSpec mSpec;
@@ -102,7 +102,7 @@ public class Db {
 
             tableCreated = statement.execute(sql);
         } catch (SQLException ex) {
-            System.err.println("Table creation failed. " + table.getName());
+            LOGGER.log(Level.SEVERE, "Table creation failed. {0}", table.getName());
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
             tableCreated = false;
         }
@@ -131,6 +131,11 @@ public class Db {
             if (mAutoCommitConnection == null || mAutoCommitConnection.isClosed()) {
                 Class.forName("org.h2.Driver");
                 mAutoCommitConnection = DriverManager.getConnection(mConnString);
+            } else {
+                if (!mAutoCommitConnection.isValid(2)) {
+                    mAutoCommitConnection = null;
+                    LOGGER.severe("Database connection lost");
+                }
             }
         } catch (ClassNotFoundException | SQLException ex) {
             LOGGER.severe("Database may be already in use: Possible solutions: close all other connection(s); use the server mode [90020-196]");

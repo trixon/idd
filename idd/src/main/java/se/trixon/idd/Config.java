@@ -16,6 +16,8 @@
 package se.trixon.idd;
 
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -30,12 +32,15 @@ import se.trixon.idl.shared.IddHelper;
  */
 public class Config {
 
+    private static final Logger LOGGER = Logger.getLogger(Config.class.getName());
+
     private File mCacheDirectory;
     private int mCacheHeight;
     private int mCacheWidth;
     private boolean mConfigLoaded;
     private Configuration mConfiguration;
     private File mDbFile;
+    private String mDbMode;
     private File mImageDirectory;
     private int mImageDirectoryLevel;
     private String[] mImageFormats;
@@ -67,6 +72,10 @@ public class Config {
 
     public File getDbFile() {
         return mDbFile;
+    }
+
+    public String getDbMode() {
+        return mDbMode;
     }
 
     public File getImageDirectory() {
@@ -105,7 +114,7 @@ public class Config {
         if (configFile != null) {
             readConfiguration(configFile);
         } else {
-            System.err.println("No valid configuration file found");
+            LOGGER.severe("No valid configuration file found");
         }
 
         return mConfigLoaded;
@@ -124,6 +133,7 @@ public class Config {
                 mCacheWidth = mConfiguration.getInt("cache_width", 2048);
                 mCacheHeight = mConfiguration.getInt("cache_height", 2048);
                 mDbFile = new File(mConfiguration.getString("db_file", "idd.db"));
+                mDbMode = mConfiguration.getString("db_mode", "");
                 mImageDirectory = new File(mConfiguration.getString("image_directory", SystemUtils.USER_HOME));
                 mImageDirectoryLevel = mImageDirectory.toPath().getNameCount();
                 mImageFormats = StringUtils.split(mConfiguration.getString("image_format", "jpeg").toLowerCase(), " ");
@@ -133,11 +143,10 @@ public class Config {
                 }
                 mConfigLoaded = true;
             } catch (ConfigurationException ex) {
-                System.err.println(ex.getMessage());
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         } else {
-            System.err.format(Dict.Dialog.MESSAGE_FILE_NOT_FOUND.toString(), file.getAbsolutePath());
-            System.err.println("");
+            LOGGER.severe(String.format(Dict.Dialog.MESSAGE_FILE_NOT_FOUND.toString(), file.getAbsolutePath()));
         }
     }
 
