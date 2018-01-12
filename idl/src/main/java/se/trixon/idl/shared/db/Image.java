@@ -38,6 +38,8 @@ public class Image {
     private Metadata mMetadata;
     @SerializedName("modification_date")
     private Timestamp mModificationDate;
+    @SerializedName("modification_date_millis")
+    private Long mModificationDateMillis;
     @SerializedName("name")
     private String mName;
     @SerializedName("path")
@@ -81,6 +83,10 @@ public class Image {
 
     public Timestamp getModificationDate() {
         return mModificationDate;
+    }
+
+    public Long getModificationDateMillis() {
+        return mModificationDateMillis;
     }
 
     public String getName() {
@@ -129,6 +135,11 @@ public class Image {
 
     public void setModificationDate(Timestamp modificationDate) {
         mModificationDate = modificationDate;
+        setModificationDateMillis(modificationDate.getTime());
+    }
+
+    public void setModificationDateMillis(Long modificationDateMillis) {
+        mModificationDateMillis = modificationDateMillis;
     }
 
     public void setName(String name) {
@@ -153,7 +164,21 @@ public class Image {
 
     @Override
     public String toString() {
-        return "Image{" + "mAlbumId=" + mAlbumId + ", mCategory=" + mCategory + ", mFileSize=" + mFileSize + ", mId=" + mId + ", \nmInformation=" + mInformation + ", \nmMetadata=" + mMetadata + ", \nmModificationDate=" + mModificationDate + ", mName=" + mName + ", \nmPosition=" + mPosition + ", \nmStatus=" + mStatus + ", mUniqueHash=" + mUniqueHash + '}';
+        return "Image{"
+                + "\n  AlbumId=" + mAlbumId
+                + "\n  Category=" + mCategory
+                + "\n  FileSize=" + mFileSize
+                + "\n  Id=" + mId
+                + "\n  ModificationDate=" + mModificationDate
+                + "\n  ModificationDateMillis=" + mModificationDateMillis
+                + "\n  Name=" + mName
+                + "\n  Status=" + mStatus
+                + "\n  UniqueHash=" + mUniqueHash
+                + "\n"
+                + "\n  Information=" + mInformation
+                + "\n  Metadata=" + mMetadata
+                + "\n  Position=" + mPosition
+                + "\n}";
     }
 
     public static class Information {
@@ -164,8 +189,12 @@ public class Image {
         private Integer mColorModel;
         @SerializedName("creation_date")
         private Timestamp mCreationDate;
+        @SerializedName("creation_date_millis")
+        private Long mCreationDateMillis;
         @SerializedName("digitization_date")
         private Timestamp mDigitizationDate;
+        @SerializedName("digitization_date_millis")
+        private Long mDigitizationDateMillis;
         @SerializedName("format")
         private String mFormat;
         @SerializedName("height")
@@ -194,8 +223,16 @@ public class Image {
             return mCreationDate;
         }
 
+        public Long getCreationDateMillis() {
+            return mCreationDateMillis;
+        }
+
         public Timestamp getDigitizationDate() {
             return mDigitizationDate;
+        }
+
+        public Long getDigitizationDateMillis() {
+            return mDigitizationDateMillis;
         }
 
         public String getFormat() {
@@ -245,25 +282,39 @@ public class Image {
         public void setCreationDate(Long millis) {
             if (millis != null) {
                 mCreationDate = new Timestamp(millis);
+                mCreationDateMillis = millis.longValue();
             } else {
                 mCreationDate = null;
+                mCreationDateMillis = null;
             }
         }
 
         public void setCreationDate(Timestamp creationDate) {
             mCreationDate = creationDate;
+            setCreationDateMillis(creationDate.getTime());
+        }
+
+        public void setCreationDateMillis(Long creationDateMillis) {
+            mCreationDateMillis = creationDateMillis;
         }
 
         public void setDigitizationDate(Long millis) {
             if (millis != null) {
                 mDigitizationDate = new Timestamp(millis);
+                mDigitizationDateMillis = millis.longValue();
             } else {
                 mDigitizationDate = null;
+                mDigitizationDateMillis = null;
             }
         }
 
         public void setDigitizationDate(Timestamp digitizationDate) {
             mDigitizationDate = digitizationDate;
+            setDigitizationDate(digitizationDate.getTime());
+        }
+
+        public void setDigitizationDateMillis(Long digitizationDateMillis) {
+            mDigitizationDateMillis = digitizationDateMillis;
         }
 
         public void setFormat(String format) {
@@ -292,7 +343,20 @@ public class Image {
 
         @Override
         public String toString() {
-            return "Information{" + "mColorDepth=" + mColorDepth + ", mColorModel=" + mColorModel + ", mCreationDate=" + mCreationDate + ", mDigitizationDate=" + mDigitizationDate + ", mFormat=" + mFormat + ", mHeigth=" + mHeigth + ", mImageId=" + mImageId + ", mOrientation=" + mOrientation + ", mRating=" + mRating + ", mWidth=" + mWidth + '}';
+            return "Information{"
+                    + "\n    ColorDepth=" + mColorDepth
+                    + "\n    ColorModel=" + mColorModel
+                    + "\n    CreationDate=" + mCreationDate
+                    + "\n    CreationDateMillis=" + mCreationDateMillis
+                    + "\n    DigitizationDate=" + mDigitizationDate
+                    + "\n    DigitizationDateMillis=" + mDigitizationDateMillis
+                    + "\n    Format=" + mFormat
+                    + "\n    Heigth=" + mHeigth
+                    + "\n    ImageId=" + mImageId
+                    + "\n    Orientation=" + mOrientation
+                    + "\n    Rating=" + mRating
+                    + "\n    Width=" + mWidth
+                    + "\n  }";
         }
 
     }
@@ -494,7 +558,25 @@ public class Image {
 
         @Override
         public String toString() {
-            return "Metadata{" + "mAperture=" + mAperture + ", mExposureMode=" + mExposureMode + ", mExposureProgram=" + mExposureProgram + ", mExposureTime=" + mExposureTime + ", mFlash=" + mFlash + ", mFocalLength=" + mFocalLength + ", mFocalLength35=" + mFocalLength35 + ", mImageId=" + mImageId + ", mLens=" + mLens + ", mMake=" + mMake + ", mMeteringMode=" + mMeteringMode + ", mModel=" + mModel + ", mSensitivity=" + mSensitivity + ", mSubjectDistance=" + mSubjectDistance + ", mSubjectDistanceCategory=" + mSubjectDistanceCategory + ", mWhiteBalance=" + mWhiteBalance + ", mWhiteBalanceColorTemperature=" + mWhiteBalanceColorTemperature + '}';
+            return "Metadata{"
+                    + "\n    Aperture=" + mAperture
+                    + "\n    ExposureMode=" + mExposureMode
+                    + "\n    ExposureProgram=" + mExposureProgram
+                    + "\n    ExposureTime=" + mExposureTime
+                    + "\n    Flash=" + mFlash
+                    + "\n    FocalLength=" + mFocalLength
+                    + "\n    FocalLength35=" + mFocalLength35
+                    + "\n    ImageId=" + mImageId
+                    + "\n    Lens=" + mLens
+                    + "\n    Make=" + mMake
+                    + "\n    MeteringMode=" + mMeteringMode
+                    + "\n    Model=" + mModel
+                    + "\n    Sensitivity=" + mSensitivity
+                    + "\n    SubjectDistance=" + mSubjectDistance
+                    + "\n    SubjectDistanceCategory=" + mSubjectDistanceCategory
+                    + "\n    WhiteBalance=" + mWhiteBalance
+                    + "\n    WhiteBalanceColorTemperature=" + mWhiteBalanceColorTemperature
+                    + "\n  }";
         }
 
     }
@@ -630,7 +712,19 @@ public class Image {
 
         @Override
         public String toString() {
-            return "Position{" + "mAccuracy=" + mAccuracy + ", mAltitude=" + mAltitude + ", mDescription=" + mDescription + ", mImageId=" + mImageId + ", mLatitude=" + mLatitude + ", mLatitudeNumber=" + mLatitudeNumber + ", mLongitude=" + mLongitude + ", mLongitudeNumber=" + mLongitudeNumber + ", mOrientation=" + mOrientation + ", mRoll=" + mRoll + ", mTilt=" + mTilt + '}';
+            return "Position{"
+                    + "\n    Accuracy=" + mAccuracy
+                    + "\n    Altitude=" + mAltitude
+                    + "\n    Description=" + mDescription
+                    + "\n    ImageId=" + mImageId
+                    + "\n    Latitude=" + mLatitude
+                    + "\n    LatitudeNumber=" + mLatitudeNumber
+                    + "\n    Longitude=" + mLongitude
+                    + "\n    LongitudeNumber=" + mLongitudeNumber
+                    + "\n    Orientation=" + mOrientation
+                    + "\n    Roll=" + mRoll
+                    + "\n    Tilt=" + mTilt
+                    + "\n  }";
         }
     }
 }
