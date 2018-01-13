@@ -29,7 +29,7 @@ import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.swing.dialogs.Message;
 import se.trixon.idl.client.Client;
 import se.trixon.idl.shared.Command;
-import se.trixon.idl.shared.ImageDescriptor;
+import se.trixon.idl.shared.FrameImageCarrier;
 
 /**
  *
@@ -230,7 +230,7 @@ public class MainFrame extends javax.swing.JFrame {
             String json = String.join(" ", lines);
             System.out.println("RANDOM RESPONSE");
             System.out.println(json);
-            ImageDescriptor imageDescriptor = ImageDescriptor.fromJson(json);
+            FrameImageCarrier imageDescriptor = FrameImageCarrier.fromJson(json);
             FileUtils.write(new File("/home/pata/base64.txt"), imageDescriptor.getBase64(), "utf-8");
 //            System.out.println(imageDescriptor.getImage());
             imagePanel.setImage(imageDescriptor.getRotatedBufferedImage());

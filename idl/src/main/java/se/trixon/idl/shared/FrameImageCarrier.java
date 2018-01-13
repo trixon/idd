@@ -30,38 +30,37 @@ import javax.swing.ImageIcon;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import se.trixon.almond.util.GraphicsHelper;
-import se.trixon.idl.shared.db.Image;
 
 /**
  *
  * @author Patrik Karlsson
  */
-public class ImageDescriptor {
+public class FrameImageCarrier {
 
     private static final Gson GSON = new GsonBuilder()
             .setVersion(1.0)
             .serializeNulls()
             .setPrettyPrinting()
             .create();
-    private static final Logger LOGGER = Logger.getLogger(ImageDescriptor.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(FrameImageCarrier.class.getName());
     @SerializedName("base64")
     private String mBase64;
-    @SerializedName("image")
-    private se.trixon.idl.shared.db.Image mImage;
+    @SerializedName("frame_image")
+    private se.trixon.idl.shared.FrameImage mFrameImage;
     @SerializedName("path")
     private String mPath;
 
-    public static ImageDescriptor fromJson(String json) throws IOException, JsonSyntaxException {
-        ImageDescriptor descriptor = GSON.fromJson(json, ImageDescriptor.class);
+    public static FrameImageCarrier fromJson(String json) throws IOException, JsonSyntaxException {
+        FrameImageCarrier descriptor = GSON.fromJson(json, FrameImageCarrier.class);
 
         return descriptor;
     }
 
-    public ImageDescriptor() {
+    public FrameImageCarrier() {
     }
 
-    public ImageDescriptor(Image image, String path) {
-        mImage = image;
+    public FrameImageCarrier(FrameImage frameImage, String path) {
+        mFrameImage = frameImage;
         mPath = path;
         setBase64FromPath(path);
     }
@@ -74,7 +73,7 @@ public class ImageDescriptor {
         try {
             return ImageIO.read(getInputStream());
         } catch (IOException ex) {
-            Logger.getLogger(ImageDescriptor.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FrameImageCarrier.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
     }
@@ -83,8 +82,8 @@ public class ImageDescriptor {
         return Base64.decodeBase64(mBase64);
     }
 
-    public se.trixon.idl.shared.db.Image getImage() {
-        return mImage;
+    public FrameImage getFrameImage() {
+        return mFrameImage;
     }
 
     public java.awt.Image getImageAwt() {
@@ -108,7 +107,7 @@ public class ImageDescriptor {
     }
 
     public BufferedImage getRotatedBufferedImage() {
-        return GraphicsHelper.rotate(getBufferedImage(), getImage().getInformation().getOrientation());
+        return GraphicsHelper.rotate(getBufferedImage(), getFrameImage().getInformation().getOrientation());
     }
 
     public void setBase64(String base64) {
@@ -123,8 +122,8 @@ public class ImageDescriptor {
         }
     }
 
-    public void setImage(se.trixon.idl.shared.db.Image image) {
-        mImage = image;
+    public void setFrameImage(FrameImage frameImage) {
+        mFrameImage = frameImage;
     }
 
     public void setPath(String path) {

@@ -26,7 +26,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import se.trixon.idl.shared.db.Image;
+import se.trixon.idl.shared.FrameImage;
 
 /**
  *
@@ -99,8 +99,8 @@ public class ImageMetadataManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint);
     }
 
-    public Image.Metadata getImageMetadata(final Long imageId) {
-        Image.Metadata metadata;
+    public FrameImage.Metadata getImageMetadata(final Long imageId) {
+        FrameImage.Metadata metadata;
 
         SelectQuery query = new SelectQuery()
                 .addAllTableColumns(mTable)
@@ -111,7 +111,7 @@ public class ImageMetadataManager extends BaseManager {
         try (Statement statement = mDb.getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             ResultSet rs = statement.executeQuery(sql);
             rs.first();
-            metadata = new Image.Metadata();
+            metadata = new FrameImage.Metadata();
             metadata.setAperture(getDouble(rs, mAperture));
             metadata.setExposureMode(getInteger(rs, mExposureMode));
             metadata.setExposureProgram(getInteger(rs, mExposureProgram));
@@ -137,7 +137,7 @@ public class ImageMetadataManager extends BaseManager {
         return metadata;
     }
 
-    public void insert(Image.Metadata metadata) throws SQLException {
+    public void insert(FrameImage.Metadata metadata) throws SQLException {
         if (mInsertPreparedStatement == null) {
             prepareInsert();
         }

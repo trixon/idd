@@ -26,7 +26,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import se.trixon.idl.shared.db.Image;
+import se.trixon.idl.shared.FrameImage;
 
 /**
  *
@@ -87,8 +87,8 @@ public class ImagePositionManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint);
     }
 
-    public Image.Position getImagePosition(final Long imageId) {
-        Image.Position position;
+    public FrameImage.Position getImagePosition(final Long imageId) {
+        FrameImage.Position position;
 
         SelectQuery query = new SelectQuery()
                 .addAllTableColumns(mTable)
@@ -99,7 +99,7 @@ public class ImagePositionManager extends BaseManager {
         try (Statement statement = mDb.getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             ResultSet rs = statement.executeQuery(sql);
             if (rs.first()) {
-                position = new Image.Position();
+                position = new FrameImage.Position();
                 position.setAccuracy(getDouble(rs, mAccuracy));
                 position.setAltitude(getDouble(rs, mAltitude));
                 position.setDescription(getString(rs, mDescription));
@@ -122,7 +122,7 @@ public class ImagePositionManager extends BaseManager {
         return position;
     }
 
-    public void insert(Image.Position position) throws SQLException {
+    public void insert(FrameImage.Position position) throws SQLException {
         if (mInsertPreparedStatement == null) {
             prepareInsert();
         }

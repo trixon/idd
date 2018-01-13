@@ -31,7 +31,7 @@ import com.drew.metadata.jpeg.JpegDescriptor;
 import com.drew.metadata.jpeg.JpegDirectory;
 import java.io.File;
 import java.io.IOException;
-import se.trixon.idl.shared.db.Image;
+import se.trixon.idl.shared.FrameImage;
 
 /**
  *
@@ -46,12 +46,12 @@ public class MetadataLoader {
     private final FileType mFileType;
     private final GpsDescriptor mGpsDescriptor;
     private final GpsDirectory mGpsDirectory;
-    private final Image mImage;
+    private final FrameImage mFrameImage;
     private final JpegDescriptor mJpegDescriptor;
     private final JpegDirectory mJpegDirectory;
 
-    public MetadataLoader(Image image, File file, FileType fileType) throws IOException, ImageProcessingException {
-        mImage = image;
+    public MetadataLoader(FrameImage frameImage, File file, FileType fileType) throws IOException, ImageProcessingException {
+        mFrameImage = frameImage;
         mFileType = fileType;
         Metadata metadata = ImageMetadataReader.readMetadata(file);
 
@@ -73,7 +73,7 @@ public class MetadataLoader {
     }
 
     private void loadInformation() {
-        Image.Information information = mImage.getInformation();
+        FrameImage.Information information = mFrameImage.getInformation();
 
         information.setRating(-1);
         information.setFormat(mFileType.toString());
@@ -100,7 +100,7 @@ public class MetadataLoader {
     }
 
     private void loadMetadata() {
-        Image.Metadata metadata = mImage.getMetadata();
+        FrameImage.Metadata metadata = mFrameImage.getMetadata();
 
         if (mExifIFD0Directory != null) {
             metadata.setMake(mExifIFD0Directory.getString(ExifIFD0Directory.TAG_MAKE));
@@ -126,7 +126,7 @@ public class MetadataLoader {
     }
 
     private void loadPosition() {
-        Image.Position position = mImage.getPosition();
+        FrameImage.Position position = mFrameImage.getPosition();
 
         if (mGpsDirectory != null) {
             GeoLocation location = mGpsDirectory.getGeoLocation();

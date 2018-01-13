@@ -40,8 +40,8 @@ import se.trixon.idd.db.manager.ImageManager;
 import se.trixon.idl.client.Client;
 import se.trixon.idl.shared.Command;
 import se.trixon.idl.shared.IddHelper;
-import se.trixon.idl.shared.ImageDescriptor;
-import se.trixon.idl.shared.db.Image;
+import se.trixon.idl.shared.FrameImageCarrier;
+import se.trixon.idl.shared.FrameImage;
 
 /**
  *
@@ -96,16 +96,16 @@ class ImageServer {
         ));
     }
 
-    private String getImagePath(Image image) {
-        String path = image.getPath();
+    private String getImagePath(FrameImage frameImage) {
+        String path = frameImage.getPath();
 
         if (mConfig.getCacheDirectory() != null) {
-            File cacheFile = new File(mConfig.getCacheDirectory(), image.getUniqueHash());
+            File cacheFile = new File(mConfig.getCacheDirectory(), frameImage.getUniqueHash());
             if (cacheFile.exists()) {
                 LOGGER.info(String.format("File exists in cache: %s", cacheFile.getAbsolutePath()));
             } else {
                 try {
-                    final File originalFile = new File(image.getPath());
+                    final File originalFile = new File(frameImage.getPath());
                     BufferedImage scaledImage = mImageScaler.getScaledImage(originalFile, new Dimension(mConfig.getCacheWidth(), mConfig.getCacheHeight()));
                     ImageIO.write(scaledImage, "jpeg", cacheFile);
                     path = cacheFile.getAbsolutePath();
@@ -303,15 +303,15 @@ class ImageServer {
             os.println(s);
         }
 
-        private void sendImage(Image image) {
+        private void sendImage(FrameImage frameImage) {
             if (mRegistredFrames.isEmpty()) {
                 final String s = "Nothing to do, no registered frames";
                 System.out.println(s);
                 send(s);
             } else {
-                System.out.println(image);
+                System.out.println(frameImage);
 
-                ImageDescriptor imageDescriptor = new ImageDescriptor(image, getImagePath(image));
+                FrameImageCarrier imageDescriptor = new FrameImageCarrier(frameImage, getImagePath(frameImage));
                 String json = imageDescriptor.toJson();
 
                 for (ClientThread frameThread : mRegistredFrames) {

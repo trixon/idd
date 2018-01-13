@@ -26,7 +26,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import se.trixon.idl.shared.db.Image;
+import se.trixon.idl.shared.FrameImage;
 
 /**
  *
@@ -85,8 +85,8 @@ public class ImageInformationManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint);
     }
 
-    public Image.Information getImageInformation(final Long imageId) {
-        Image.Information information = null;
+    public FrameImage.Information getImageInformation(final Long imageId) {
+        FrameImage.Information information = null;
 
         SelectQuery query = new SelectQuery()
                 .addAllTableColumns(mTable)
@@ -97,7 +97,7 @@ public class ImageInformationManager extends BaseManager {
         try (Statement statement = mDb.getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             ResultSet rs = statement.executeQuery(sql);
             rs.first();
-            information = new Image.Information();
+            information = new FrameImage.Information();
             information.setColorDepth(getInteger(rs, mColorDepth));
             information.setColorModel(getInteger(rs, mColorModel));
             information.setCreationDate(rs.getTimestamp(mCreationDate.getName()));
@@ -116,7 +116,7 @@ public class ImageInformationManager extends BaseManager {
         return information;
     }
 
-    public void insert(Image.Information information) throws SQLException {
+    public void insert(FrameImage.Information information) throws SQLException {
         if (mInsertPreparedStatement == null) {
             prepareInsert();
         }

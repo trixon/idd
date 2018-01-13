@@ -40,7 +40,7 @@ import se.trixon.idd.db.manager.AlbumRootManager;
 import se.trixon.idd.db.manager.ImageManager;
 import se.trixon.idl.shared.db.Album;
 import se.trixon.idl.shared.db.AlbumRoot;
-import se.trixon.idl.shared.db.Image;
+import se.trixon.idl.shared.FrameImage;
 
 /**
  *
@@ -108,23 +108,23 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
         if (mCurrentDirLevel > 0 && isFileTypeSupported(file.toFile())) {
-            Image image = new Image();
-            image.setAlbumId(mAlbumId);
-            image.setCategory(1);
-            image.setStatus(1);
-            image.setFileSize(attrs.size());
-            image.setModificationDate(new Timestamp(attrs.lastModifiedTime().toMillis()));
-            image.setName(file.getFileName().toString());
-            image.setUniqueHash(getMd5(file));
+            FrameImage frameImage = new FrameImage();
+            frameImage.setAlbumId(mAlbumId);
+            frameImage.setCategory(1);
+            frameImage.setStatus(1);
+            frameImage.setFileSize(attrs.size());
+            frameImage.setModificationDate(new Timestamp(attrs.lastModifiedTime().toMillis()));
+            frameImage.setName(file.getFileName().toString());
+            frameImage.setUniqueHash(getMd5(file));
 
             try {
-                MetadataLoader metadataLoader = new MetadataLoader(image, file.toFile(), mFileType);
+                MetadataLoader metadataLoader = new MetadataLoader(frameImage, file.toFile(), mFileType);
             } catch (ImageProcessingException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
 
             try {
-                ImageManager.getInstance().insert(image);
+                ImageManager.getInstance().insert(frameImage);
             } catch (ClassNotFoundException | SQLException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }

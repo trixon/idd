@@ -28,7 +28,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import se.trixon.idl.shared.db.Image;
+import se.trixon.idl.shared.FrameImage;
 
 /**
  *
@@ -92,7 +92,7 @@ public class ImageManager extends BaseManager {
         mDb.create(mTable, primaryKeyConstraint, uniqueKeyConstraint);
     }
 
-    public Image getImage(final Long imageId) {
+    public FrameImage getImage(final Long imageId) {
         SelectQuery query = new SelectQuery()
                 .addAllTableColumns(mTable)
                 .addColumns(
@@ -116,38 +116,38 @@ public class ImageManager extends BaseManager {
 
         String sql = query.toString();
 
-        Image image;
+        FrameImage frameImage;
         try (Statement statement = mDb.getAutoCommitConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             ResultSet rs = statement.executeQuery(sql);
             rs.first();
-            image = new Image();
-            image.setAlbumId(getLong(rs, mAlbumId));
-            image.setCategory(getInteger(rs, mCategory));
-            image.setFileSize(getLong(rs, mFileSize));
-            image.setId(getLong(rs, mId));
-            image.setModificationDate(rs.getTimestamp(mModificationDate.getName()));
-            image.setName(getString(rs, mName));
-            image.setStatus(getInteger(rs, mStatus));
-            image.setUniqueHash(getString(rs, mUniqueHash));
+            frameImage = new FrameImage();
+            frameImage.setAlbumId(getLong(rs, mAlbumId));
+            frameImage.setCategory(getInteger(rs, mCategory));
+            frameImage.setFileSize(getLong(rs, mFileSize));
+            frameImage.setId(getLong(rs, mId));
+            frameImage.setModificationDate(rs.getTimestamp(mModificationDate.getName()));
+            frameImage.setName(getString(rs, mName));
+            frameImage.setStatus(getInteger(rs, mStatus));
+            frameImage.setUniqueHash(getString(rs, mUniqueHash));
 
-            image.setInformation(ImageInformationManager.getInstance().getImageInformation(imageId));
-            image.setMetadata(ImageMetadataManager.getInstance().getImageMetadata(imageId));
-            image.setPosition(ImagePositionManager.getInstance().getImagePosition(imageId));
+            frameImage.setInformation(ImageInformationManager.getInstance().getImageInformation(imageId));
+            frameImage.setMetadata(ImageMetadataManager.getInstance().getImageMetadata(imageId));
+            frameImage.setPosition(ImagePositionManager.getInstance().getImagePosition(imageId));
 
             String path = String.format("%s%s/%s",
                     getString(rs, mAlbumRootManager.columns().getSpecificPath()),
                     getString(rs, mAlbumManager.columns().getRelativePath()),
                     getString(rs, mName));
-            image.setPath(path);
+            frameImage.setPath(path);
         } catch (NullPointerException | SQLException ex) {
             LOGGER.log(Level.SEVERE, "dbError: getImage{0}", ex);
-            image = null;
+            frameImage = null;
         }
 
-        return image;
+        return frameImage;
     }
 
-    public Image getRandomImage() throws NullPointerException, SQLException {
+    public FrameImage getRandomImage() throws NullPointerException, SQLException {
         return getImage(getRandomImageId());
     }
 
@@ -170,7 +170,7 @@ public class ImageManager extends BaseManager {
         }
     }
 
-    public Long insert(Image image) throws ClassNotFoundException, SQLException {
+    public Long insert(FrameImage image) throws ClassNotFoundException, SQLException {
         if (mInsertPreparedStatement == null) {
             prepareInsert();
         }

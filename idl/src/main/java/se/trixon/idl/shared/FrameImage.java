@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.idl.shared.db;
+package se.trixon.idl.shared;
 
 import com.google.gson.annotations.SerializedName;
 import java.sql.Timestamp;
@@ -22,7 +22,7 @@ import java.sql.Timestamp;
  *
  * @author Patrik Karlsson
  */
-public class Image {
+public class FrameImage {
 
     @SerializedName("album_id")
     private Long mAlbumId;
@@ -51,7 +51,7 @@ public class Image {
     @SerializedName("unique_hash")
     private String mUniqueHash;
 
-    public Image() {
+    public FrameImage() {
         mInformation = new Information();
         mPosition = new Position();
         mMetadata = new Metadata();
