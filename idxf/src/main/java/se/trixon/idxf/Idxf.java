@@ -17,26 +17,19 @@ package se.trixon.idxf;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.io.FileUtils;
 import se.trixon.idl.client.Client;
 import se.trixon.idl.shared.IddHelper;
-import se.trixon.idl.shared.ImageServerEvent;
-import se.trixon.idl.shared.ImageServerEventRelay;
-import se.trixon.idl.shared.ProcessEvent;
 
 /**
  *
  * @author Patrik Karlsson
  */
-public class Idxf implements ImageServerEventRelay {
+public class Idxf {
 
     private final Client mClient;
     private final ArrayList<String> mCommand;
@@ -48,7 +41,7 @@ public class Idxf implements ImageServerEventRelay {
     public Idxf(CommandLine cmd) throws MalformedURLException, SocketException, IOException {
         mClient = new Client(cmd.getOptionValue(IddHelper.OPT_HOST), cmd.getOptionValue(IddHelper.OPT_PORT));
         mClient.connect();
-        mClient.addImageServerEventRelay(this);
+//        mClient.addImageServerEventRelay(this);
         mStartOnce = cmd.hasOption(IddHelper.OPT_COMMAND_ONCE);
         mFile = File.createTempFile("idfb", null);
         mFile.deleteOnExit();
@@ -64,48 +57,48 @@ public class Idxf implements ImageServerEventRelay {
         mProcessBuilder = new ProcessBuilder(mCommand);
     }
 
-    @Override
-    public void onExecutorEvent(String command, String... strings) {
-    }
-
-    @Override
-    public void onProcessEvent(ProcessEvent processEvent, Object object) {
-    }
-
-    @Override
-    public void onReceiveStreamEvent(InputStream inputStream) {
-        try {
-            FileUtils.copyInputStreamToFile(inputStream, mFile);
-            inputStream.close();
-
-//            if (mCurrentProcess != null) {
-//                mCurrentProcess.destroy();
+//    @Override
+//    public void onExecutorEvent(String command, String... strings) {
+//    }
+//
+//    @Override
+//    public void onProcessEvent(ProcessEvent processEvent, Object object) {
+//    }
+//
+//    @Override
+//    public void onReceiveStreamEvent(InputStream inputStream) {
+//        try {
+//            FileUtils.copyInputStreamToFile(inputStream, mFile);
+//            inputStream.close();
+//
+////            if (mCurrentProcess != null) {
+////                mCurrentProcess.destroy();
+////            }
+//            if (mStartOnce) {
+//                if (mCurrentProcess == null) {
+//                    new Thread(() -> {
+//                        try {
+//                            mCurrentProcess = mProcessBuilder.start();
+//                            mCurrentProcess.waitFor();
+//                            IddHelper.exit();
+//                        } catch (IOException | InterruptedException ex) {
+//                            Logger.getLogger(Idxf.class.getName()).log(Level.SEVERE, null, ex);
+//                        }
+//                    }).start();
+//                }
+//            } else {
+//                mCurrentProcess = mProcessBuilder.start();
 //            }
-            if (mStartOnce) {
-                if (mCurrentProcess == null) {
-                    new Thread(() -> {
-                        try {
-                            mCurrentProcess = mProcessBuilder.start();
-                            mCurrentProcess.waitFor();
-                            IddHelper.exit();
-                        } catch (IOException | InterruptedException ex) {
-                            Logger.getLogger(Idxf.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }).start();
-                }
-            } else {
-                mCurrentProcess = mProcessBuilder.start();
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(Idxf.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    @Override
-    public void onServerEvent(ImageServerEvent imageServerEvent) {
-        if (imageServerEvent == ImageServerEvent.SHUTDOWN) {
-            System.err.println(imageServerEvent);
-            IddHelper.exit(1);
-        }
-    }
+//        } catch (IOException ex) {
+//            Logger.getLogger(Idxf.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    }
+//
+//    @Override
+//    public void onServerEvent(ImageServerEvent imageServerEvent) {
+//        if (imageServerEvent == ImageServerEvent.SHUTDOWN) {
+//            System.err.println(imageServerEvent);
+//            IddHelper.exit(1);
+//        }
+//    }
 }

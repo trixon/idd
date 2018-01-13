@@ -40,7 +40,8 @@ public class MainFrame extends javax.swing.JFrame {
     private static final boolean IS_MAC = SystemUtils.IS_OS_MAC;
     private static final Logger LOGGER = Logger.getLogger(MainFrame.class.getName());
     private final AlmondUI mAlmondUI = AlmondUI.getInstance();
-    private final Client mClient = new Client();
+    private final Client mClientRemote = new Client();
+    private final Client mClientDisplay = new Client();
 
     /**
      * Creates new form MainFrame
@@ -185,11 +186,14 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void connectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonActionPerformed
         try {
-            mClient.connect();
+            mClientRemote.connect();
+            mClientDisplay.connect();
+
         } catch (MalformedURLException | SocketException ex) {
             Message.error(this, Dict.Dialog.ERROR.toString(), ex.getMessage());
             LOGGER.log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
+            Message.error(this, Dict.Dialog.ERROR.toString(), ex.getMessage());
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_connectButtonActionPerformed
@@ -197,7 +201,7 @@ public class MainFrame extends javax.swing.JFrame {
     private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed
         new Thread(() -> {
             try {
-                LinkedList<String> lines = mClient.send(sendTextField.getText());
+                LinkedList<String> lines = mClientRemote.send(sendTextField.getText());
                 lines.forEach((line) -> {
                     System.out.println(line);
                 });
@@ -209,7 +213,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void pingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pingButtonActionPerformed
         try {
-            LinkedList<String> lines = mClient.send(Command.PING);
+            LinkedList<String> lines = mClientRemote.send(Command.PING);
             lines.forEach((line) -> {
                 System.out.println(line);
             });
@@ -220,7 +224,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void randomButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_randomButtonActionPerformed
         try {
-            LinkedList<String> lines = mClient.send(Command.RANDOM);
+            LinkedList<String> lines = mClientRemote.send(Command.RANDOM);
             lines.removeLast();
 
             String json = String.join(" ", lines);

@@ -28,6 +28,10 @@ public enum Command {
      */
     CLOSE,
     /**
+     * Add this client as an image broadcast listener.
+     */
+    DEREGISTER,
+    /**
      * Kills IDD.
      */
     KILL,
@@ -43,6 +47,10 @@ public enum Command {
      *
      */
     RANDOM,
+    /**
+     * Add this client as an image broadcast listener.
+     */
+    REGISTER,
     /**
      *
      */
@@ -84,6 +92,7 @@ public enum Command {
             case KILL:
             case PING:
             case RANDOM:
+            case REGISTER:
             case STATS:
             case VERSION:
                 valid = args.length == 0;

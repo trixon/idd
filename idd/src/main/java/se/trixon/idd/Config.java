@@ -141,6 +141,8 @@ public class Config {
                 if (cachePath != null) {
                     mCacheDirectory = new File(cachePath);
                 }
+                LOGGER.log(Level.INFO, "Loaded configuration from {0}", file.getAbsolutePath());
+
                 mConfigLoaded = true;
             } catch (ConfigurationException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);

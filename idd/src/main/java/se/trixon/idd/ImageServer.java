@@ -31,12 +31,13 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import se.trixon.almond.util.ImageScaler;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.idd.db.Db;
 import se.trixon.idd.db.manager.ImageManager;
+import se.trixon.idl.client.Client;
 import se.trixon.idl.shared.Command;
 import se.trixon.idl.shared.IddHelper;
 import se.trixon.idl.shared.ImageDescriptor;
@@ -51,13 +52,13 @@ class ImageServer {
     private static final Logger LOGGER = Logger.getLogger(ImageServer.class.getName());
 
     private Set<ClientThread> mClientThreads = new HashSet<>();
+    private Set<ClientThread> mRegistredFrames = new HashSet<>();
     private final Config mConfig = Config.getInstance();
     private final Db mDb = Db.getInstance();
     private boolean mDirectKill;
     private final ImageManager mImageManager = ImageManager.getInstance();
     private final ImageScaler mImageScaler = ImageScaler.getInstance();
     private boolean mKillInitiated;
-    private final Querator mQuerator = Querator.getInstance();
     private ServerSocket mServerSocket;
     private boolean mSuccessfulStart;
 
@@ -129,26 +130,6 @@ class ImageServer {
         }));
     }
 
-    private String sendFile(String path) {
-        String result = null;
-
-//        if (mImageClientCommanders.isEmpty()) {
-//            result = "no recievers connected - not sending";
-//        } else if (path != null) {
-//            result = "recievers connected - try sending file";
-//            for (ImageClientCommander clientCommander : mImageClientCommanders) {
-//                Thread thread = new Thread(() -> {
-//////                        clientCommander.sendFile(remoteInputStreamServer.export());
-//                });
-//
-//                thread.start();
-//            }
-//        } else {
-//            result = "No file to send";
-//        }
-        return result;
-    }
-
     private synchronized void shutdown() {
         LOGGER.info("shutting down...");
         mKillInitiated = true;
@@ -191,7 +172,12 @@ class ImageServer {
         private PrintStream os = null;
 
         public ClientThread(Socket clientSocket) {
-            setName(String.format("%s [%s]", getClass().getCanonicalName(), clientSocket.getInetAddress()));
+            setName(String.format("%s [%s:%d]",
+                    getClass().getSimpleName(),
+                    clientSocket.getInetAddress(),
+                    clientSocket.getPort()
+            ));
+
             mSocket = clientSocket;
         }
 
@@ -204,11 +190,8 @@ class ImageServer {
                 os.printf("OK IDD %s\n", IddHelper.PROTOCOL_VERSION);
 
                 while (mKeepReading) {
-                    String line = is.readLine();
-                    if (line != null) {
-                        if (!StringUtils.isBlank(line)) {
-                            parseCommand(line);
-                        }
+                    String line = StringUtils.defaultIfEmpty(is.readLine(), "close");
+                    parseCommand(line);
 
 //                        synchronized (this) {
 //                            for (ClientThread clientThread : mClientThreads) {
@@ -217,13 +200,13 @@ class ImageServer {
 //                                }
 //                            }
 //                        }
-                    }
                 }
 
                 clientDisconnected(mSocket);
 
                 synchronized (this) {
                     mClientThreads.remove(this);
+                    mRegistredFrames.remove(this);
                 }
 
                 kill();
@@ -233,7 +216,7 @@ class ImageServer {
         }
 
         private void parseCommand(String commandString) {
-            LOGGER.info("parse: " + commandString);
+            LOGGER.log(Level.INFO, "parse: {0}", commandString);
             String[] elements = StringUtils.split(commandString, " ");
 
             String cmd = elements[0];
@@ -248,6 +231,18 @@ class ImageServer {
                     switch (command) {
                         case CLOSE:
                             mKeepReading = false;
+                            break;
+
+                        case DEREGISTER:
+                            if (mRegistredFrames.contains(this)) {
+                                if (mRegistredFrames.remove(this)) {
+                                    send("deregistered");
+                                }
+                            } else {
+                                send("Nothing to do, not registered");
+                            }
+
+                            send(OK);
                             break;
 
                         case KILL:
@@ -265,7 +260,17 @@ class ImageServer {
                                 send("ex.getMessage()");
                                 LOGGER.log(Level.SEVERE, null, ex);
                             }
+                            break;
 
+                        case REGISTER:
+                            if (!mRegistredFrames.contains(this)) {
+                                if (mRegistredFrames.add(this)) {
+                                    send("regeistred");
+                                }
+                            } else {
+                                send("Nothing to do, already registered");
+                            }
+                            send(OK);
                             break;
 
                         case UPDATE:
@@ -299,27 +304,24 @@ class ImageServer {
         }
 
         private void sendImage(Image image) {
-            ImageDescriptor imageDescriptor = new ImageDescriptor();
-            imageDescriptor.setImage(image);
-            final String imagePath = getImagePath(image);
-            imageDescriptor.setPath(imagePath);
-            imageDescriptor.setBase64FromPath(imagePath);
+            if (mRegistredFrames.isEmpty()) {
+                final String s = "Nothing to do, no registered frames";
+                System.out.println(s);
+                send(s);
+            } else {
+                System.out.println(image);
 
-//            send("IMAGE PACKET");
-            send(imageDescriptor.toJson());
-            send(OK);
+                ImageDescriptor imageDescriptor = new ImageDescriptor(image, getImagePath(image));
+                String json = imageDescriptor.toJson();
 
-        }
+                for (ClientThread frameThread : mRegistredFrames) {
+                    frameThread.send(Client.FRAME_IMAGE_BEG);
+                    frameThread.send(json);
+                    frameThread.send(Client.FRAME_IMAGE_END);
+                }
+            }
 
-        private void sendImage(String path) {
-            ImageDescriptor imageDescriptor = new ImageDescriptor();
-            imageDescriptor.setPath(path);
-            imageDescriptor.setBase64FromPath(path);
-
-//            send("IMAGE PACKET");
-            send(imageDescriptor.toJson());
-            send(OK);
-
+            send(OK); //Send OK to Commander
         }
 
         void kill() throws IOException {

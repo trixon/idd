@@ -31,7 +31,6 @@ import org.apache.commons.lang3.StringUtils;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.idl.shared.Command;
 import se.trixon.idl.shared.IddHelper;
-import se.trixon.idl.shared.ImageServerEventRelay;
 
 /**
  *
@@ -39,13 +38,14 @@ import se.trixon.idl.shared.ImageServerEventRelay;
  */
 public final class Client {
 
+    public static final String FRAME_IMAGE_BEG = "::IDD_IMAGE_BEG::";
+    public static final String FRAME_IMAGE_END = "::IDD_IMAGE_END::";
     private static final String ENV_IDD_HOST = "IDD_HOST";
     private static final String ENV_IDD_PORT = "IDD_PORT";
     private static final Logger LOGGER = Logger.getLogger(Client.class.getName());
 
     private final HashSet<ConnectionListener> mConnectionListeners = new HashSet<>();
     private String mHost;
-    private final HashSet<ImageServerEventRelay> mImageServerEventRelays = new HashSet<>();
     private BufferedReader mIn;
     private PrintStream mOut;
     private int mPort;
@@ -74,10 +74,6 @@ public final class Client {
 
     public boolean addConnectionListener(ConnectionListener connectionListener) {
         return mConnectionListeners.add(connectionListener);
-    }
-
-    public boolean addImageServerEventRelay(ImageServerEventRelay imageServerEventRelay) {
-        return mImageServerEventRelays.add(imageServerEventRelay);
     }
 
     public void connect() throws MalformedURLException, SocketException, IOException, UnknownHostException {
@@ -117,10 +113,6 @@ public final class Client {
 
     public boolean isConnected() {
         return mSocket != null && mSocket.isConnected();
-    }
-
-    public boolean removeImageServerEventRelay(ImageServerEventRelay imageServerEventRelay) {
-        return mImageServerEventRelays.remove(imageServerEventRelay);
     }
 
     public LinkedList<String> send(Command command, String... strings) throws IOException {

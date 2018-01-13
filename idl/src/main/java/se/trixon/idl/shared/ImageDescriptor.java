@@ -30,6 +30,7 @@ import javax.swing.ImageIcon;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import se.trixon.almond.util.GraphicsHelper;
+import se.trixon.idl.shared.db.Image;
 
 /**
  *
@@ -57,6 +58,12 @@ public class ImageDescriptor {
     }
 
     public ImageDescriptor() {
+    }
+
+    public ImageDescriptor(Image image, String path) {
+        mImage = image;
+        mPath = path;
+        setBase64FromPath(path);
     }
 
     public String getBase64() {
