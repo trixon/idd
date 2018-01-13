@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2018 Patrik Karlsson.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.idl.shared;
+package se.trixon.idl.client;
+
+import se.trixon.idl.shared.FrameImageCarrier;
 
 /**
  *
  * @author Patrik Karlsson
  */
-public enum ProcessEvent {
-    STARTED,
-    OUT,
-    ERR,
-    FINISHED,
-    CANCELED,
-    FAILED;
+public interface ClientListener {
+
+    void onClientConnect();
+
+    void onClientDisconnect();
+
+    void onClientReceive(FrameImageCarrier frameImageCarrier);
+
 }

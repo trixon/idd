@@ -15,6 +15,7 @@
  */
 package se.trixon.idl.client;
 
+import com.google.gson.JsonSyntaxException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -30,6 +31,7 @@ import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.idl.shared.Command;
+import se.trixon.idl.shared.FrameImageCarrier;
 import se.trixon.idl.shared.IddHelper;
 
 /**
@@ -38,15 +40,16 @@ import se.trixon.idl.shared.IddHelper;
  */
 public final class Client {
 
-    public static final String FRAME_IMAGE_BEG = "::IDD_IMAGE_BEG::";
-    public static final String FRAME_IMAGE_END = "::IDD_IMAGE_END::";
+    public static final String FRAME_IMAGE_BEG = "::FRAME_IMAGE_BEG::";
+    public static final String FRAME_IMAGE_END = "::FRAME_IMAGE_END::";
     private static final String ENV_IDD_HOST = "IDD_HOST";
     private static final String ENV_IDD_PORT = "IDD_PORT";
     private static final Logger LOGGER = Logger.getLogger(Client.class.getName());
 
-    private final HashSet<ConnectionListener> mConnectionListeners = new HashSet<>();
+    private final HashSet<ClientListener> mClientListeners = new HashSet<>();
     private String mHost;
     private BufferedReader mIn;
+    private BufferedReader mInFrame;
     private PrintStream mOut;
     private int mPort;
     private Socket mSocket;
@@ -72,8 +75,8 @@ public final class Client {
         init();
     }
 
-    public boolean addConnectionListener(ConnectionListener connectionListener) {
-        return mConnectionListeners.add(connectionListener);
+    public boolean addClientListener(ClientListener clientListener) {
+        return mClientListeners.add(clientListener);
     }
 
     public void connect() throws MalformedURLException, SocketException, IOException, UnknownHostException {
@@ -81,9 +84,16 @@ public final class Client {
         mIn = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
         mOut = new PrintStream(mSocket.getOutputStream());
 
-        mConnectionListeners.stream().forEach((connectionListener) -> {
-            connectionListener.onConnectionConnect();
+        mClientListeners.stream().forEach((clientListener) -> {
+            clientListener.onClientConnect();
         });
+    }
+
+    public void deregister() throws IOException {
+        send("deregister");
+        if (mInFrame != null) {
+            mInFrame.close();
+        }
     }
 
     public void disconnect() {
@@ -98,8 +108,8 @@ public final class Client {
             LOGGER.log(Level.SEVERE, null, ex);
         }
 
-        mConnectionListeners.stream().forEach((connectionListener) -> {
-            connectionListener.onConnectionDisconnect();
+        mClientListeners.stream().forEach((clientListener) -> {
+            clientListener.onClientDisconnect();
         });
     }
 
@@ -113,6 +123,32 @@ public final class Client {
 
     public boolean isConnected() {
         return mSocket != null && mSocket.isConnected();
+    }
+
+    public void register() throws IOException {
+        send("register");
+        mInFrame = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
+        new Thread(() -> {
+            String responseLine;
+            LinkedList<String> lines = new LinkedList<>();
+
+            try {
+                while ((responseLine = mInFrame.readLine()) != null) {
+                    if (StringUtils.equalsIgnoreCase(responseLine, FRAME_IMAGE_BEG)) {
+                        lines = new LinkedList<>();
+                    } else if (!StringUtils.equalsIgnoreCase(responseLine, FRAME_IMAGE_END)) {
+                        lines.add(responseLine);
+                    } else {
+                        restoreFrameImageCarrier(String.join(" ", lines));
+                    }
+                }
+            } catch (SocketException ex) {
+                //
+            } catch (IOException ex) {
+                Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }).start();
+
     }
 
     public LinkedList<String> send(Command command, String... strings) throws IOException {
@@ -189,5 +225,12 @@ public final class Client {
 //            } catch (Exception e) {
 //            }
 //        }));
+    }
+
+    private void restoreFrameImageCarrier(String json) throws JsonSyntaxException, IOException {
+        FrameImageCarrier frameImageCarrier = FrameImageCarrier.fromJson(json);
+        mClientListeners.stream().forEach((clientListener) -> {
+            clientListener.onClientReceive(frameImageCarrier);
+        });
     }
 }

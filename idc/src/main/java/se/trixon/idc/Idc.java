@@ -56,11 +56,15 @@ public class Idc {
 
         if (cmd.getArgList().isEmpty()) {
             System.err.println("no command given");
+            for (String command : Command.getSet()) {
+                System.err.format(" - %s\n", command);
+            }
+
             IddHelper.exit();
         } else {
             String c = cmd.getArgList().get(0);
             int hitCounter = 0;
-            TreeSet<String> ambiguousCommands = new TreeSet<String>();
+            TreeSet<String> ambiguousCommands = new TreeSet<>();
             for (String command : Command.getSet()) {
                 if (command.equalsIgnoreCase(c)) {
                     result = command;

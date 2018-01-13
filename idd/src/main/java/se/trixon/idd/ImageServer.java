@@ -39,9 +39,9 @@ import se.trixon.idd.db.Db;
 import se.trixon.idd.db.manager.ImageManager;
 import se.trixon.idl.client.Client;
 import se.trixon.idl.shared.Command;
-import se.trixon.idl.shared.IddHelper;
-import se.trixon.idl.shared.FrameImageCarrier;
 import se.trixon.idl.shared.FrameImage;
+import se.trixon.idl.shared.FrameImageCarrier;
+import se.trixon.idl.shared.IddHelper;
 
 /**
  *

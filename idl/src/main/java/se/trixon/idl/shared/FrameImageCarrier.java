@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.embed.swing.SwingFXUtils;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import org.apache.commons.codec.binary.Base64;
@@ -41,6 +42,7 @@ public class FrameImageCarrier {
             .setVersion(1.0)
             .serializeNulls()
             .setPrettyPrinting()
+            .setLenient()
             .create();
     private static final Logger LOGGER = Logger.getLogger(FrameImageCarrier.class.getName());
     @SerializedName("base64")
@@ -108,6 +110,10 @@ public class FrameImageCarrier {
 
     public BufferedImage getRotatedBufferedImage() {
         return GraphicsHelper.rotate(getBufferedImage(), getFrameImage().getInformation().getOrientation());
+    }
+
+    public javafx.scene.image.Image getRotatedImageFx() {
+        return SwingFXUtils.toFXImage(getRotatedBufferedImage(), null);
     }
 
     public void setBase64(String base64) {

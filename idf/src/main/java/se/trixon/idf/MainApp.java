@@ -22,42 +22,30 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import se.trixon.almond.util.Xlog;
 import se.trixon.idl.client.Client;
-import se.trixon.idl.client.ConnectionListener;
+import se.trixon.idl.client.ClientListener;
+import se.trixon.idl.shared.FrameImageCarrier;
 import se.trixon.idl.shared.IddHelper;
 
-public class MainApp extends Application implements ConnectionListener {
+public class MainApp extends Application implements ClientListener {
 
     private FXMLController controller;
     private Client mClient;
 
     @Override
-    public void onConnectionConnect() {
+    public void onClientConnect() {
         Xlog.timedOut("onConnectionConnect");
     }
 
     @Override
-    public void onConnectionDisconnect() {
+    public void onClientDisconnect() {
         Xlog.timedOut("onConnectionDisconnect");
     }
 
-//    @Override
-//    public void onExecutorEvent(String command, String... strings) {
-//    }
-//
-//    @Override
-//    public void onReceiveStreamEvent(InputStream inputStream) {
-//        Image image = new Image(inputStream);
-////        controller.getImage().
-//        controller.loadImage(image);
-//    }
-//
-//    @Override
-//    public void onProcessEvent(ProcessEvent processEvent, Object object) {
-//    }
-//
-//    @Override
-//    public void onServerEvent(ImageServerEvent imageServerEvent) {
-//    }
+    @Override
+    public void onClientReceive(FrameImageCarrier frameImageCarrier) {
+        controller.loadImage(frameImageCarrier.getRotatedImageFx());
+    }
+
     @Override
     public void start(Stage stage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Scene.fxml"));
@@ -74,8 +62,9 @@ public class MainApp extends Application implements ConnectionListener {
 
 //        try {
         mClient = new Client();
-        mClient.addConnectionListener(this);
+        mClient.addClientListener(this);
         mClient.connect();
+        mClient.register();
 //        mManager.addImageServerEventRelay(this);
 //        } catch (java.rmi.ConnectException e) {
 //            System.err.println(e.getMessage());

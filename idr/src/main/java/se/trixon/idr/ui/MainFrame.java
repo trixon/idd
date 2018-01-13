@@ -15,19 +15,18 @@
  */
 package se.trixon.idr.ui;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.swing.dialogs.Message;
 import se.trixon.idl.client.Client;
+import se.trixon.idl.client.ClientListener;
 import se.trixon.idl.shared.Command;
 import se.trixon.idl.shared.FrameImageCarrier;
 
@@ -40,8 +39,7 @@ public class MainFrame extends javax.swing.JFrame {
     private static final boolean IS_MAC = SystemUtils.IS_OS_MAC;
     private static final Logger LOGGER = Logger.getLogger(MainFrame.class.getName());
     private final AlmondUI mAlmondUI = AlmondUI.getInstance();
-    private final Client mClientRemote = new Client();
-    private final Client mClientDisplay = new Client();
+    private final Client mClient = new Client();
 
     /**
      * Creates new form MainFrame
@@ -62,6 +60,25 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     private void init() {
+        mClient.addClientListener(new ClientListener() {
+            @Override
+            public void onClientConnect() {
+                System.out.println("we did connect");
+            }
+
+            @Override
+            public void onClientDisconnect() {
+                System.out.println("we did disconnect");
+            }
+
+            @Override
+            public void onClientReceive(FrameImageCarrier frameImageCarrier) {
+                System.out.println("we received a FrameImageCarrier");
+                System.out.println(frameImageCarrier);
+//            FileUtils.write(new File("/home/pata/base64.txt"), frameImageCarrier.getBase64(), "utf-8");
+                imagePanel.setImage(frameImageCarrier.getRotatedBufferedImage());
+            }
+        });
     }
 
     private void initActions() {
@@ -83,10 +100,13 @@ public class MainFrame extends javax.swing.JFrame {
 
         topPanel = new javax.swing.JPanel();
         connectButton = new javax.swing.JButton();
+        disconnectButton = new javax.swing.JButton();
         sendTextField = new javax.swing.JTextField();
         sendButton = new javax.swing.JButton();
         pingButton = new javax.swing.JButton();
         randomButton = new javax.swing.JButton();
+        registerButton = new javax.swing.JButton();
+        deregisterButton = new javax.swing.JButton();
         imagePanel = new se.trixon.almond.util.swing.ImagePanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -97,6 +117,13 @@ public class MainFrame extends javax.swing.JFrame {
         connectButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 connectButtonActionPerformed(evt);
+            }
+        });
+
+        disconnectButton.setText(bundle.getString("MainFrame.disconnectButton.text")); // NOI18N
+        disconnectButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                disconnectButtonActionPerformed(evt);
             }
         });
 
@@ -127,6 +154,20 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
+        registerButton.setText(bundle.getString("MainFrame.registerButton.text")); // NOI18N
+        registerButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                registerButtonActionPerformed(evt);
+            }
+        });
+
+        deregisterButton.setText(bundle.getString("MainFrame.deregisterButton.text")); // NOI18N
+        deregisterButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deregisterButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout topPanelLayout = new javax.swing.GroupLayout(topPanel);
         topPanel.setLayout(topPanelLayout);
         topPanelLayout.setHorizontalGroup(
@@ -140,19 +181,28 @@ public class MainFrame extends javax.swing.JFrame {
                         .addComponent(sendButton))
                     .addGroup(topPanelLayout.createSequentialGroup()
                         .addGroup(topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(connectButton)
+                            .addGroup(topPanelLayout.createSequentialGroup()
+                                .addComponent(connectButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(disconnectButton))
                             .addGroup(topPanelLayout.createSequentialGroup()
                                 .addComponent(pingButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(randomButton)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                                .addComponent(randomButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(registerButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(deregisterButton)))
+                        .addGap(0, 281, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         topPanelLayout.setVerticalGroup(
             topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(topPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(connectButton)
+                .addGroup(topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(connectButton)
+                    .addComponent(disconnectButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(sendTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -160,7 +210,9 @@ public class MainFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(topPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(pingButton)
-                    .addComponent(randomButton))
+                    .addComponent(randomButton)
+                    .addComponent(registerButton)
+                    .addComponent(deregisterButton))
                 .addContainerGap())
         );
 
@@ -186,8 +238,8 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void connectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonActionPerformed
         try {
-            mClientRemote.connect();
-            mClientDisplay.connect();
+            mClient.connect();
+//            mClientFrame.connect();
 
         } catch (MalformedURLException | SocketException ex) {
             Message.error(this, Dict.Dialog.ERROR.toString(), ex.getMessage());
@@ -201,7 +253,7 @@ public class MainFrame extends javax.swing.JFrame {
     private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed
         new Thread(() -> {
             try {
-                LinkedList<String> lines = mClientRemote.send(sendTextField.getText());
+                LinkedList<String> lines = mClient.send(sendTextField.getText());
                 lines.forEach((line) -> {
                     System.out.println(line);
                 });
@@ -213,7 +265,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void pingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pingButtonActionPerformed
         try {
-            LinkedList<String> lines = mClientRemote.send(Command.PING);
+            LinkedList<String> lines = mClient.send(Command.PING);
             lines.forEach((line) -> {
                 System.out.println(line);
             });
@@ -224,16 +276,17 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void randomButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_randomButtonActionPerformed
         try {
-            LinkedList<String> lines = mClientRemote.send(Command.RANDOM);
-            lines.removeLast();
+            LinkedList<String> lines = mClient.send(Command.RANDOM);
+            System.out.println(String.join("\n", lines));
+//            lines.removeLast();
 
-            String json = String.join(" ", lines);
-            System.out.println("RANDOM RESPONSE");
-            System.out.println(json);
-            FrameImageCarrier imageDescriptor = FrameImageCarrier.fromJson(json);
-            FileUtils.write(new File("/home/pata/base64.txt"), imageDescriptor.getBase64(), "utf-8");
-//            System.out.println(imageDescriptor.getImage());
-            imagePanel.setImage(imageDescriptor.getRotatedBufferedImage());
+//            String json = String.join(" ", lines);
+//            System.out.println("RANDOM RESPONSE");
+//            System.out.println(json);
+//            FrameImageCarrier imageDescriptor = FrameImageCarrier.fromJson(json);
+//            FileUtils.write(new File("/home/pata/base64.txt"), imageDescriptor.getBase64(), "utf-8");
+////            System.out.println(imageDescriptor.getImage());
+//            imagePanel.setImage(imageDescriptor.getRotatedBufferedImage());
         } catch (IOException ex) {
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -243,11 +296,34 @@ public class MainFrame extends javax.swing.JFrame {
         sendButtonActionPerformed(evt);
     }//GEN-LAST:event_sendTextFieldActionPerformed
 
+    private void registerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerButtonActionPerformed
+        try {
+            mClient.register();
+        } catch (IOException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_registerButtonActionPerformed
+
+    private void deregisterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deregisterButtonActionPerformed
+        try {
+            mClient.deregister();
+        } catch (IOException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_deregisterButtonActionPerformed
+
+    private void disconnectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_disconnectButtonActionPerformed
+        mClient.disconnect();
+    }//GEN-LAST:event_disconnectButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton connectButton;
+    private javax.swing.JButton deregisterButton;
+    private javax.swing.JButton disconnectButton;
     private se.trixon.almond.util.swing.ImagePanel imagePanel;
     private javax.swing.JButton pingButton;
     private javax.swing.JButton randomButton;
+    private javax.swing.JButton registerButton;
     private javax.swing.JButton sendButton;
     private javax.swing.JTextField sendTextField;
     private javax.swing.JPanel topPanel;
