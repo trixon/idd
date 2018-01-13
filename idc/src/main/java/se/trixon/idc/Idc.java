@@ -20,6 +20,7 @@ import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.util.LinkedList;
 import java.util.Locale;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import se.trixon.idl.client.Client;
@@ -59,6 +60,7 @@ public class Idc {
         } else {
             String c = cmd.getArgList().get(0);
             int hitCounter = 0;
+            TreeSet<String> ambiguousCommands = new TreeSet<String>();
             for (String command : Command.getSet()) {
                 if (command.equalsIgnoreCase(c)) {
                     result = command;
@@ -67,6 +69,7 @@ public class Idc {
                 } else if (command.toLowerCase(Locale.ROOT).startsWith(c.toLowerCase(Locale.ROOT))) {
                     hitCounter++;
                     result = command;
+                    ambiguousCommands.add(command);
                 }
             }
 
@@ -74,6 +77,10 @@ public class Idc {
                 System.err.format("unknown command: %s\n", c);
             } else if (hitCounter > 1) {
                 System.err.format("ambiguous command: %s\n", c);
+                for (String ambiguousCommand : ambiguousCommands) {
+                    System.err.format(" - %s\n", ambiguousCommand);
+                }
+
                 result = null;
             }
         }
