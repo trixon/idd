@@ -25,10 +25,10 @@ import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.AlmondUI;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.swing.dialogs.Message;
-import se.trixon.idl.client.Client;
-import se.trixon.idl.client.ClientListener;
 import se.trixon.idl.Command;
 import se.trixon.idl.FrameImageCarrier;
+import se.trixon.idl.client.Client;
+import se.trixon.idl.client.ClientListener;
 
 /**
  *
@@ -239,14 +239,12 @@ public class MainFrame extends javax.swing.JFrame {
     private void connectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonActionPerformed
         try {
             mClient.connect();
-//            mClientFrame.connect();
-
         } catch (MalformedURLException | SocketException ex) {
             Message.error(this, Dict.Dialog.ERROR.toString(), ex.getMessage());
             LOGGER.log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Message.error(this, Dict.Dialog.ERROR.toString(), ex.getMessage());
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_connectButtonActionPerformed
 
@@ -258,7 +256,7 @@ public class MainFrame extends javax.swing.JFrame {
                     System.out.println(line);
                 });
             } catch (IOException ex) {
-                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         }).start();
     }//GEN-LAST:event_sendButtonActionPerformed
@@ -270,7 +268,7 @@ public class MainFrame extends javax.swing.JFrame {
                 System.out.println(line);
             });
         } catch (IOException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_pingButtonActionPerformed
 
@@ -288,7 +286,7 @@ public class MainFrame extends javax.swing.JFrame {
 ////            System.out.println(imageDescriptor.getImage());
 //            imagePanel.setImage(imageDescriptor.getRotatedBufferedImage());
         } catch (IOException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_randomButtonActionPerformed
 
@@ -300,7 +298,7 @@ public class MainFrame extends javax.swing.JFrame {
         try {
             mClient.register();
         } catch (IOException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_registerButtonActionPerformed
 
@@ -308,7 +306,7 @@ public class MainFrame extends javax.swing.JFrame {
         try {
             mClient.deregister();
         } catch (IOException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_deregisterButtonActionPerformed
 

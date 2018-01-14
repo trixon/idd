@@ -5,5 +5,6 @@ IDD displays images, inspired by Music Player Daemon (MPD).
 - [idc](../../tree/master/idc) - The Client
 - [idl](../../tree/master/idl) - The Library
 - [idf](../../tree/master/idf) - The Frame
+- [idnb](../../tree/master/idnb) - The NetBeans plugin
 - [idr](../../tree/master/idr) - The Remote
 - [idxf](../../tree/master/idxf) - The External Frame
