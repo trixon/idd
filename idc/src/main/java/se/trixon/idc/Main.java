@@ -31,7 +31,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.SystemHelper;
-import se.trixon.idl.shared.IddHelper;
+import se.trixon.idl.IddHelper;
 
 /**
  *

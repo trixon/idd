@@ -24,8 +24,8 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import se.trixon.idl.client.Client;
-import se.trixon.idl.shared.Command;
-import se.trixon.idl.shared.IddHelper;
+import se.trixon.idl.Command;
+import se.trixon.idl.IddHelper;
 
 /**
  *

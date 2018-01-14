@@ -23,8 +23,8 @@ import javafx.stage.Stage;
 import se.trixon.almond.util.Xlog;
 import se.trixon.idl.client.Client;
 import se.trixon.idl.client.ClientListener;
-import se.trixon.idl.shared.FrameImageCarrier;
-import se.trixon.idl.shared.IddHelper;
+import se.trixon.idl.FrameImageCarrier;
+import se.trixon.idl.IddHelper;
 
 public class MainApp extends Application implements ClientListener {
 

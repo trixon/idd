@@ -36,10 +36,10 @@ import se.trixon.idd.Config;
 import se.trixon.idd.db.manager.AlbumManager;
 import se.trixon.idd.db.manager.AlbumRootManager;
 import se.trixon.idd.db.manager.ImageManager;
-import se.trixon.idl.shared.FrameImage;
-import se.trixon.idl.shared.IddHelper;
-import se.trixon.idl.shared.db.Album;
-import se.trixon.idl.shared.db.AlbumRoot;
+import se.trixon.idl.FrameImage;
+import se.trixon.idl.IddHelper;
+import se.trixon.idl.db.Album;
+import se.trixon.idl.db.AlbumRoot;
 
 /**
  *

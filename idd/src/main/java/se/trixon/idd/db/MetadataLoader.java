@@ -31,7 +31,7 @@ import com.drew.metadata.jpeg.JpegDescriptor;
 import com.drew.metadata.jpeg.JpegDirectory;
 import java.io.File;
 import java.io.IOException;
-import se.trixon.idl.shared.FrameImage;
+import se.trixon.idl.FrameImage;
 
 /**
  *

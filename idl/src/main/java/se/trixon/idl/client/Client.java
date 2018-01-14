@@ -30,9 +30,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import se.trixon.almond.util.SystemHelper;
-import se.trixon.idl.shared.Command;
-import se.trixon.idl.shared.FrameImageCarrier;
-import se.trixon.idl.shared.IddHelper;
+import se.trixon.idl.Command;
+import se.trixon.idl.FrameImageCarrier;
+import se.trixon.idl.IddHelper;
 
 /**
  *

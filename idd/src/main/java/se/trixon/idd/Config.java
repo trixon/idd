@@ -24,7 +24,7 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import se.trixon.almond.util.Dict;
-import se.trixon.idl.shared.IddHelper;
+import se.trixon.idl.IddHelper;
 
 /**
  *

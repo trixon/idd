@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import org.apache.commons.cli.CommandLine;
 import se.trixon.idl.client.Client;
-import se.trixon.idl.shared.IddHelper;
+import se.trixon.idl.IddHelper;
 
 /**
  *

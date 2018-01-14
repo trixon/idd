@@ -15,7 +15,7 @@
  */
 package se.trixon.idl.client;
 
-import se.trixon.idl.shared.FrameImageCarrier;
+import se.trixon.idl.FrameImageCarrier;
 
 /**
  *

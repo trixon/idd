@@ -22,7 +22,7 @@ import com.healthmarketscience.sqlbuilder.dbspec.basic.DbConstraint;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import se.trixon.idl.shared.db.AlbumRoot;
+import se.trixon.idl.db.AlbumRoot;
 
 /**
  *

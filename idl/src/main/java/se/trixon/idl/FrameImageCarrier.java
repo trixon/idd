@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.idl.shared;
+package se.trixon.idl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -50,7 +50,7 @@ public class FrameImageCarrier {
     @SerializedName("base64")
     private String mBase64;
     @SerializedName("frame_image")
-    private se.trixon.idl.shared.FrameImage mFrameImage;
+    private se.trixon.idl.FrameImage mFrameImage;
     @SerializedName("md5")
     private String mMd5;
     @SerializedName("path")

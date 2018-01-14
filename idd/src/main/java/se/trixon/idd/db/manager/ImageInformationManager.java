@@ -26,7 +26,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import se.trixon.idl.shared.FrameImage;
+import se.trixon.idl.FrameImage;
 
 /**
  *

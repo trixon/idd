@@ -27,8 +27,8 @@ import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.swing.dialogs.Message;
 import se.trixon.idl.client.Client;
 import se.trixon.idl.client.ClientListener;
-import se.trixon.idl.shared.Command;
-import se.trixon.idl.shared.FrameImageCarrier;
+import se.trixon.idl.Command;
+import se.trixon.idl.FrameImageCarrier;
 
 /**
  *
