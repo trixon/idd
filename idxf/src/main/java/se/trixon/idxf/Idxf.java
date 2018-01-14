@@ -21,15 +21,21 @@ import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
-import se.trixon.idl.client.Client;
+import se.trixon.idl.FrameImageCarrier;
 import se.trixon.idl.IddHelper;
+import se.trixon.idl.client.Client;
+import se.trixon.idl.client.ClientListener;
 
 /**
  *
  * @author Patrik Karlsson
  */
-public class Idxf {
+public class Idxf implements ClientListener {
+
+    private static final Logger LOGGER = Logger.getLogger(Idxf.class.getName());
 
     private final Client mClient;
     private final ArrayList<String> mCommand;
@@ -40,8 +46,10 @@ public class Idxf {
 
     public Idxf(CommandLine cmd) throws MalformedURLException, SocketException, IOException {
         mClient = new Client(cmd.getOptionValue(IddHelper.OPT_HOST), cmd.getOptionValue(IddHelper.OPT_PORT));
+        mClient.addClientListener(this);
         mClient.connect();
-//        mClient.addImageServerEventRelay(this);
+        mClient.register();
+
         mStartOnce = cmd.hasOption(IddHelper.OPT_COMMAND_ONCE);
         mFile = File.createTempFile("idfb", null);
         mFile.deleteOnExit();
@@ -57,48 +65,39 @@ public class Idxf {
         mProcessBuilder = new ProcessBuilder(mCommand);
     }
 
-//    @Override
-//    public void onExecutorEvent(String command, String... strings) {
-//    }
-//
-//    @Override
-//    public void onProcessEvent(ProcessEvent processEvent, Object object) {
-//    }
-//
-//    @Override
-//    public void onReceiveStreamEvent(InputStream inputStream) {
-//        try {
-//            FileUtils.copyInputStreamToFile(inputStream, mFile);
-//            inputStream.close();
-//
-////            if (mCurrentProcess != null) {
-////                mCurrentProcess.destroy();
-////            }
-//            if (mStartOnce) {
-//                if (mCurrentProcess == null) {
-//                    new Thread(() -> {
-//                        try {
-//                            mCurrentProcess = mProcessBuilder.start();
-//                            mCurrentProcess.waitFor();
-//                            IddHelper.exit();
-//                        } catch (IOException | InterruptedException ex) {
-//                            Logger.getLogger(Idxf.class.getName()).log(Level.SEVERE, null, ex);
-//                        }
-//                    }).start();
-//                }
-//            } else {
-//                mCurrentProcess = mProcessBuilder.start();
+    @Override
+    public void onClientConnect() {
+    }
+
+    @Override
+    public void onClientDisconnect() {
+    }
+
+    @Override
+    public void onClientReceive(FrameImageCarrier frameImageCarrier) {
+        try {
+            frameImageCarrier.save(mFile);
+
+//            if (mCurrentProcess != null) {
+//                mCurrentProcess.destroy();
 //            }
-//        } catch (IOException ex) {
-//            Logger.getLogger(Idxf.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//    }
-//
-//    @Override
-//    public void onServerEvent(ImageServerEvent imageServerEvent) {
-//        if (imageServerEvent == ImageServerEvent.SHUTDOWN) {
-//            System.err.println(imageServerEvent);
-//            IddHelper.exit(1);
-//        }
-//    }
+            if (mStartOnce) {
+                if (mCurrentProcess == null) {
+                    new Thread(() -> {
+                        try {
+                            mCurrentProcess = mProcessBuilder.start();
+                            mCurrentProcess.waitFor();
+                            IddHelper.exit();
+                        } catch (IOException | InterruptedException ex) {
+                            LOGGER.log(Level.SEVERE, null, ex);
+                        }
+                    }).start();
+                }
+            } else {
+                mCurrentProcess = mProcessBuilder.start();
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Idxf.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }

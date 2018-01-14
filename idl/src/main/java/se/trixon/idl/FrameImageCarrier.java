@@ -139,6 +139,20 @@ public class FrameImageCarrier {
         return StringUtils.equalsIgnoreCase(md5, getMd5());
     }
 
+    public boolean save(File file) {
+        ByteArrayInputStream inputStream = getInputStream();
+
+        try {
+            FileUtils.copyInputStreamToFile(inputStream, file);
+            inputStream.close();
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+            return false;
+        }
+
+        return true;
+    }
+
     public void setBase64(String base64) {
         mBase64 = base64;
     }
