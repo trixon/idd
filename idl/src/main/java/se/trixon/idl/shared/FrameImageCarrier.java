@@ -29,7 +29,9 @@ import javafx.embed.swing.SwingFXUtils;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import se.trixon.almond.util.GraphicsHelper;
 
 /**
@@ -49,6 +51,8 @@ public class FrameImageCarrier {
     private String mBase64;
     @SerializedName("frame_image")
     private se.trixon.idl.shared.FrameImage mFrameImage;
+    @SerializedName("md5")
+    private String mMd5;
     @SerializedName("path")
     private String mPath;
 
@@ -65,6 +69,7 @@ public class FrameImageCarrier {
         mFrameImage = frameImage;
         mPath = path;
         setBase64FromPath(path);
+        mMd5 = IddHelper.getMd5(new File(path));
     }
 
     public String getBase64() {
@@ -104,6 +109,10 @@ public class FrameImageCarrier {
         return new ByteArrayInputStream(getByteArray());
     }
 
+    public String getMd5() {
+        return mMd5;
+    }
+
     public String getPath() {
         return mPath;
     }
@@ -114,6 +123,20 @@ public class FrameImageCarrier {
 
     public javafx.scene.image.Image getRotatedImageFx() {
         return SwingFXUtils.toFXImage(getRotatedBufferedImage(), null);
+    }
+
+    public boolean hasValidMd5() {
+        String md5 = null;
+        ByteArrayInputStream inputStream = getInputStream();
+
+        try {
+            md5 = DigestUtils.md5Hex(inputStream);
+            inputStream.close();
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+
+        return StringUtils.equalsIgnoreCase(md5, getMd5());
     }
 
     public void setBase64(String base64) {
@@ -130,6 +153,10 @@ public class FrameImageCarrier {
 
     public void setFrameImage(FrameImage frameImage) {
         mFrameImage = frameImage;
+    }
+
+    public void setMd5(String md5) {
+        mMd5 = md5;
     }
 
     public void setPath(String path) {

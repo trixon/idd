@@ -311,8 +311,8 @@ class ImageServer {
             } else {
                 System.out.println(frameImage);
 
-                FrameImageCarrier imageDescriptor = new FrameImageCarrier(frameImage, getImagePath(frameImage));
-                String json = imageDescriptor.toJson();
+                FrameImageCarrier frameImageCarrier = new FrameImageCarrier(frameImage, getImagePath(frameImage));
+                String json = frameImageCarrier.toJson();
 
                 for (ClientThread frameThread : mRegistredFrames) {
                     frameThread.send(Client.FRAME_IMAGE_BEG);

@@ -43,6 +43,7 @@ public class MainApp extends Application implements ClientListener {
 
     @Override
     public void onClientReceive(FrameImageCarrier frameImageCarrier) {
+        frameImageCarrier.hasValidMd5();
         controller.loadImage(frameImageCarrier.getRotatedImageFx());
     }
 

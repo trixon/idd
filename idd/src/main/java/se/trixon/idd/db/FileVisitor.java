@@ -21,7 +21,6 @@ import com.drew.imaging.ImageProcessingException;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
@@ -31,16 +30,16 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import se.trixon.idd.Config;
 import se.trixon.idd.db.manager.AlbumManager;
 import se.trixon.idd.db.manager.AlbumRootManager;
 import se.trixon.idd.db.manager.ImageManager;
+import se.trixon.idl.shared.FrameImage;
+import se.trixon.idl.shared.IddHelper;
 import se.trixon.idl.shared.db.Album;
 import se.trixon.idl.shared.db.AlbumRoot;
-import se.trixon.idl.shared.FrameImage;
 
 /**
  *
@@ -106,19 +105,19 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
     }
 
     @Override
-    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        if (mCurrentDirLevel > 0 && isFileTypeSupported(file.toFile())) {
+    public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+        if (mCurrentDirLevel > 0 && isFileTypeSupported(path.toFile())) {
             FrameImage frameImage = new FrameImage();
             frameImage.setAlbumId(mAlbumId);
             frameImage.setCategory(1);
             frameImage.setStatus(1);
             frameImage.setFileSize(attrs.size());
             frameImage.setModificationDate(new Timestamp(attrs.lastModifiedTime().toMillis()));
-            frameImage.setName(file.getFileName().toString());
-            frameImage.setUniqueHash(getMd5(file));
+            frameImage.setName(path.getFileName().toString());
+            frameImage.setUniqueHash(IddHelper.getMd5(path.toFile()));
 
             try {
-                MetadataLoader metadataLoader = new MetadataLoader(frameImage, file.toFile(), mFileType);
+                MetadataLoader metadataLoader = new MetadataLoader(frameImage, path.toFile(), mFileType);
             } catch (ImageProcessingException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
@@ -138,22 +137,6 @@ public class FileVisitor extends SimpleFileVisitor<Path> {
         LOGGER.log(Level.SEVERE, null, ex);
 
         return FileVisitResult.CONTINUE;
-    }
-
-    private String getMd5(Path file) {
-        String md5 = null;
-        FileInputStream fileInputStream;
-        try {
-            fileInputStream = new FileInputStream(file.toFile());
-            md5 = DigestUtils.md5Hex(fileInputStream);
-            fileInputStream.close();
-        } catch (FileNotFoundException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        }
-
-        return md5;
     }
 
     private boolean isFileTypeSupported(File file) throws IOException {
