@@ -25,6 +25,8 @@ public interface ClientListener {
 
     void onClientConnect();
 
+    void onClientRegister();
+
     void onClientDisconnect();
 
     void onClientReceive(FrameImageCarrier frameImageCarrier);

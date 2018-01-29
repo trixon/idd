@@ -86,6 +86,11 @@ public final class FrameTopComponent extends TopComponent {
                 System.out.println(frameImageCarrier);
                 imagePanel.setImage(frameImageCarrier.getRotatedBufferedImage());
             }
+
+            @Override
+            public void onClientRegister() {
+                System.out.println("we did register");
+            }
         });
 
         connectButton.setIcon(MaterialIcon._Communication.CALL.get(22, IconColor.getDefault()));

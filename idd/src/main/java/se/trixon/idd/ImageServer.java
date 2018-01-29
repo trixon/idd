@@ -37,7 +37,6 @@ import se.trixon.almond.util.ImageScaler;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.idd.db.Db;
 import se.trixon.idd.db.manager.ImageManager;
-import se.trixon.idl.client.Client;
 import se.trixon.idl.Command;
 import se.trixon.idl.FrameImage;
 import se.trixon.idl.FrameImageCarrier;
@@ -52,18 +51,18 @@ class ImageServer {
     private static final Logger LOGGER = Logger.getLogger(ImageServer.class.getName());
 
     private Set<ClientThread> mClientThreads = new HashSet<>();
-    private Set<ClientThread> mRegistredFrames = new HashSet<>();
     private final Config mConfig = Config.getInstance();
     private final Db mDb = Db.getInstance();
     private boolean mDirectKill;
     private final ImageManager mImageManager = ImageManager.getInstance();
     private final ImageScaler mImageScaler = ImageScaler.getInstance();
     private boolean mKillInitiated;
+    private Set<ClientThread> mRegistredFrames = new HashSet<>();
     private ServerSocket mServerSocket;
     private boolean mSuccessfulStart;
 
     ImageServer() throws IOException {
-        intiListeners();
+        initListeners();
         startServer();
 //        mDb.update(mConfig.getImageDirectory().getPath());
 //        System.exit(0);
@@ -114,13 +113,12 @@ class ImageServer {
                     LOGGER.severe(ex.getMessage());
                 }
             }
-
         }
 
         return path;
     }
 
-    private void intiListeners() {
+    private void initListeners() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (mSuccessfulStart && !mKillInitiated) {
                 mDirectKill = true;
@@ -135,6 +133,7 @@ class ImageServer {
         mKillInitiated = true;
         mClientThreads.forEach((clientThread) -> {
             try {
+                clientThread.mSocket.close();
                 clientThread.kill();
             } catch (IOException ex) {
                 LOGGER.severe(ex.getMessage());
@@ -192,14 +191,6 @@ class ImageServer {
                 while (mKeepReading) {
                     String line = StringUtils.defaultIfEmpty(is.readLine(), "close");
                     parseCommand(line);
-
-//                        synchronized (this) {
-//                            for (ClientThread clientThread : mClientThreads) {
-//                                if (clientThread.clientName != null) {
-//                                    clientThread.os.println("<" + name + "> " + line);
-//                                }
-//                            }
-//                        }
                 }
 
                 clientDisconnected(mSocket);
@@ -265,7 +256,7 @@ class ImageServer {
                         case REGISTER:
                             if (!mRegistredFrames.contains(this)) {
                                 if (mRegistredFrames.add(this)) {
-                                    send("regeistred");
+                                    send("registered");
                                 }
                             } else {
                                 send("Nothing to do, already registered");
@@ -305,19 +296,19 @@ class ImageServer {
 
         private void sendImage(FrameImage frameImage) {
             if (mRegistredFrames.isEmpty()) {
-                final String s = "Nothing to do, no registered frames";
+                String s = "Nothing to do, no registered frames";
                 System.out.println(s);
                 send(s);
             } else {
-                System.out.println(frameImage);
+                //System.out.println(frameImage);
 
                 FrameImageCarrier frameImageCarrier = new FrameImageCarrier(frameImage, getImagePath(frameImage));
                 String json = frameImageCarrier.toJson();
 
                 for (ClientThread frameThread : mRegistredFrames) {
-                    frameThread.send(Client.FRAME_IMAGE_BEG);
+                    frameThread.send(IddHelper.FRAME_IMAGE_BEG);
                     frameThread.send(json);
-                    frameThread.send(Client.FRAME_IMAGE_END);
+                    frameThread.send(IddHelper.FRAME_IMAGE_END);
                 }
             }
 
@@ -325,7 +316,6 @@ class ImageServer {
         }
 
         void kill() throws IOException {
-//            os.println("*** Bye");
             is.close();
             os.close();
             mSocket.close();

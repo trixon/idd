@@ -18,14 +18,13 @@ package se.trixon.idc;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.SocketException;
-import java.util.LinkedList;
 import java.util.Locale;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
-import se.trixon.idl.client.Client;
 import se.trixon.idl.Command;
 import se.trixon.idl.IddHelper;
+import se.trixon.idl.client.Client;
 
 /**
  *
@@ -43,10 +42,8 @@ public class Idc {
             mClient = new Client(cmd.getOptionValue(IddHelper.OPT_HOST), cmd.getOptionValue(IddHelper.OPT_PORT));
             mClient.connect();
 
-            LinkedList<String> lines = mClient.send(command);
-            lines.forEach((line) -> {
-                System.out.println(line);
-            });
+            String result = mClient.send(command);
+            System.out.println(result);
             mClient.disconnect();
         }
     }

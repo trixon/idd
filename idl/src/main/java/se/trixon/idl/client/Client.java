@@ -25,7 +25,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
@@ -40,19 +39,19 @@ import se.trixon.idl.IddHelper;
  */
 public final class Client {
 
-    public static final String FRAME_IMAGE_BEG = "::FRAME_IMAGE_BEG::";
-    public static final String FRAME_IMAGE_END = "::FRAME_IMAGE_END::";
     private static final String ENV_IDD_HOST = "IDD_HOST";
     private static final String ENV_IDD_PORT = "IDD_PORT";
     private static final Logger LOGGER = Logger.getLogger(Client.class.getName());
 
     private final HashSet<ClientListener> mClientListeners = new HashSet<>();
+    private BufferedReader mCommandIn;
+    private PrintStream mCommandOut;
+    private Socket mCommandSocket;
+    private BufferedReader mFrameIn;
+    private PrintStream mFrameOut;
+    private Socket mFrameSocket;
     private String mHost;
-    private BufferedReader mIn;
-    private BufferedReader mInFrame;
-    private PrintStream mOut;
     private int mPort;
-    private Socket mSocket;
 
     public Client(String host, int port) {
         setHost(host);
@@ -80,9 +79,9 @@ public final class Client {
     }
 
     public void connect() throws MalformedURLException, SocketException, IOException, UnknownHostException {
-        mSocket = new Socket(mHost, mPort);
-        mIn = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
-        mOut = new PrintStream(mSocket.getOutputStream());
+        mCommandSocket = new Socket(mHost, mPort);
+        mCommandIn = new BufferedReader(new InputStreamReader(mCommandSocket.getInputStream()));
+        mCommandOut = new PrintStream(mCommandSocket.getOutputStream());
 
         mClientListeners.stream().forEach((clientListener) -> {
             clientListener.onClientConnect();
@@ -90,20 +89,28 @@ public final class Client {
     }
 
     public void deregister() throws IOException {
-        send("deregister");
-        if (mInFrame != null) {
-            mInFrame.close();
+        if (mFrameIn != null) {
+            send("deregister");
+            mFrameSocket.close();
+            mFrameSocket = null;
         }
     }
 
     public void disconnect() {
         try {
-            mOut.println("close");
-            mOut.close();
-            mIn.close();
-            mSocket.close();
-        } catch (NullPointerException ex) {
-            //nvm
+            if (mCommandOut != null) {
+                mCommandOut.println("close");
+                mCommandOut.close();
+            }
+            if (mCommandIn != null) {
+                mCommandIn.close();
+            }
+            if (mCommandSocket != null) {
+                mCommandSocket.close();
+            }
+            if (mFrameSocket != null) {
+                mFrameSocket.close();
+            }
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -122,36 +129,51 @@ public final class Client {
     }
 
     public boolean isConnected() {
-        return mSocket != null && mSocket.isConnected();
+        return mCommandSocket != null && mCommandSocket.isConnected();
+    }
+
+    public boolean isFrameConnected() {
+        return mFrameSocket != null && mFrameSocket.isConnected();
     }
 
     public void register() throws IOException {
-        send("register");
-        mInFrame = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
-        new Thread(() -> {
-            String responseLine;
-            LinkedList<String> lines = new LinkedList<>();
+        if (mFrameSocket == null) {
+            connectFrame();
+            sendFrame("register");
 
-            try {
-                while ((responseLine = mInFrame.readLine()) != null) {
-                    if (StringUtils.equalsIgnoreCase(responseLine, FRAME_IMAGE_BEG)) {
-                        lines = new LinkedList<>();
-                    } else if (!StringUtils.equalsIgnoreCase(responseLine, FRAME_IMAGE_END)) {
-                        lines.add(responseLine);
-                    } else {
-                        restoreFrameImageCarrier(String.join(" ", lines));
+            Thread thread = new Thread(() -> {
+                String responseLine;
+                StringBuilder sb = new StringBuilder();
+
+                try {
+                    while ((responseLine = mFrameIn.readLine()) != null) {
+                        //System.out.println("RECE >>> " + responseLine);
+                        if (StringUtils.equalsIgnoreCase(responseLine, IddHelper.FRAME_IMAGE_BEG)) {
+                            sb = new StringBuilder();
+                        } else if (!StringUtils.equalsIgnoreCase(responseLine, IddHelper.FRAME_IMAGE_END)) {
+                            sb.append(responseLine).append("\n");
+                        } else {
+                            restoreFrameImageCarrier(sb.toString());
+                        }
                     }
+                } catch (SocketException ex) {
+                    //
+                } catch (IOException ex) {
+                    Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            } catch (SocketException ex) {
-                //
-            } catch (IOException ex) {
-                Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }).start();
+            });
 
+            thread.setName(String.format("%s FrameImageReader[%s:%d]",
+                    getClass().getSimpleName(),
+                    mFrameSocket.getInetAddress(),
+                    mFrameSocket.getPort()
+            ));
+
+            thread.start();
+        }
     }
 
-    public LinkedList<String> send(Command command, String... strings) throws IOException {
+    public String send(Command command, String... strings) throws IOException {
         String cmd = command.name();
         String args = StringUtils.join(strings, " ");
 
@@ -162,20 +184,8 @@ public final class Client {
         return send(cmd);
     }
 
-    public LinkedList<String> send(String string) throws IOException {
-        mOut.println(string.trim());
-        LinkedList<String> lines = new LinkedList<>();
-        String responseLine;
-
-        while ((responseLine = mIn.readLine()) != null) {
-            lines.add(responseLine);
-
-            if (StringUtils.equals(responseLine, "OK") || StringUtils.startsWith(responseLine, "ACK")) {
-                break;
-            }
-        }
-
-        return lines;
+    public String send(String string) throws IOException {
+        return send(mCommandOut, mCommandIn, string);
     }
 
     public void setHost(String aHost) {
@@ -218,6 +228,16 @@ public final class Client {
         mPort = port;
     }
 
+    private void connectFrame() throws MalformedURLException, SocketException, IOException, UnknownHostException {
+        mFrameSocket = new Socket(mHost, mPort);
+        mFrameIn = new BufferedReader(new InputStreamReader(mFrameSocket.getInputStream()));
+        mFrameOut = new PrintStream(mFrameSocket.getOutputStream());
+
+        mClientListeners.stream().forEach((clientListener) -> {
+            clientListener.onClientRegister();
+        });
+    }
+
     private void init() {
 //        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 //            try {
@@ -228,9 +248,32 @@ public final class Client {
     }
 
     private void restoreFrameImageCarrier(String json) throws JsonSyntaxException, IOException {
+        //FileUtils.write(new File("/home/pata/frameImageCarrier.json"), json, "utf-8");
         FrameImageCarrier frameImageCarrier = FrameImageCarrier.fromJson(json);
         mClientListeners.stream().forEach((clientListener) -> {
             clientListener.onClientReceive(frameImageCarrier);
         });
+    }
+
+    private String send(PrintStream out, BufferedReader in, String string) throws IOException {
+        out.println(string.trim());
+        StringBuilder sb = new StringBuilder();
+        String responseLine;
+
+        while ((responseLine = in.readLine()) != null) {
+            sb.append(responseLine).append("\n");
+
+            if (StringUtils.equals(responseLine, "OK") || StringUtils.startsWith(responseLine, "ACK")) {
+                break;
+            }
+        }
+
+        sb.deleteCharAt(sb.length() - 1);
+
+        return sb.toString();
+    }
+
+    private String sendFrame(String string) throws IOException {
+        return send(mFrameOut, mFrameIn, string);
     }
 }

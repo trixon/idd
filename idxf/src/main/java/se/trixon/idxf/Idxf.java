@@ -100,4 +100,8 @@ public class Idxf implements ClientListener {
             Logger.getLogger(Idxf.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    @Override
+    public void onClientRegister() {
+    }
 }

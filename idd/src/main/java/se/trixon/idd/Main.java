@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -81,7 +80,12 @@ public class Main {
                                 try {
                                     Db.getInstance().getConnection().close();
                                 } catch (NullPointerException | SQLException ex) {
-                                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                                    //nvm
+                                }
+                                try {
+                                    Db.getInstance().getAutoCommitConnection().close();
+                                } catch (NullPointerException | SQLException ex) {
+                                    //nvm
                                 }
                             }
                         });

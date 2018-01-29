@@ -18,7 +18,6 @@ package se.trixon.idr.ui;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.SocketException;
-import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.SystemUtils;
@@ -72,9 +71,12 @@ public class MainFrame extends javax.swing.JFrame {
             }
 
             @Override
+            public void onClientRegister() {
+                System.out.println("we did connect a frame");
+            }
+
+            @Override
             public void onClientReceive(FrameImageCarrier frameImageCarrier) {
-                System.out.println("we received a FrameImageCarrier");
-                System.out.println(frameImageCarrier);
 //            FileUtils.write(new File("/home/pata/base64.txt"), frameImageCarrier.getBase64(), "utf-8");
                 imagePanel.setImage(frameImageCarrier.getRotatedBufferedImage());
             }
@@ -112,6 +114,7 @@ public class MainFrame extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("se/trixon/idr/ui/Bundle"); // NOI18N
         setTitle(bundle.getString("MainFrame.title")); // NOI18N
+        setAlwaysOnTop(true);
 
         connectButton.setText(Dict.CONNECT.toString());
         connectButton.addActionListener(new java.awt.event.ActionListener() {
@@ -251,10 +254,8 @@ public class MainFrame extends javax.swing.JFrame {
     private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed
         new Thread(() -> {
             try {
-                LinkedList<String> lines = mClient.send(sendTextField.getText());
-                lines.forEach((line) -> {
-                    System.out.println(line);
-                });
+                String result = mClient.send(sendTextField.getText());
+                System.out.println(result);
             } catch (IOException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
@@ -263,10 +264,9 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void pingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pingButtonActionPerformed
         try {
-            LinkedList<String> lines = mClient.send(Command.PING);
-            lines.forEach((line) -> {
-                System.out.println(line);
-            });
+            String result = mClient.send(Command.PING);
+            System.out.println(result);
+
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -274,8 +274,8 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void randomButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_randomButtonActionPerformed
         try {
-            LinkedList<String> lines = mClient.send(Command.RANDOM);
-            System.out.println(String.join("\n", lines));
+            String result = mClient.send(Command.RANDOM);
+            System.out.println(result);
 //            lines.removeLast();
 
 //            String json = String.join(" ", lines);

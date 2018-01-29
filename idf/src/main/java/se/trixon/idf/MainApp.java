@@ -21,10 +21,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import se.trixon.almond.util.Xlog;
-import se.trixon.idl.client.Client;
-import se.trixon.idl.client.ClientListener;
 import se.trixon.idl.FrameImageCarrier;
 import se.trixon.idl.IddHelper;
+import se.trixon.idl.client.Client;
+import se.trixon.idl.client.ClientListener;
 
 public class MainApp extends Application implements ClientListener {
 
@@ -33,18 +33,23 @@ public class MainApp extends Application implements ClientListener {
 
     @Override
     public void onClientConnect() {
-        Xlog.timedOut("onConnectionConnect");
+        Xlog.timedOut("onClientConnect");
     }
 
     @Override
     public void onClientDisconnect() {
-        Xlog.timedOut("onConnectionDisconnect");
+        Xlog.timedOut("onClientDisconnect");
     }
 
     @Override
     public void onClientReceive(FrameImageCarrier frameImageCarrier) {
         frameImageCarrier.hasValidMd5();
         controller.loadImage(frameImageCarrier.getRotatedImageFx());
+    }
+
+    @Override
+    public void onClientRegister() {
+        Xlog.timedOut("onClientRegister");
     }
 
     @Override
