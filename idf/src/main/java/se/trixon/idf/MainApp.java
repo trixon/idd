@@ -15,45 +15,43 @@
  */
 package se.trixon.idf;
 
+import java.io.IOException;
+import java.net.SocketException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import se.trixon.almond.util.Xlog;
 import se.trixon.idl.FrameImageCarrier;
 import se.trixon.idl.IddHelper;
 import se.trixon.idl.client.Client;
 import se.trixon.idl.client.ClientListener;
 
-public class MainApp extends Application implements ClientListener {
+/**
+ *
+ * @author Patrik Karlsson
+ */
+public class MainApp extends Application {
 
+    private static final Logger LOGGER = Logger.getLogger(MainApp.class.getName());
     private FXMLController controller;
     private Client mClient;
 
-    @Override
-    public void onClientConnect() {
-        Xlog.timedOut("onClientConnect");
+    /**
+     * The main() method is ignored in correctly deployed JavaFX application. main() serves only as
+     * fallback in case the application can not be launched through deployment artifacts, e.g., in
+     * IDEs with limited FX support. NetBeans ignores main().
+     *
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        launch(args);
     }
 
     @Override
-    public void onClientDisconnect() {
-        Xlog.timedOut("onClientDisconnect");
-    }
-
-    @Override
-    public void onClientReceive(FrameImageCarrier frameImageCarrier) {
-        frameImageCarrier.hasValidMd5();
-        controller.loadImage(frameImageCarrier.getRotatedImageFx());
-    }
-
-    @Override
-    public void onClientRegister() {
-        Xlog.timedOut("onClientRegister");
-    }
-
-    @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage stage) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Scene.fxml"));
         Parent root = loader.load();
         controller = loader.getController();
@@ -66,15 +64,7 @@ public class MainApp extends Application implements ClientListener {
         stage.show();
         controller.init(stage);
 
-//        try {
-        mClient = new Client();
-        mClient.addClientListener(this);
-        mClient.connect();
-        mClient.register();
-//        mManager.addImageServerEventRelay(this);
-//        } catch (java.rmi.ConnectException e) {
-//            System.err.println(e.getMessage());
-//        }
+        postInit();
     }
 
     @Override
@@ -83,14 +73,37 @@ public class MainApp extends Application implements ClientListener {
         IddHelper.exit();
     }
 
-    /**
-     * The main() method is ignored in correctly deployed JavaFX application. main() serves only as
-     * fallback in case the application can not be launched through deployment artifacts, e.g., in
-     * IDEs with limited FX support. NetBeans ignores main().
-     *
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        launch(args);
+    private void postInit() {
+        try {
+            mClient = new Client();
+            mClient.addClientListener(new ClientListener() {
+                @Override
+                public void onClientConnect() {
+                    LOGGER.info("onClientConnect");
+                }
+
+                @Override
+                public void onClientDisconnect() {
+                    LOGGER.info("onClientDisconnect");
+                }
+
+                @Override
+                public void onClientReceive(FrameImageCarrier frameImageCarrier) {
+                    frameImageCarrier.hasValidMd5();
+                    controller.loadImage(frameImageCarrier.getRotatedImageFx());
+                }
+
+                @Override
+                public void onClientRegister() {
+                    LOGGER.info("onClientRegister");
+                }
+            });
+            mClient.connect();
+            mClient.register();
+        } catch (SocketException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
     }
 }
