@@ -1,0 +1,206 @@
+/*
+ * Copyright 2018 Patrik Karlsson.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package se.trixon.idf;
+
+import java.io.IOException;
+import java.net.SocketException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
+import se.trixon.almond.util.Dict;
+import se.trixon.almond.util.fx.AlmondFx;
+import se.trixon.almond.util.fx.FxHelper;
+import se.trixon.idl.FrameImageCarrier;
+import se.trixon.idl.client.Client;
+import se.trixon.idl.client.ClientListener;
+
+/**
+ *
+ * @author Patrik Karlsson
+ */
+public class Main extends Application {
+
+    private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
+    private final AlmondFx mAlmondFX = AlmondFx.getInstance();
+    private Client mClient;
+    private ImageView mImageView;
+    private final Options mOptions = Options.getInstance();
+    private Stage mStage;
+
+    /**
+     * The main() method is ignored in correctly deployed JavaFX application. main() serves only as
+     * fallback in case the application can not be launched through deployment artifacts, e.g., in
+     * IDEs with limited FX support. NetBeans ignores main().
+     *
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage stage) throws IOException {
+        mStage = stage;
+        mOptions.setBackground(Color.BLACK.brighter());
+        mAlmondFX.addStageWatcher(stage, Main.class);
+        //mStage.setFullScreenExitKeyCombination(KeyCombination.keyCombination("F11"));
+
+        createUI();
+        stage.setTitle("IDD Frame");
+        stage.setAlwaysOnTop(true);
+        stage.show();
+
+        postInit();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        mClient.disconnect();
+    }
+
+    private void createContextMenu(Scene scene) {
+        MenuItem menuItemQuit = new MenuItem(Dict.QUIT.toString());
+        //menuItemQuit.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN));
+        menuItemQuit.setAccelerator(KeyCombination.keyCombination("q"));
+        menuItemQuit.setOnAction((ActionEvent event) -> {
+            mStage.fireEvent(new WindowEvent(mStage, WindowEvent.WINDOW_CLOSE_REQUEST));
+        });
+
+        MenuItem menuItemAbout = new MenuItem(Dict.ABOUT.toString());
+        menuItemAbout.setOnAction((ActionEvent event) -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle(String.format(Dict.ABOUT_S.toString(), mStage.getTitle()));
+            alert.setHeaderText(String.format("%s %s", mStage.getTitle(), "v0.0.3"));
+            alert.setContentText("A basic implementation of an\n"
+                    + "image displayer daemon frame.\n\n"
+                    + "Licensed under the Apache License, Version 2.0\n"
+                    + "Copyright 2018 Patrik Karlsson");
+
+            FxHelper.showAndWait(alert, mStage);
+        });
+
+        CheckMenuItem fullScreenCheckMenuItem = new CheckMenuItem(Dict.FULL_SCREEN.toString());
+        fullScreenCheckMenuItem.setAccelerator(KeyCombination.keyCombination("F"));
+//        fullScreenCheckMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F11, KeyCombination.ALT_ANY));
+        fullScreenCheckMenuItem.setOnAction((ActionEvent event) -> {
+            mStage.setFullScreen(!mStage.isFullScreen());
+        });
+
+        ContextMenu contextMenu = new ContextMenu();
+        contextMenu.getItems().addAll(
+                fullScreenCheckMenuItem,
+                new SeparatorMenuItem(),
+                menuItemAbout,
+                new SeparatorMenuItem(),
+                menuItemQuit
+        );
+
+        scene.setOnMouseClicked((MouseEvent event) -> {
+            if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
+                fullScreenCheckMenuItem.getOnAction().handle(null);
+                fullScreenCheckMenuItem.setSelected(mStage.isFullScreen());
+            }
+        });
+
+        scene.setOnMousePressed((MouseEvent event) -> {
+            if (event.isSecondaryButtonDown()) {
+                contextMenu.show(mImageView, event.getScreenX(), event.getScreenY());
+            } else if (event.isPrimaryButtonDown()) {
+                contextMenu.hide();
+            }
+        });
+
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, (evt) -> {
+            contextMenu.hide();
+            if (evt.getCode() == KeyCode.Q) {
+                menuItemQuit.getOnAction().handle(null);
+            } else if (evt.getCode() == KeyCode.F) {
+                fullScreenCheckMenuItem.getOnAction().handle(null);
+                fullScreenCheckMenuItem.setSelected(mStage.isFullScreen());
+            }
+        });
+    }
+
+    private void createUI() {
+        mImageView = new ImageView();
+        mImageView.setPickOnBounds(true);
+        mImageView.setPreserveRatio(true);
+        mImageView.setSmooth(true);
+        mImageView.setCache(true);
+        BorderPane borderPane = new BorderPane(mImageView);
+        mImageView.fitWidthProperty().bind(borderPane.widthProperty());
+        mImageView.fitHeightProperty().bind(borderPane.heightProperty());
+        Scene scene = new Scene(borderPane, mOptions.getBackground());
+        createContextMenu(scene);
+        mStage.setScene(scene);
+//        mImageView.setStyle("-fx-background-color: BLACK");
+        borderPane.setStyle("-fx-background-color: #444444");
+//        scene.setFill(mOptions.getBackground());
+    }
+
+    private void postInit() {
+        try {
+            mClient = new Client(mOptions.getHost(), mOptions.getPort());
+            mClient.addClientListener(new ClientListener() {
+                @Override
+                public void onClientConnect() {
+                    LOGGER.info("onClientConnect");
+                }
+
+                @Override
+                public void onClientDisconnect() {
+                    LOGGER.info("onClientDisconnect");
+                }
+
+                @Override
+                public void onClientReceive(FrameImageCarrier frameImageCarrier) {
+                    frameImageCarrier.hasValidMd5();
+                    mImageView.setImage(frameImageCarrier.getRotatedImageFx());
+                }
+
+                @Override
+                public void onClientRegister() {
+                    LOGGER.info("onClientRegister");
+                }
+            });
+
+            mClient.connect();
+            mClient.register();
+            mClient.send("random");
+        } catch (SocketException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+    }
+}
