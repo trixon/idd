@@ -27,8 +27,8 @@ import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
@@ -55,6 +55,7 @@ public class Main extends Application {
     private Client mClient;
     private ImageView mImageView;
     private final Options mOptions = Options.getInstance();
+    private Image mPreviousImage;
     private Stage mStage;
 
     /**
@@ -96,6 +97,20 @@ public class Main extends Application {
             mStage.fireEvent(new WindowEvent(mStage, WindowEvent.WINDOW_CLOSE_REQUEST));
         });
 
+        MenuItem menuItemNavRandom = new MenuItem(Dict.RANDOM.toString());
+        menuItemNavRandom.setAccelerator(KeyCombination.keyCombination("r"));
+        menuItemNavRandom.setOnAction((ActionEvent event) -> {
+            send("random");
+        });
+
+        MenuItem menuItemNavPrev = new MenuItem(Dict.PREVIOUS.toString());
+        menuItemNavPrev.setAccelerator(KeyCombination.keyCombination("p"));
+        menuItemNavPrev.setOnAction((ActionEvent event) -> {
+            Image image = mImageView.getImage();
+            mImageView.setImage(mPreviousImage);
+            mPreviousImage = image;
+        });
+
         MenuItem menuItemAbout = new MenuItem(Dict.ABOUT.toString());
         menuItemAbout.setOnAction((ActionEvent event) -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -118,6 +133,9 @@ public class Main extends Application {
 
         ContextMenu contextMenu = new ContextMenu();
         contextMenu.getItems().addAll(
+                menuItemNavRandom,
+                menuItemNavPrev,
+                new SeparatorMenuItem(),
                 fullScreenCheckMenuItem,
                 new SeparatorMenuItem(),
                 menuItemAbout,
@@ -142,11 +160,29 @@ public class Main extends Application {
 
         scene.addEventFilter(KeyEvent.KEY_PRESSED, (evt) -> {
             contextMenu.hide();
-            if (evt.getCode() == KeyCode.Q) {
-                menuItemQuit.getOnAction().handle(null);
-            } else if (evt.getCode() == KeyCode.F) {
-                fullScreenCheckMenuItem.getOnAction().handle(null);
-                fullScreenCheckMenuItem.setSelected(mStage.isFullScreen());
+            if (null != evt.getCode()) {
+                switch (evt.getCode()) {
+                    case F:
+                        fullScreenCheckMenuItem.getOnAction().handle(null);
+                        fullScreenCheckMenuItem.setSelected(mStage.isFullScreen());
+                        break;
+
+                    case P:
+                        menuItemNavPrev.getOnAction().handle(null);
+
+                        break;
+                    case Q:
+                        menuItemQuit.getOnAction().handle(null);
+                        break;
+
+                    case SPACE:
+                    case R:
+                        menuItemNavRandom.getOnAction().handle(null);
+                        break;
+
+                    default:
+                        break;
+                }
             }
         });
     }
@@ -185,6 +221,7 @@ public class Main extends Application {
                 @Override
                 public void onClientReceive(FrameImageCarrier frameImageCarrier) {
                     frameImageCarrier.hasValidMd5();
+                    mPreviousImage = mImageView.getImage();
                     mImageView.setImage(frameImageCarrier.getRotatedImageFx());
                 }
 
@@ -199,6 +236,14 @@ public class Main extends Application {
             mClient.send("random");
         } catch (SocketException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void send(String string) {
+        try {
+            mClient.send(string);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
