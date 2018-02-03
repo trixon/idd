@@ -75,7 +75,6 @@ public class Main extends Application {
 
         createUI();
         stage.setTitle("IDD Frame");
-        stage.setAlwaysOnTop(true);
         stage.show();
 
         postInit();
@@ -124,8 +123,16 @@ public class Main extends Application {
         CheckMenuItem fullScreenCheckMenuItem = new CheckMenuItem(Dict.FULL_SCREEN.toString());
         fullScreenCheckMenuItem.setAccelerator(KeyCombination.keyCombination("F"));
 //        fullScreenCheckMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F11, KeyCombination.ALT_ANY));
+        fullScreenCheckMenuItem.setSelected(FxHelper.isFullScreen(Main.class));
         fullScreenCheckMenuItem.setOnAction((ActionEvent event) -> {
             mStage.setFullScreen(!mStage.isFullScreen());
+        });
+
+        CheckMenuItem alwaysOnTopCheckMenuItem = new CheckMenuItem(Dict.ALWAYS_ON_TOP.toString());
+        alwaysOnTopCheckMenuItem.setAccelerator(KeyCombination.keyCombination("a"));
+        alwaysOnTopCheckMenuItem.setSelected(FxHelper.isAlwaysOnTop(Main.class));
+        alwaysOnTopCheckMenuItem.setOnAction((ActionEvent event) -> {
+            mStage.setAlwaysOnTop(!mStage.isAlwaysOnTop());
         });
 
         ContextMenu contextMenu = new ContextMenu();
@@ -133,6 +140,7 @@ public class Main extends Application {
                 menuItemNavRandom,
                 menuItemNavPrev,
                 new SeparatorMenuItem(),
+                alwaysOnTopCheckMenuItem,
                 fullScreenCheckMenuItem,
                 new SeparatorMenuItem(),
                 menuItemAbout,
@@ -159,6 +167,11 @@ public class Main extends Application {
             contextMenu.hide();
             if (null != evt.getCode()) {
                 switch (evt.getCode()) {
+                    case A:
+                        alwaysOnTopCheckMenuItem.getOnAction().handle(null);
+                        alwaysOnTopCheckMenuItem.setSelected(mStage.isAlwaysOnTop());
+                        break;
+
                     case F:
                         fullScreenCheckMenuItem.getOnAction().handle(null);
                         fullScreenCheckMenuItem.setSelected(mStage.isFullScreen());
