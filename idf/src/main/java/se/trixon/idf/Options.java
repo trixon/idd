@@ -17,6 +17,7 @@ package se.trixon.idf;
 
 import java.util.prefs.Preferences;
 import javafx.scene.paint.Color;
+import se.trixon.almond.util.fx.FxHelper;
 
 /**
  *
@@ -24,14 +25,11 @@ import javafx.scene.paint.Color;
  */
 public class Options {
 
-    public static final String KEY_BACKGROUND_B = "background_b";
-    public static final String KEY_BACKGROUND_G = "background_g";
-    public static final String KEY_BACKGROUND_O = "background_o";
-    public static final String KEY_BACKGROUND_R = "background_r";
+    public static final String KEY_BACKGROUND = "background";
     public static final String KEY_HOST = "host";
     public static final String KEY_PORT = "port";
     private static final String DEFAULT_HOST = "localhost";
-    private final Color DEFAULT_BACKGROUND = Color.BROWN;
+    private final Color DEFAULT_BACKGROUND = Color.BLACK.brighter();
     private final int DEFAULT_PORT = 5705;
     private final Preferences mPreferences = Preferences.userNodeForPackage(Options.class);
 
@@ -42,13 +40,8 @@ public class Options {
     private Options() {
     }
 
-    public Color getBackground() {
-        double r = mPreferences.getDouble(KEY_BACKGROUND_R, DEFAULT_BACKGROUND.getRed());
-        double g = mPreferences.getDouble(KEY_BACKGROUND_G, DEFAULT_BACKGROUND.getGreen());
-        double b = mPreferences.getDouble(KEY_BACKGROUND_B, DEFAULT_BACKGROUND.getBlue());
-        double o = mPreferences.getDouble(KEY_BACKGROUND_O, DEFAULT_BACKGROUND.getOpacity());
-
-        return new Color(r, g, b, o);
+    public String getBackground() {
+        return mPreferences.get(KEY_BACKGROUND, FxHelper.colorToString(DEFAULT_BACKGROUND));
     }
 
     public String getHost() {
@@ -60,10 +53,7 @@ public class Options {
     }
 
     public void setBackground(Color c) {
-        mPreferences.putDouble(KEY_BACKGROUND_R, c.getRed());
-        mPreferences.putDouble(KEY_BACKGROUND_G, c.getGreen());
-        mPreferences.putDouble(KEY_BACKGROUND_B, c.getBlue());
-        mPreferences.putDouble(KEY_BACKGROUND_O, c.getOpacity());
+        mPreferences.put(KEY_BACKGROUND, FxHelper.colorToString(c));
     }
 
     public void setHost(String value) {

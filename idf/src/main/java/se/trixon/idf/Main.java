@@ -34,7 +34,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import se.trixon.almond.util.Dict;
@@ -72,9 +71,7 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         mStage = stage;
-        mOptions.setBackground(Color.BLACK.brighter());
         mAlmondFX.addStageWatcher(stage, Main.class);
-        //mStage.setFullScreenExitKeyCombination(KeyCombination.keyCombination("F11"));
 
         createUI();
         stage.setTitle("IDD Frame");
@@ -193,15 +190,16 @@ public class Main extends Application {
         mImageView.setPreserveRatio(true);
         mImageView.setSmooth(true);
         mImageView.setCache(true);
-        BorderPane borderPane = new BorderPane(mImageView);
-        mImageView.fitWidthProperty().bind(borderPane.widthProperty());
-        mImageView.fitHeightProperty().bind(borderPane.heightProperty());
-        Scene scene = new Scene(borderPane, mOptions.getBackground());
+
+        BorderPane root = new BorderPane(mImageView);
+        root.setStyle(String.format("-fx-background-color: %s", mOptions.getBackground()));
+
+        mImageView.fitWidthProperty().bind(root.widthProperty());
+        mImageView.fitHeightProperty().bind(root.heightProperty());
+
+        Scene scene = new Scene(root);
         createContextMenu(scene);
         mStage.setScene(scene);
-//        mImageView.setStyle("-fx-background-color: BLACK");
-        borderPane.setStyle("-fx-background-color: #444444");
-//        scene.setFill(mOptions.getBackground());
     }
 
     private void postInit() {
