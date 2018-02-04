@@ -17,16 +17,25 @@ package se.trixon.idf;
 
 import java.io.IOException;
 import java.net.SocketException;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.PreferenceChangeEvent;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCombination;
@@ -34,6 +43,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import se.trixon.almond.util.Dict;
@@ -55,6 +66,7 @@ public class Main extends Application {
     private ImageView mImageView;
     private final Options mOptions = Options.getInstance();
     private Image mPreviousImage;
+    private BorderPane mRoot;
     private Stage mStage;
 
     /**
@@ -85,9 +97,37 @@ public class Main extends Application {
         mClient.disconnect();
     }
 
-    private void createContextMenu(Scene scene) {
+    // <editor-fold defaultstate="collapsed" desc=" UI Creation ">
+    private void createUI() {
+        mImageView = new ImageView();
+        mImageView.setPickOnBounds(true);
+        mImageView.setPreserveRatio(true);
+        mImageView.setSmooth(true);
+        mImageView.setCache(true);
+
+        mRoot = new BorderPane(mImageView);
+        updateBackground();
+        mImageView.fitWidthProperty().bind(mRoot.widthProperty());
+        mImageView.fitHeightProperty().bind(mRoot.heightProperty());
+
+        Scene scene = new Scene(mRoot);
+        createUIContextMenu(scene);
+        createUIDialogs();
+        mStage.setScene(scene);
+
+        mOptions.getPreferences().addPreferenceChangeListener((PreferenceChangeEvent evt) -> {
+            switch (evt.getKey()) {
+                case Options.KEY_BACKGROUND:
+                    updateBackground();
+                    break;
+
+                default:
+            }
+        });
+    }
+
+    private void createUIContextMenu(Scene scene) {
         MenuItem menuItemQuit = new MenuItem(Dict.QUIT.toString());
-        //menuItemQuit.setAccelerator(new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN));
         menuItemQuit.setAccelerator(KeyCombination.keyCombination("q"));
         menuItemQuit.setOnAction((ActionEvent event) -> {
             mStage.fireEvent(new WindowEvent(mStage, WindowEvent.WINDOW_CLOSE_REQUEST));
@@ -107,22 +147,19 @@ public class Main extends Application {
             mPreviousImage = image;
         });
 
+        MenuItem menuItemOptions = new MenuItem(Dict.OPTIONS.toString());
+        menuItemOptions.setAccelerator(KeyCombination.keyCombination("o"));
+        menuItemOptions.setOnAction((ActionEvent event) -> {
+            displayOptions();
+        });
+
         MenuItem menuItemAbout = new MenuItem(Dict.ABOUT.toString());
         menuItemAbout.setOnAction((ActionEvent event) -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle(String.format(Dict.ABOUT_S.toString(), mStage.getTitle()));
-            alert.setHeaderText(String.format("%s %s", mStage.getTitle(), "v0.0.3"));
-            alert.setContentText("A basic implementation of an\n"
-                    + "image displayer daemon frame.\n\n"
-                    + "Licensed under the Apache License, Version 2.0\n"
-                    + "Copyright 2018 Patrik Karlsson");
-
-            FxHelper.showAndWait(alert, mStage);
+            displayAbout();
         });
 
         CheckMenuItem fullScreenCheckMenuItem = new CheckMenuItem(Dict.FULL_SCREEN.toString());
         fullScreenCheckMenuItem.setAccelerator(KeyCombination.keyCombination("F"));
-//        fullScreenCheckMenuItem.setAccelerator(new KeyCodeCombination(KeyCode.F11, KeyCombination.ALT_ANY));
         fullScreenCheckMenuItem.setSelected(FxHelper.isFullScreen(Main.class));
         fullScreenCheckMenuItem.setOnAction((ActionEvent event) -> {
             mStage.setFullScreen(!mStage.isFullScreen());
@@ -142,6 +179,7 @@ public class Main extends Application {
                 new SeparatorMenuItem(),
                 alwaysOnTopCheckMenuItem,
                 fullScreenCheckMenuItem,
+                menuItemOptions,
                 new SeparatorMenuItem(),
                 menuItemAbout,
                 new SeparatorMenuItem(),
@@ -177,10 +215,14 @@ public class Main extends Application {
                         fullScreenCheckMenuItem.setSelected(mStage.isFullScreen());
                         break;
 
+                    case O:
+                        menuItemOptions.getOnAction().handle(null);
+                        break;
+
                     case P:
                         menuItemNavPrev.getOnAction().handle(null);
-
                         break;
+
                     case Q:
                         menuItemQuit.getOnAction().handle(null);
                         break;
@@ -197,22 +239,58 @@ public class Main extends Application {
         });
     }
 
-    private void createUI() {
-        mImageView = new ImageView();
-        mImageView.setPickOnBounds(true);
-        mImageView.setPreserveRatio(true);
-        mImageView.setSmooth(true);
-        mImageView.setCache(true);
+    private void createUIDialogs() {
 
-        BorderPane root = new BorderPane(mImageView);
-        root.setStyle(String.format("-fx-background-color: %s", mOptions.getBackground()));
+    }//</editor-fold>
 
-        mImageView.fitWidthProperty().bind(root.widthProperty());
-        mImageView.fitHeightProperty().bind(root.heightProperty());
+    private void displayAbout() {
+        Alert aboutAlert = new Alert(AlertType.INFORMATION);
+        aboutAlert.initOwner(mStage);
+        aboutAlert.setTitle(String.format(Dict.ABOUT_S.toString(), mStage.getTitle()));
+        aboutAlert.setHeaderText(String.format("%s %s", mStage.getTitle(), "v0.0.3"));
+        aboutAlert.setContentText("A basic implementation of an\n"
+                + "image displayer daemon frame.\n\n"
+                + "Licensed under the Apache License, Version 2.0\n"
+                + "Copyright 2018 Patrik Karlsson");
 
-        Scene scene = new Scene(root);
-        createContextMenu(scene);
-        mStage.setScene(scene);
+        FxHelper.showAndWait(aboutAlert, mStage);
+    }
+
+    private void displayOptions() {
+        Alert optionsAlert = new Alert(AlertType.CONFIRMATION);
+        optionsAlert.initOwner(mStage);
+        optionsAlert.setTitle(Dict.OPTIONS.toString());
+        optionsAlert.setGraphic(null);
+        optionsAlert.setHeaderText(null);
+
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+        gridPane.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField hostTextField = new TextField(mOptions.getHost());
+        hostTextField.setPromptText(Dict.HOST.toString());
+
+        Spinner portSpinner = new Spinner(1024, 65536, mOptions.getPort());
+        portSpinner.setEditable(true);
+
+        ColorPicker colorPicker = new ColorPicker(Color.web(mOptions.getBackground()));
+
+        gridPane.add(new Label(Dict.HOST.toString()), 0, 0);
+        gridPane.add(hostTextField, 1, 0);
+        gridPane.add(new Label(Dict.PORT.toString()), 0, 1);
+        gridPane.add(portSpinner, 1, 1);
+        gridPane.add(new Label(Dict.BACKGROUND_COLOR.toString()), 0, 2);
+        gridPane.add(colorPicker, 1, 2);
+
+        optionsAlert.getDialogPane().setContent(gridPane);
+
+        Optional<ButtonType> result = FxHelper.showAndWait(optionsAlert, mStage);
+        if (result.get() == ButtonType.OK) {
+            mOptions.setHost(hostTextField.getText());
+            mOptions.setPort((Integer) portSpinner.getValue());
+            mOptions.setBackground(colorPicker.getValue());
+        }
     }
 
     private void postInit() {
@@ -258,5 +336,9 @@ public class Main extends Application {
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
+    }
+
+    private void updateBackground() {
+        mRoot.setStyle(String.format("-fx-background-color: %s", mOptions.getBackground()));
     }
 }

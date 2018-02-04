@@ -52,6 +52,10 @@ public class Options {
         return mPreferences.getInt(KEY_PORT, DEFAULT_PORT);
     }
 
+    public Preferences getPreferences() {
+        return mPreferences;
+    }
+
     public void setBackground(Color c) {
         mPreferences.put(KEY_BACKGROUND, FxHelper.colorToString(c));
     }
