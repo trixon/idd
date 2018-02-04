@@ -100,10 +100,6 @@ public final class Client {
         try {
             if (mCommandOut != null) {
                 mCommandOut.println("close");
-                mCommandOut.close();
-            }
-            if (mCommandIn != null) {
-                mCommandIn.close();
             }
             if (mCommandSocket != null) {
                 mCommandSocket.close();
@@ -129,7 +125,7 @@ public final class Client {
     }
 
     public boolean isConnected() {
-        return mCommandSocket != null && mCommandSocket.isConnected();
+        return mCommandSocket != null && !mCommandSocket.isClosed();
     }
 
     public boolean isFrameConnected() {

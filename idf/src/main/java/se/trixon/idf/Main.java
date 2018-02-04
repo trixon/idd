@@ -22,7 +22,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.PreferenceChangeEvent;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -48,6 +50,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import se.trixon.almond.util.Dict;
+import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.fx.AlmondFx;
 import se.trixon.almond.util.fx.FxHelper;
 import se.trixon.idl.FrameImageCarrier;
@@ -60,6 +63,7 @@ import se.trixon.idl.client.ClientListener;
  */
 public class Main extends Application {
 
+    public static final String APP_TITLE = "idf";
     private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
     private final AlmondFx mAlmondFX = AlmondFx.getInstance();
     private Client mClient;
@@ -84,20 +88,73 @@ public class Main extends Application {
     public void start(Stage stage) throws IOException {
         mStage = stage;
         mAlmondFX.addStageWatcher(stage, Main.class);
-
         createUI();
-        stage.setTitle("IDD Frame");
-        stage.show();
+        mStage.setTitle(APP_TITLE);
+        mStage.show();
 
-        postInit();
+        connect();
     }
 
     @Override
     public void stop() throws Exception {
-        mClient.disconnect();
+        disconnect();
     }
 
-    // <editor-fold defaultstate="collapsed" desc=" UI Creation ">
+    private void connect() {
+        try {
+            mClient.disconnect();
+        } catch (Exception e) {
+            //nvm
+        }
+
+        mClient = new Client();
+        mClient.addClientListener(new ClientListener() {
+            @Override
+            public void onClientConnect() {
+                mStage.setTitle(String.format("%s (%s:%d)", APP_TITLE, mOptions.getHost(), mOptions.getPort()));
+                LOGGER.info(String.format("onClientConnect (%s:%d)", mOptions.getHost(), mOptions.getPort()));
+            }
+
+            @Override
+            public void onClientDisconnect() {
+                mStage.setTitle(APP_TITLE);
+                LOGGER.info("onClientDisconnect");
+            }
+
+            @Override
+            public void onClientReceive(FrameImageCarrier frameImageCarrier) {
+                if (frameImageCarrier.hasValidMd5()) {
+                    mPreviousImage = mImageView.getImage();
+                    mImageView.setImage(frameImageCarrier.getRotatedImageFx());
+                } else {
+                    LOGGER.warning("Invalid image checksum");
+                }
+
+                System.gc();
+            }
+
+            @Override
+            public void onClientRegister() {
+                LOGGER.info("onClientRegister");
+            }
+        });
+
+        try {
+            mClient.setHost(mOptions.getHost());
+            mClient.setPort(mOptions.getPort());
+            mClient.connect();
+            mClient.register();
+            mClient.send("random");
+        } catch (SocketException e) {
+            displayError("IDD Error", e.getMessage(), e);
+            LOGGER.log(Level.SEVERE, null, e);
+        } catch (IOException e) {
+            displayError("IDD Error", e.getMessage(), e);
+            LOGGER.log(Level.SEVERE, null, e);
+        }
+    }
+
+    // <editor-fold defaultstate="collapsed" desc=" createUI">
     private void createUI() {
         mImageView = new ImageView();
         mImageView.setPickOnBounds(true);
@@ -112,7 +169,6 @@ public class Main extends Application {
 
         Scene scene = new Scene(mRoot);
         createUIContextMenu(scene);
-        createUIDialogs();
         mStage.setScene(scene);
 
         mOptions.getPreferences().addPreferenceChangeListener((PreferenceChangeEvent evt) -> {
@@ -158,6 +214,18 @@ public class Main extends Application {
             displayAbout();
         });
 
+        MenuItem menuItemConnect = new MenuItem(Dict.CONNECT.toString());
+        menuItemConnect.setAccelerator(KeyCombination.keyCombination("c"));
+        menuItemConnect.setOnAction((ActionEvent event) -> {
+            connect();
+        });
+
+        MenuItem menuItemDisconnect = new MenuItem(Dict.DISCONNECT.toString());
+        menuItemDisconnect.setAccelerator(KeyCombination.keyCombination("d"));
+        menuItemDisconnect.setOnAction((ActionEvent event) -> {
+            disconnect();
+        });
+
         CheckMenuItem fullScreenCheckMenuItem = new CheckMenuItem(Dict.FULL_SCREEN.toString());
         fullScreenCheckMenuItem.setAccelerator(KeyCombination.keyCombination("F"));
         fullScreenCheckMenuItem.setSelected(FxHelper.isFullScreen(Main.class));
@@ -183,6 +251,8 @@ public class Main extends Application {
                 new SeparatorMenuItem(),
                 menuItemAbout,
                 new SeparatorMenuItem(),
+                menuItemConnect,
+                menuItemDisconnect,
                 menuItemQuit
         );
 
@@ -208,6 +278,18 @@ public class Main extends Application {
                     case A:
                         alwaysOnTopCheckMenuItem.getOnAction().handle(null);
                         alwaysOnTopCheckMenuItem.setSelected(mStage.isAlwaysOnTop());
+                        break;
+
+                    case C:
+                        menuItemConnect.getOnAction().handle(null);
+                        break;
+
+                    case CONTEXT_MENU:
+                        Bounds b = mRoot.localToScreen(mRoot.getBoundsInLocal());
+                        contextMenu.show(mStage, b.getMinX(), b.getMinY());
+                        break;
+                    case D:
+                        menuItemDisconnect.getOnAction().handle(null);
                         break;
 
                     case F:
@@ -237,31 +319,50 @@ public class Main extends Application {
                 }
             }
         });
-    }
-
-    private void createUIDialogs() {
-
     }//</editor-fold>
 
+    private void disconnect() {
+        try {
+            mClient.disconnect();
+        } catch (Exception e) {
+            displayError("IDD Error", e.getMessage(), e);
+            LOGGER.log(Level.SEVERE, null, e);
+        }
+    }
+
     private void displayAbout() {
-        Alert aboutAlert = new Alert(AlertType.INFORMATION);
-        aboutAlert.initOwner(mStage);
-        aboutAlert.setTitle(String.format(Dict.ABOUT_S.toString(), mStage.getTitle()));
-        aboutAlert.setHeaderText(String.format("%s %s", mStage.getTitle(), "v0.0.3"));
-        aboutAlert.setContentText("A basic implementation of an\n"
+        PomInfo pomInfo = new PomInfo(Main.class, "se.trixon.idd", "idl");
+
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.initOwner(mStage);
+        alert.setTitle(String.format(Dict.ABOUT_S.toString(), APP_TITLE));
+        alert.setHeaderText(String.format("%s v%s", APP_TITLE, pomInfo.getVersion()));
+        alert.setContentText("A basic implementation of an\n"
                 + "image displayer daemon frame.\n\n"
                 + "Licensed under the Apache License, Version 2.0\n"
                 + "Copyright 2018 Patrik Karlsson");
 
-        FxHelper.showAndWait(aboutAlert, mStage);
+        FxHelper.showAndWait(alert, mStage);
+    }
+
+    private void displayError(String header, String content, Exception ex) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.initOwner(mStage);
+            alert.setTitle(Dict.Dialog.ERROR.toString());
+            alert.setHeaderText(header);
+            alert.setContentText(content);
+
+            FxHelper.showAndWait(alert, mStage);
+        });
     }
 
     private void displayOptions() {
-        Alert optionsAlert = new Alert(AlertType.CONFIRMATION);
-        optionsAlert.initOwner(mStage);
-        optionsAlert.setTitle(Dict.OPTIONS.toString());
-        optionsAlert.setGraphic(null);
-        optionsAlert.setHeaderText(null);
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.initOwner(mStage);
+        alert.setTitle(Dict.OPTIONS.toString());
+        alert.setGraphic(null);
+        alert.setHeaderText(null);
 
         GridPane gridPane = new GridPane();
         gridPane.setHgap(10);
@@ -283,58 +384,32 @@ public class Main extends Application {
         gridPane.add(new Label(Dict.BACKGROUND_COLOR.toString()), 0, 2);
         gridPane.add(colorPicker, 1, 2);
 
-        optionsAlert.getDialogPane().setContent(gridPane);
+        alert.getDialogPane().setContent(gridPane);
 
-        Optional<ButtonType> result = FxHelper.showAndWait(optionsAlert, mStage);
+        Optional<ButtonType> result = FxHelper.showAndWait(alert, mStage);
         if (result.get() == ButtonType.OK) {
-            mOptions.setHost(hostTextField.getText());
-            mOptions.setPort((Integer) portSpinner.getValue());
+            final String host = hostTextField.getText();
+            final int port = (Integer) portSpinner.getValue();
+            boolean reconnect = !mOptions.getHost().equalsIgnoreCase(host) || mOptions.getPort() != port;
+
+            mOptions.setHost(host);
+            mOptions.setPort(port);
             mOptions.setBackground(colorPicker.getValue());
-        }
-    }
 
-    private void postInit() {
-        try {
-            mClient = new Client(mOptions.getHost(), mOptions.getPort());
-            mClient.addClientListener(new ClientListener() {
-                @Override
-                public void onClientConnect() {
-                    LOGGER.info("onClientConnect");
-                }
-
-                @Override
-                public void onClientDisconnect() {
-                    LOGGER.info("onClientDisconnect");
-                }
-
-                @Override
-                public void onClientReceive(FrameImageCarrier frameImageCarrier) {
-                    frameImageCarrier.hasValidMd5();
-                    mPreviousImage = mImageView.getImage();
-                    mImageView.setImage(frameImageCarrier.getRotatedImageFx());
-                }
-
-                @Override
-                public void onClientRegister() {
-                    LOGGER.info("onClientRegister");
-                }
-            });
-
-            mClient.connect();
-            mClient.register();
-            mClient.send("random");
-        } catch (SocketException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+            if (reconnect) {
+                connect();
+            }
         }
     }
 
     private void send(String string) {
-        try {
-            mClient.send(string);
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+        if (mClient.isConnected()) {
+            try {
+                mClient.send(string);
+            } catch (IOException ex) {
+                displayError("IDD Error", ex.getMessage(), ex);
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
         }
     }
 
