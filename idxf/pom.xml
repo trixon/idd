@@ -4,11 +4,11 @@
     <parent>
         <groupId>se.trixon.idd</groupId>
         <artifactId>parent</artifactId>
-        <version>0.0.3-SNAPSHOT</version>
+        <version>0.0.4-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>idxf</artifactId>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>0.0.4-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>idxf</name>
     <description>Image Displayer Client</description>
@@ -24,7 +24,7 @@
         <dependency>
             <groupId>se.trixon.idd</groupId>
             <artifactId>idl</artifactId>
-            <version>0.0.3-SNAPSHOT</version>
+            <version>0.0.4-SNAPSHOT</version>
         </dependency>
 
         <!--trixon-->
