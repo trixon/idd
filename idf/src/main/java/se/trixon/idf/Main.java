@@ -21,11 +21,14 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.PreferenceChangeEvent;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -49,6 +52,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 import se.trixon.almond.util.Dict;
 import se.trixon.almond.util.PomInfo;
 import se.trixon.almond.util.fx.AlmondFx;
@@ -67,7 +71,9 @@ public class Main extends Application {
     private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
     private final AlmondFx mAlmondFX = AlmondFx.getInstance();
     private Client mClient;
+    private ContextMenu mContextMenu;
     private ImageView mImageView;
+    private Timeline mMouseTimeline;
     private final Options mOptions = Options.getInstance();
     private Image mPreviousImage;
     private BorderPane mRoot;
@@ -98,6 +104,7 @@ public class Main extends Application {
     @Override
     public void stop() throws Exception {
         disconnect();
+        mMouseTimeline.stop();
     }
 
     private void connect() {
@@ -180,6 +187,15 @@ public class Main extends Application {
                 default:
             }
         });
+
+        mMouseTimeline = new Timeline(new KeyFrame(Duration.millis(3000), (event) -> {
+            mMouseTimeline.stop();
+            if (mStage.isFocused() && !mContextMenu.isShowing()) {
+                scene.setCursor(Cursor.NONE);
+            }
+        }));
+
+        mMouseTimeline.play();
     }
 
     private void createUIContextMenu(Scene scene) {
@@ -240,8 +256,8 @@ public class Main extends Application {
             mStage.setAlwaysOnTop(!mStage.isAlwaysOnTop());
         });
 
-        ContextMenu contextMenu = new ContextMenu();
-        contextMenu.getItems().addAll(
+        mContextMenu = new ContextMenu();
+        mContextMenu.getItems().addAll(
                 menuItemNavRandom,
                 menuItemNavPrev,
                 new SeparatorMenuItem(),
@@ -265,14 +281,20 @@ public class Main extends Application {
 
         scene.setOnMousePressed((MouseEvent event) -> {
             if (event.isSecondaryButtonDown()) {
-                contextMenu.show(mImageView, event.getScreenX(), event.getScreenY());
+                mStage.getScene().setCursor(Cursor.DEFAULT);
+                mContextMenu.show(mImageView, event.getScreenX(), event.getScreenY());
             } else if (event.isPrimaryButtonDown()) {
-                contextMenu.hide();
+                mContextMenu.hide();
             }
         });
 
+        scene.setOnMouseMoved((MouseEvent event) -> {
+            mMouseTimeline.playFromStart();
+            scene.setCursor(Cursor.DEFAULT);
+        });
+
         scene.addEventFilter(KeyEvent.KEY_PRESSED, (evt) -> {
-            contextMenu.hide();
+            mContextMenu.hide();
             if (null != evt.getCode()) {
                 switch (evt.getCode()) {
                     case A:
@@ -285,9 +307,11 @@ public class Main extends Application {
                         break;
 
                     case CONTEXT_MENU:
+                        mStage.getScene().setCursor(Cursor.DEFAULT);
                         Bounds b = mRoot.localToScreen(mRoot.getBoundsInLocal());
-                        contextMenu.show(mStage, b.getMinX(), b.getMinY());
+                        mContextMenu.show(mStage, b.getMinX(), b.getMinY());
                         break;
+
                     case D:
                         menuItemDisconnect.getOnAction().handle(null);
                         break;
@@ -331,6 +355,7 @@ public class Main extends Application {
     }
 
     private void displayAbout() {
+        mStage.getScene().setCursor(Cursor.DEFAULT);
         PomInfo pomInfo = new PomInfo(Main.class, "se.trixon.idd", "idl");
 
         Alert alert = new Alert(AlertType.INFORMATION);
@@ -347,6 +372,7 @@ public class Main extends Application {
 
     private void displayError(String header, String content, Exception ex) {
         Platform.runLater(() -> {
+            mStage.getScene().setCursor(Cursor.DEFAULT);
             Alert alert = new Alert(AlertType.ERROR);
             alert.initOwner(mStage);
             alert.setTitle(Dict.Dialog.ERROR.toString());
@@ -358,6 +384,7 @@ public class Main extends Application {
     }
 
     private void displayOptions() {
+        mStage.getScene().setCursor(Cursor.DEFAULT);
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.initOwner(mStage);
         alert.setTitle(Dict.OPTIONS.toString());
