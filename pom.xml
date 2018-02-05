@@ -47,6 +47,5 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <netbeans.hint.license>apache20</netbeans.hint.license>
         <almond-util.version>1.2.2-SNAPSHOT</almond-util.version>
-        <idl.version>0.0.3-SNAPSHOT</idl.version>
     </properties>
 </project>

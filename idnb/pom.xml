@@ -92,7 +92,7 @@
         <dependency>
             <groupId>se.trixon.idd</groupId>
             <artifactId>idl</artifactId>
-            <version>${idl.version}</version>
+            <version>0.0.3-SNAPSHOT</version>
         </dependency>
 
         <!--Trixon-->
