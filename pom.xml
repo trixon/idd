@@ -32,6 +32,15 @@
         <developerConnection>scm:git:git@github.com:trixon/java-idd.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
+    <modules>
+        <module>idc</module>
+        <module>idd</module>
+        <module>idl</module>
+        <module>idf</module>
+        <module>idxf</module>
+        <module>idr</module>
+        <module>idnb</module>
+    </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
