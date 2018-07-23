@@ -1,2 +1,1 @@
-# java-idf
-Image Displayer Frame (IDF)
+# Image Displayer Frame (IDF)
