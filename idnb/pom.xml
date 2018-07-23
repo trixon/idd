@@ -31,7 +31,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>3.1.0</version>
                 <configuration>
                     <archive>
                         <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
@@ -92,26 +92,26 @@
         <dependency>
             <groupId>se.trixon.idd</groupId>
             <artifactId>idl</artifactId>
-            <version>0.0.4-SNAPSHOT</version>
+            <version>${idl.version}</version>
         </dependency>
 
         <!--Trixon-->
         <dependency>
             <groupId>se.trixon.almond</groupId>
             <artifactId>almond-util</artifactId>
-            <version>1.2.2-SNAPSHOT</version>
+            <version>${almond-util.version}</version>
         </dependency>
 
         <!--Other-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.7</version>
+            <version>${commons-lang3.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.6</version>
+            <version>${commons-io.version}</version>
         </dependency>
     </dependencies>
     <properties>
