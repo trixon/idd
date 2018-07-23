@@ -1,5 +1,5 @@
-/*
- * Copyright 2018 Patrik Karlsson.
+/* 
+ * Copyright 2018 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ import se.trixon.idl.client.ClientListener;
 
 /**
  *
- * @author Patrik Karlsson
+ * @author Patrik Karlström
  */
 public class Main extends Application {
 
@@ -98,7 +98,7 @@ public class Main extends Application {
         mStage.setTitle(APP_TITLE);
         mStage.show();
 
-        connect();
+//        connect();
     }
 
     @Override
@@ -365,7 +365,7 @@ public class Main extends Application {
         alert.setContentText("A basic implementation of an\n"
                 + "image displayer daemon frame.\n\n"
                 + "Licensed under the Apache License, Version 2.0\n"
-                + "Copyright 2018 Patrik Karlsson");
+                + "Copyright 2018 Patrik Karlström");
 
         FxHelper.showAndWait(alert, mStage);
     }
