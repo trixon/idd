@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2018 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -280,7 +280,7 @@ class ImageServer {
                             break;
 
                         default:
-                            throw new AssertionError();
+                            throw new IllegalArgumentException();
                     }
                 } else {
                     send(String.format("ACK [2@0] {%s} wrong number of arguments for \"%s\"", cmd, cmd));

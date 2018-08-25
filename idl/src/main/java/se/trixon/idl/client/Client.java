@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2018 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -79,7 +80,11 @@ public final class Client {
     }
 
     public void connect() throws MalformedURLException, SocketException, IOException, UnknownHostException {
-        mCommandSocket = new Socket(mHost, mPort);
+        final int timeout = 5000;
+
+        mCommandSocket = new Socket();
+        mCommandSocket.connect(new InetSocketAddress(mHost, mPort), timeout);
+        mCommandSocket.setSoTimeout(timeout);
         mCommandIn = new BufferedReader(new InputStreamReader(mCommandSocket.getInputStream()));
         mCommandOut = new PrintStream(mCommandSocket.getOutputStream());
 
