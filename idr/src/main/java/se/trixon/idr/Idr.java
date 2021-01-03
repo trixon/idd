@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2018 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +54,6 @@ public class Idr {
 
         SystemHelper.setMacApplicationName("IDR");
 
-        mAlmondUI.installDarcula();
         mAlmondUI.initLookAndFeel();
 
         java.awt.EventQueue.invokeLater(() -> {

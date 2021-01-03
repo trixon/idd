@@ -8,17 +8,9 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>idxf</artifactId>
-    <version>0.0.4-SNAPSHOT</version>
-    <packaging>jar</packaging>
     <name>idxf</name>
     <description>Image Displayer Client</description>
-    <url>https://github.com/trixon/java-idd/idxf</url>
-    <scm>
-        <url>${project.parent.scm.url}/idxf</url>
-        <connection>${project.parent.scm.connection}/idxf</connection>
-        <developerConnection>${project.parent.scm.developerConnection}/idxf</developerConnection>
-        <tag>HEAD</tag>
-    </scm>
+
     <dependencies>
         <!--idd-->
         <dependency>
@@ -31,24 +23,20 @@
         <dependency>
             <groupId>se.trixon.almond</groupId>
             <artifactId>almond-util</artifactId>
-            <version>${almond-util.version}</version>
         </dependency>
 
         <!--apache-->
         <dependency>
             <groupId>commons-cli</groupId>
             <artifactId>commons-cli</artifactId>
-            <version>${commons-cli.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>${commons-lang3.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>${commons-io.version}</version>
         </dependency>
 
         <!--other-->
@@ -58,7 +46,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.1</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -70,7 +57,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -92,6 +78,12 @@
                                         <include>org/apache/commons/logging/**</include>
                                     </includes>
                                 </filter>
+                                <filter>
+                                    <artifact>se.trixon.almond:almond-util</artifact>
+                                    <excludes>
+                                        <exclude>se/trixon/almond/util/icons/**</exclude>
+                                    </excludes>
+                                </filter>
                             </filters>
                         </configuration>
                     </execution>
@@ -100,10 +92,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>2.5.3</version>
-                <configuration>
-                    <tagNameFormat>v@{project.version}</tagNameFormat>
-                </configuration>
             </plugin>
         </plugins>
     </build>
