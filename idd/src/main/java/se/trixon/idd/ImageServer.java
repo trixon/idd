@@ -61,6 +61,10 @@ class ImageServer {
     private ServerSocket mServerSocket;
     private boolean mSuccessfulStart;
 
+    public static void enterLoop() throws IOException {
+        new ImageServer();
+    }
+
     ImageServer() throws IOException {
         initListeners();
         startServer();
@@ -246,12 +250,12 @@ class ImageServer {
 
                         case RANDOM:
                             try {
-                                sendImage(mImageManager.getRandomImage());
-                            } catch (NullPointerException | SQLException ex) {
-                                send("ex.getMessage()");
-                                LOGGER.log(Level.SEVERE, null, ex);
-                            }
-                            break;
+                            sendImage(mImageManager.getRandomImage());
+                        } catch (NullPointerException | SQLException ex) {
+                            send("ex.getMessage()");
+                            LOGGER.log(Level.SEVERE, null, ex);
+                        }
+                        break;
 
                         case REGISTER:
                             if (!mRegistredFrames.contains(this)) {

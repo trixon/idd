@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2018 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -70,6 +71,8 @@ public class Main {
             } else {
                 String filename = commandLine.getArgs().length > 0 ? commandLine.getArgs()[0] : null;
                 if (mConfig.load(filename)) {
+                    LOGGER.info(Db.getInstance().getConnString());
+                    org.h2.tools.Server.createTcpServer("-tcpAllowOthers").start();
                     if (Db.getInstance().getAutoCommitConnection() == null) {
                         LOGGER.info("Shutting down");
                         System.exit(1);
@@ -90,7 +93,7 @@ public class Main {
                             }
                         });
 
-                        ImageServer imageServer = new ImageServer();
+                        ImageServer.enterLoop();
                         //Unreachable statement
                     }
                 }
@@ -98,6 +101,8 @@ public class Main {
         } catch (ParseException ex) {
             System.out.println(ex.getMessage());
             System.out.println(mBundle.getString("parse_help"));
+        } catch (SQLException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

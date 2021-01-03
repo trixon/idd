@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2018 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -138,10 +138,14 @@ public class Db {
                 }
             }
         } catch (ClassNotFoundException | SQLException ex) {
-            LOGGER.severe("Database may be already in use: Possible solutions: close all other connection(s); use the server mode [90020-196]");
+            LOGGER.severe(ex.getMessage());
         }
 
         return mAutoCommitConnection;
+    }
+
+    public String getConnString() {
+        return mConnString;
     }
 
     public Connection getConnection() {
