@@ -16,7 +16,6 @@
 package se.trixon.idd;
 
 import java.awt.Dimension;
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +32,7 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.h2.store.fs.FileUtils;
 import se.trixon.almond.util.ImageScaler;
 import se.trixon.almond.util.SystemHelper;
 import se.trixon.idd.db.Db;
@@ -72,7 +72,7 @@ class ImageServer {
 //        System.exit(0);
         while (true) {
             try {
-                Socket socket = mServerSocket.accept();
+                var socket = mServerSocket.accept();
                 ClientThread clientThread = new ClientThread(socket);
                 mClientThreads.add(clientThread);
                 clientThread.start();
@@ -103,13 +103,16 @@ class ImageServer {
         String path = frameImage.getPath();
 
         if (mConfig.getCacheDirectory() != null) {
-            File cacheFile = new File(mConfig.getCacheDirectory(), frameImage.getUniqueHash());
+            if (!mConfig.getCacheDirectory().isDirectory()) {
+                FileUtils.createDirectories(mConfig.getCacheDirectory().getAbsolutePath());
+            }
+            var cacheFile = new File(mConfig.getCacheDirectory(), frameImage.getUniqueHash() + ".jpg");
             if (cacheFile.exists()) {
                 LOGGER.info(String.format("File exists in cache: %s", cacheFile.getAbsolutePath()));
             } else {
                 try {
-                    final File originalFile = new File(frameImage.getPath());
-                    BufferedImage scaledImage = mImageScaler.getScaledImage(originalFile, new Dimension(mConfig.getCacheWidth(), mConfig.getCacheHeight()));
+                    var originalFile = new File(frameImage.getPath());
+                    var scaledImage = mImageScaler.getScaledImage(originalFile, new Dimension(mConfig.getCacheWidth(), mConfig.getCacheHeight()));
                     ImageIO.write(scaledImage, "jpeg", cacheFile);
                     path = cacheFile.getAbsolutePath();
                     LOGGER.info(String.format("File cache generated: %s", cacheFile.getAbsolutePath()));
