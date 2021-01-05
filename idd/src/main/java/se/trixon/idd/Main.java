@@ -22,8 +22,6 @@ import java.sql.SQLException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
@@ -58,8 +56,8 @@ public class Main {
         initOptions();
 
         try {
-            CommandLineParser commandLineParser = new DefaultParser();
-            CommandLine commandLine = commandLineParser.parse(mOptions, args);
+            var commandLineParser = new DefaultParser();
+            var commandLine = commandLineParser.parse(mOptions, args);
             mConfig.setVerbose(commandLine.hasOption(IddHelper.OPT_VERBOSE));
 
             if (commandLine.hasOption(IddHelper.OPT_HELP)) {
@@ -72,26 +70,23 @@ public class Main {
                 String filename = commandLine.getArgs().length > 0 ? commandLine.getArgs()[0] : null;
                 if (mConfig.load(filename)) {
                     LOGGER.info(Db.getInstance().getConnString());
-                    org.h2.tools.Server.createTcpServer("-tcpAllowOthers").start();
+                    org.h2.tools.Server.createTcpServer("-tcpAllowOthers", "-ifNotExists").start();
                     if (Db.getInstance().getAutoCommitConnection() == null) {
                         LOGGER.info("Shutting down");
                         System.exit(1);
                     } else {
-                        Runtime.getRuntime().addShutdownHook(new Thread() {
-                            @Override
-                            public void run() {
-                                try {
-                                    Db.getInstance().getConnection().close();
-                                } catch (NullPointerException | SQLException ex) {
-                                    //nvm
-                                }
-                                try {
-                                    Db.getInstance().getAutoCommitConnection().close();
-                                } catch (NullPointerException | SQLException ex) {
-                                    //nvm
-                                }
+                        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                            try {
+                                Db.getInstance().getConnection().close();
+                            } catch (NullPointerException | SQLException ex) {
+                                //nvm
                             }
-                        });
+                            try {
+                                Db.getInstance().getAutoCommitConnection().close();
+                            } catch (NullPointerException | SQLException ex) {
+                                //nvm
+                            }
+                        }));
 
                         ImageServer.enterLoop();
                         //Unreachable statement
@@ -107,17 +102,17 @@ public class Main {
     }
 
     private void displayHelp() {
-        PrintStream defaultStdOut = System.out;
-        StringBuilder sb = new StringBuilder().append(mBundle.getString("usage")).append("\n\n");
+        var defaultStdOut = System.out;
+        var sb = new StringBuilder().append(mBundle.getString("usage")).append("\n\n");
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(baos);
+        var baos = new ByteArrayOutputStream();
+        var ps = new PrintStream(baos);
         System.setOut(ps);
 
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.setWidth(79);
-        formatter.setOptionComparator(null);
-        formatter.printHelp("xxx", mOptions, false);
+        var helpFormatter = new HelpFormatter();
+        helpFormatter.setWidth(79);
+        helpFormatter.setOptionComparator(null);
+        helpFormatter.printHelp("xxx", mOptions, false);
         System.out.flush();
         System.setOut(defaultStdOut);
         sb.append(baos.toString().replace("usage: xxx" + System.lineSeparator(), "")).append("\n")
@@ -131,25 +126,25 @@ public class Main {
     }
 
     private void initOptions() {
-        Option help = Option.builder("h")
+        var helpOption = Option.builder("h")
                 .longOpt(IddHelper.OPT_HELP)
                 .desc(mBundleLib.getString("opt_help_desc"))
                 .build();
 
-        Option version = Option.builder("v")
+        var versionOption = Option.builder("v")
                 .longOpt(IddHelper.OPT_VERSION)
                 .desc(mBundleLib.getString("opt_version_desc"))
                 .build();
 
-        Option verbose = Option.builder("v")
+        var verboseOption = Option.builder("v")
                 .longOpt(IddHelper.OPT_VERBOSE)
                 .desc(mBundleLib.getString("opt_verbose_desc"))
                 .build();
 
         mOptions = new Options();
 
-//        mOptions.addOption(verbose);
-        mOptions.addOption(help);
-        mOptions.addOption(version);
+//        mOptions.addOption(verboseOption);
+        mOptions.addOption(helpOption);
+        mOptions.addOption(versionOption);
     }
 }
