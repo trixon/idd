@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Patrik Karlström.
+ * Copyright 2021 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,10 +80,7 @@ public class Main extends Application {
     private Stage mStage;
 
     /**
-     * The main() method is ignored in correctly deployed JavaFX application.
-     * main() serves only as fallback in case the application can not be
-     * launched through deployment artifacts, e.g., in IDEs with limited FX
-     * support. NetBeans ignores main().
+     * The main() method is ignored in correctly deployed JavaFX application. main() serves only as fallback in case the application can not be launched through deployment artifacts, e.g., in IDEs with limited FX support. NetBeans ignores main().
      *
      * @param args the command line arguments
      */
@@ -369,7 +366,7 @@ public class Main extends Application {
         alert.setContentText("A basic implementation of an\n"
                 + "image displayer daemon frame.\n\n"
                 + "Licensed under the Apache License, Version 2.0\n"
-                + "Copyright 2018 Patrik Karlström");
+                + "Copyright 2021 Patrik Karlström");
 
         FxHelper.showAndWait(alert, mStage);
     }

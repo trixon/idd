@@ -103,5 +103,6 @@
     </dependencies>
     <properties>
         <netbeans.version>RELEASE120</netbeans.version>
+        <netbeans.hint.license>apache20</netbeans.hint.license>
     </properties>
 </project>
