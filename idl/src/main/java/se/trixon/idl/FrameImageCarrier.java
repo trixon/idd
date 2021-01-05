@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2018 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,14 +23,14 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.embed.swing.SwingFXUtils;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import se.trixon.almond.util.GraphicsHelper;
 
@@ -86,7 +86,7 @@ public class FrameImageCarrier {
     }
 
     public byte[] getByteArray() {
-        return Base64.decodeBase64(mBase64);
+        return Base64.getDecoder().decode(mBase64);
     }
 
     public FrameImage getFrameImage() {
@@ -127,13 +127,11 @@ public class FrameImageCarrier {
 
     public boolean hasValidMd5() {
         String md5 = null;
-        ByteArrayInputStream inputStream = getInputStream();
 
         try {
-            md5 = DigestUtils.md5Hex(inputStream);
-            inputStream.close();
+            md5 = IddHelper.getMd5(IOUtils.toByteArray(getInputStream()));
         } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+            Logger.getLogger(FrameImageCarrier.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return StringUtils.equalsIgnoreCase(md5, getMd5());
@@ -159,7 +157,7 @@ public class FrameImageCarrier {
 
     public void setBase64FromPath(String path) {
         try {
-            mBase64 = Base64.encodeBase64String(FileUtils.readFileToByteArray(new File(path)));
+            mBase64 = Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(new File(path)));
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }

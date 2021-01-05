@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2018 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,15 +16,16 @@
 package se.trixon.idl;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
+import se.trixon.almond.util.StringHelper;
 import se.trixon.almond.util.SystemHelper;
 
 /**
@@ -48,6 +49,7 @@ public class IddHelper {
 
     private static final Logger LOGGER = Logger.getLogger(IddHelper.class.getName());
     private static final ResourceBundle sBundle = SystemHelper.getBundle(IddHelper.class, "Bundle");
+    private static MessageDigest sMessageDigest;
 
     static {
         if (!System.getProperties().containsKey("java.util.logging.SimpleFormatter.format")) {
@@ -55,6 +57,13 @@ public class IddHelper {
                     + "                         "
                     + "[%4$s] %2$s%n");
         }
+
+        try {
+            sMessageDigest = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(IddHelper.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
     public static void exit() {
@@ -71,18 +80,23 @@ public class IddHelper {
 
     public static String getMd5(File file) {
         String md5 = null;
-        FileInputStream fileInputStream;
+
         try {
-            fileInputStream = new FileInputStream(file);
-            md5 = DigestUtils.md5Hex(fileInputStream);
-            fileInputStream.close();
-        } catch (FileNotFoundException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+            md5 = getMd5(FileUtils.readFileToByteArray(file));
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
 
         return md5;
+    }
+
+    public static String getMd5(byte[] bytes) {
+        return StringHelper.bytesToHex(sMessageDigest.digest(bytes));
+    }
+
+    public static void main(String[] args) throws IOException {
+        System.out.println(getMd5(new File("/home/patrik/translation.properties")));
+        System.out.println(getMd5(new File("/home/patrik/translation.properties")));
     }
 
     public static String millisToDateTime(long timestamp) {
