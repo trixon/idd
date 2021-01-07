@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2021 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,16 +50,14 @@ public class FrameImageCarrier {
     @SerializedName("base64")
     private String mBase64;
     @SerializedName("frame_image")
-    private se.trixon.idl.FrameImage mFrameImage;
+    private FrameImage mFrameImage;
     @SerializedName("md5")
     private String mMd5;
     @SerializedName("path")
     private String mPath;
 
     public static FrameImageCarrier fromJson(String json) throws IOException, JsonSyntaxException {
-        FrameImageCarrier descriptor = GSON.fromJson(json, FrameImageCarrier.class);
-
-        return descriptor;
+        return GSON.fromJson(json, FrameImageCarrier.class);
     }
 
     public FrameImageCarrier() {
@@ -80,7 +78,7 @@ public class FrameImageCarrier {
         try {
             return ImageIO.read(getInputStream());
         } catch (IOException ex) {
-            Logger.getLogger(FrameImageCarrier.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
             return null;
         }
     }
@@ -131,7 +129,7 @@ public class FrameImageCarrier {
         try {
             md5 = IddHelper.getMd5(IOUtils.toByteArray(getInputStream()));
         } catch (IOException ex) {
-            Logger.getLogger(FrameImageCarrier.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
 
         return StringUtils.equalsIgnoreCase(md5, getMd5());

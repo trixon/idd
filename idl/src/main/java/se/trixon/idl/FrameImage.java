@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2021 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@ package se.trixon.idl;
 
 import com.google.gson.annotations.SerializedName;
 import java.sql.Timestamp;
+import org.apache.commons.lang3.ObjectUtils;
 
 /**
  *
@@ -260,15 +261,17 @@ public class FrameImage {
         }
 
         public boolean hasData() {
-            return mColorDepth != null
-                    || mColorModel != null
-                    || mCreationDate != null
-                    || mDigitizationDate != null
-                    || mFormat != null
-                    || mHeigth != null
-                    || mOrientation != null
-                    || mRating != null
-                    || mWidth != null;
+            return ObjectUtils.anyNotNull(
+                    mColorDepth,
+                    mColorModel,
+                    mCreationDate,
+                    mDigitizationDate,
+                    mFormat,
+                    mHeigth,
+                    mOrientation,
+                    mRating,
+                    mWidth
+            );
         }
 
         public void setColorDepth(Integer colorDepth) {
@@ -282,7 +285,7 @@ public class FrameImage {
         public void setCreationDate(Long millis) {
             if (millis != null) {
                 mCreationDate = new Timestamp(millis);
-                mCreationDateMillis = millis.longValue();
+                mCreationDateMillis = millis;
             } else {
                 mCreationDate = null;
                 mCreationDateMillis = null;
@@ -301,7 +304,7 @@ public class FrameImage {
         public void setDigitizationDate(Long millis) {
             if (millis != null) {
                 mDigitizationDate = new Timestamp(millis);
-                mDigitizationDateMillis = millis.longValue();
+                mDigitizationDateMillis = millis;
             } else {
                 mDigitizationDate = null;
                 mDigitizationDateMillis = null;
@@ -470,22 +473,24 @@ public class FrameImage {
         }
 
         public boolean hasData() {
-            return mMake != null
-                    || mModel != null
-                    || mLens != null
-                    || mAperture != null
-                    || mFocalLength != null
-                    || mFocalLength35 != null
-                    || mExposureTime != null
-                    || mExposureProgram != null
-                    || mExposureMode != null
-                    || mSensitivity != null
-                    || mFlash != null
-                    || mWhiteBalance != null
-                    || mWhiteBalanceColorTemperature != null
-                    || mMeteringMode != null
-                    || mSubjectDistance != null
-                    || mSubjectDistanceCategory != null;
+            return ObjectUtils.anyNotNull(
+                    mMake,
+                    mModel,
+                    mLens,
+                    mAperture,
+                    mFocalLength,
+                    mFocalLength35,
+                    mExposureTime,
+                    mExposureProgram,
+                    mExposureMode,
+                    mSensitivity,
+                    mFlash,
+                    mWhiteBalance,
+                    mWhiteBalanceColorTemperature,
+                    mMeteringMode,
+                    mSubjectDistance,
+                    mSubjectDistanceCategory
+            );
         }
 
         public void setAperture(Double aperture) {
@@ -654,16 +659,18 @@ public class FrameImage {
         }
 
         public boolean hasData() {
-            return mAccuracy != null
-                    || mAltitude != null
-                    || mDescription != null
-                    || mLatitude != null
-                    || mLatitudeNumber != null
-                    || mLongitude != null
-                    || mLongitudeNumber != null
-                    || mOrientation != null
-                    || mRoll != null
-                    || mTilt != null;
+            return ObjectUtils.anyNotNull(
+                    mAccuracy,
+                    mAltitude,
+                    mDescription,
+                    mLatitude,
+                    mLatitudeNumber,
+                    mLongitude,
+                    mLongitudeNumber,
+                    mOrientation,
+                    mRoll,
+                    mTilt
+            );
         }
 
         public void setAccuracy(Double accuracy) {

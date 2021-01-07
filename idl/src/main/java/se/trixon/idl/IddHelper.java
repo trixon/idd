@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2021 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,6 +50,7 @@ public class IddHelper {
     private static final Logger LOGGER = Logger.getLogger(IddHelper.class.getName());
     private static final ResourceBundle sBundle = SystemHelper.getBundle(IddHelper.class, "Bundle");
     private static MessageDigest sMessageDigest;
+    private static final SimpleDateFormat sSimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss");
 
     static {
         if (!System.getProperties().containsKey("java.util.logging.SimpleFormatter.format")) {
@@ -61,7 +62,7 @@ public class IddHelper {
         try {
             sMessageDigest = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(IddHelper.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
 
     }
@@ -94,14 +95,8 @@ public class IddHelper {
         return StringHelper.bytesToHex(sMessageDigest.digest(bytes));
     }
 
-    public static void main(String[] args) throws IOException {
-        System.out.println(getMd5(new File("/home/patrik/translation.properties")));
-        System.out.println(getMd5(new File("/home/patrik/translation.properties")));
-    }
-
     public static String millisToDateTime(long timestamp) {
-        Date date = new Date(timestamp);
-        return new SimpleDateFormat("yyyy-MM-dd HH.mm.ss").format(date);
+        return sSimpleDateFormat.format(new Date(timestamp));
     }
 
     public static String nowToDateTime() {

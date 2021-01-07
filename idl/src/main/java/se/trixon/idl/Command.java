@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2021 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ public enum Command {
      */
     CLOSE,
     /**
-     * Add this client as an image broadcast listener.
+     * Remove this client as an image broadcast listener.
      */
     DEREGISTER,
     /**
@@ -56,13 +56,11 @@ public enum Command {
      */
     STATS,
     /**
-     * Updates the music database: find new files, remove deleted files, update modified files.
+     * Updates the image database: find new files, remove deleted files, update modified files.
      *
-     * URI is a particular directory or song/file to update. If you do not specify it, everything is
-     * updated.
+     * URI is a particular directory or song/file to update. If you do not specify it, everything is updated.
      *
-     * Prints "updating_db: JOBID" where JOBID is a positive number identifying the update job. You
-     * can read the current job id in the status response.
+     * Prints "updating_db: JOBID" where JOBID is a positive number identifying the update job. You can read the current job id in the status response.
      */
     UPDATE,
     /**
@@ -72,7 +70,7 @@ public enum Command {
     private static final SortedSet<String> sSet = new TreeSet<>();
 
     static {
-        for (Command command : Command.values()) {
+        for (var command : Command.values()) {
             sSet.add(command.name());
         }
     }
