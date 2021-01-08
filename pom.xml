@@ -39,7 +39,6 @@
         <module>idd</module>
         <module>idl</module>
         <module>idf</module>
-        <module>idxf</module>
         <module>idr</module>
         <module>idnb</module>
     </modules>

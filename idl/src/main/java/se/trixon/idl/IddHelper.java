@@ -37,8 +37,8 @@ public class IddHelper {
     public static final int DEFAULT_PORT = 5705;
     public static final String FRAME_IMAGE_BEG = "::FRAME_IMAGE_BEG::";
     public static final String FRAME_IMAGE_END = "::FRAME_IMAGE_END::";
-    public static final String OPT_COMMAND = "command";
-    public static final String OPT_COMMAND_ONCE = "start-once";
+    public static final String OPT_EXT_VIEW_REPEAT = "ext-view-repeat";
+    public static final String OPT_EXT_VIEW_SINGLE = "ext-view-single";
     public static final String OPT_HELP = "help";
     public static final String OPT_HOST = "host";
     public static final String OPT_PORT = "port";

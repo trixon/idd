@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2021 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +22,6 @@ import java.net.MalformedURLException;
 import java.net.SocketException;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
@@ -56,8 +54,8 @@ public class Main {
         initOptions();
 
         try {
-            CommandLineParser commandLineParser = new DefaultParser();
-            CommandLine commandLine = commandLineParser.parse(mOptions, args);
+            var commandLineParser = new DefaultParser();
+            var commandLine = commandLineParser.parse(mOptions, args);
 
             if (commandLine.hasOption(IddHelper.OPT_HELP)) {
                 displayHelp();
@@ -67,9 +65,16 @@ public class Main {
                 System.exit(0);
             } else {
                 try {
-                    Idc idc = new Idc(commandLine);
-                    if (!commandLine.hasOption(IddHelper.OPT_WAIT)) {
+                    if (commandLine.hasOption(IddHelper.OPT_EXT_VIEW_SINGLE) && commandLine.hasOption(IddHelper.OPT_EXT_VIEW_REPEAT)) {
+                        System.err.println(mBundleLib.getString("invalid_argument"));
                         System.exit(0);
+                    } else if (commandLine.hasOption(IddHelper.OPT_EXT_VIEW_SINGLE) || commandLine.hasOption(IddHelper.OPT_EXT_VIEW_REPEAT)) {
+                        new ExternalViewerClient(commandLine);
+                    } else {
+                        Idc idc = new Idc(commandLine);
+                        if (!commandLine.hasOption(IddHelper.OPT_WAIT)) {
+                            System.exit(0);
+                        }
                     }
                 } catch (MalformedURLException | SocketException ex) {
                     //LOGGER.log(Level.SEVERE, null, ex);
@@ -87,17 +92,17 @@ public class Main {
     }
 
     private void displayHelp() {
-        PrintStream defaultStdOut = System.out;
-        StringBuilder sb = new StringBuilder().append(mBundle.getString("usage")).append("\n\n");
+        var defaultStdOut = System.out;
+        var sb = new StringBuilder().append(mBundle.getString("usage")).append("\n\n");
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(baos);
+        var baos = new ByteArrayOutputStream();
+        var ps = new PrintStream(baos);
         System.setOut(ps);
 
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.setWidth(79);
-        formatter.setOptionComparator(null);
-        formatter.printHelp("xxx", mOptions, false);
+        var helpFormatter = new HelpFormatter();
+        helpFormatter.setWidth(79);
+        helpFormatter.setOptionComparator(null);
+        helpFormatter.printHelp("xxx", mOptions, false);
         System.out.flush();
         System.setOut(defaultStdOut);
         sb.append(baos.toString().replace("usage: xxx" + System.lineSeparator(), "")).append("\n")
@@ -111,42 +116,55 @@ public class Main {
     }
 
     private void initOptions() {
-        String hostString = Dict.HOST.toString().toLowerCase();
-        String portString = Dict.PORT.toString().toLowerCase();
-
-        Option help = Option.builder("?")
+        var helpOption = Option.builder("?")
                 .longOpt(IddHelper.OPT_HELP)
                 .desc(mBundleLib.getString("opt_help_desc"))
                 .build();
 
-        Option version = Option.builder("v")
+        var versionOption = Option.builder("v")
                 .longOpt(IddHelper.OPT_VERSION)
                 .desc(mBundleLib.getString("opt_version_desc"))
                 .build();
 
-        Option host = Option.builder("h")
+        var hostOption = Option.builder("h")
                 .longOpt(IddHelper.OPT_HOST)
-                .argName(hostString)
+                .argName(Dict.HOST.toString().toLowerCase())
                 .hasArg(true)
                 .desc(mBundleLib.getString("opt_host_desc"))
                 .build();
 
-        Option portHost = Option.builder("p")
+        var portOption = Option.builder("p")
                 .longOpt(IddHelper.OPT_PORT)
-                .argName(portString)
+                .argName(Dict.PORT.toString().toLowerCase())
                 .hasArg(true)
                 .desc(mBundleLib.getString("opt_port_desc"))
                 .build();
 
-        Option wait = Option.builder("w")
+        var waitOption = Option.builder("w")
                 .longOpt(IddHelper.OPT_WAIT)
                 .desc(mBundleLib.getString("opt_wait_desc")).build();
 
+        var extViewRepeatOption = Option.builder("xvr")
+                .longOpt(IddHelper.OPT_EXT_VIEW_REPEAT)
+                .argName(Dict.COMMAND.toString().toLowerCase())
+                .hasArg(true)
+                .desc(mBundleLib.getString("opt_ext_view_repeat_desc"))
+                .build();
+
+        var extViewSingleOption = Option.builder("xvs")
+                .longOpt(IddHelper.OPT_EXT_VIEW_SINGLE)
+                .argName(Dict.COMMAND.toString().toLowerCase())
+                .hasArg(true)
+                .desc(mBundleLib.getString("opt_ext_view_single_desc"))
+                .build();
+
         mOptions = new Options();
-        mOptions.addOption(host);
-        mOptions.addOption(portHost);
-        mOptions.addOption(wait);
-        mOptions.addOption(help);
-        mOptions.addOption(version);
+        mOptions.addOption(hostOption);
+        mOptions.addOption(portOption);
+        mOptions.addOption(waitOption);
+        mOptions.addOption(extViewRepeatOption);
+        mOptions.addOption(extViewSingleOption);
+        mOptions.addOption(helpOption);
+        mOptions.addOption(versionOption);
     }
 }

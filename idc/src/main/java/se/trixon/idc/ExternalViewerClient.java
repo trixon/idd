@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2021 Patrik Karlström.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.trixon.idxf;
+package se.trixon.idc;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,9 +33,9 @@ import se.trixon.idl.client.ClientListener;
  *
  * @author Patrik Karlström
  */
-public class Idxf implements ClientListener {
+public class ExternalViewerClient implements ClientListener {
 
-    private static final Logger LOGGER = Logger.getLogger(Idxf.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ExternalViewerClient.class.getName());
 
     private final Client mClient;
     private final ArrayList<String> mCommand;
@@ -44,17 +44,24 @@ public class Idxf implements ClientListener {
     private final ProcessBuilder mProcessBuilder;
     private final boolean mStartOnce;
 
-    public Idxf(CommandLine cmd) throws MalformedURLException, SocketException, IOException {
-        mClient = new Client(cmd.getOptionValue(IddHelper.OPT_HOST), cmd.getOptionValue(IddHelper.OPT_PORT));
+    public ExternalViewerClient(CommandLine commandLine) throws MalformedURLException, SocketException, IOException {
+        mClient = new Client(commandLine.getOptionValue(IddHelper.OPT_HOST), commandLine.getOptionValue(IddHelper.OPT_PORT));
         mClient.addClientListener(this);
         mClient.connect();
         mClient.register();
 
-        mStartOnce = cmd.hasOption(IddHelper.OPT_COMMAND_ONCE);
+        mStartOnce = commandLine.hasOption(IddHelper.OPT_EXT_VIEW_SINGLE);
         mFile = File.createTempFile("idfb", null);
         mFile.deleteOnExit();
 
-        mCommand = new ArrayList(Arrays.asList(cmd.getOptionValue(IddHelper.OPT_COMMAND).split("\\s")));
+        String extCommand;
+        if (commandLine.hasOption(IddHelper.OPT_EXT_VIEW_SINGLE)) {
+            extCommand = commandLine.getOptionValue(IddHelper.OPT_EXT_VIEW_SINGLE);
+        } else {
+            extCommand = commandLine.getOptionValue(IddHelper.OPT_EXT_VIEW_REPEAT);
+        }
+
+        mCommand = new ArrayList(Arrays.asList(extCommand.split("\\s")));
         mCommand.add(mFile.getAbsolutePath());
 
         System.out.println("command:");
@@ -97,7 +104,7 @@ public class Idxf implements ClientListener {
                 mCurrentProcess = mProcessBuilder.start();
             }
         } catch (IOException ex) {
-            Logger.getLogger(Idxf.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
