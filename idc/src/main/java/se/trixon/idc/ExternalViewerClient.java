@@ -61,7 +61,7 @@ public class ExternalViewerClient implements ClientListener {
             extCommand = commandLine.getOptionValue(IddHelper.OPT_EXT_VIEW_REPEAT);
         }
 
-        mCommand = new ArrayList(Arrays.asList(extCommand.split("\\s")));
+        mCommand = new ArrayList<>(Arrays.asList(extCommand.split("\\s")));
         mCommand.add(mFile.getAbsolutePath());
 
         System.out.println("command:");
