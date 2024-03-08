@@ -15,7 +15,7 @@
             <plugin>
                 <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
-                <version>4.5</version>
+                <version>14.0</version>
                 <extensions>true</extensions>
             </plugin>
             <plugin>
@@ -102,7 +102,7 @@
         <!--Other-->
     </dependencies>
     <properties>
-        <netbeans.version>RELEASE120</netbeans.version>
+        <netbeans.version>RELEASE210</netbeans.version>
         <netbeans.hint.license>apache20</netbeans.hint.license>
     </properties>
 </project>
